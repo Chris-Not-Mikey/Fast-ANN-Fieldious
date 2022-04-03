@@ -9,6 +9,7 @@ from sklearn.decomposition import PCA
 import cv2
 import heapq
 import itertools
+import tensorflow as tf
 
 
 ################################################################
@@ -20,6 +21,24 @@ import itertools
 # Mainters: Chris Calloway, cmc2734@stanford.edu
 #           Jake Ke, jakeke@stanford.edu
 ################################################################
+
+
+
+# Following two functions  based on https://stackoverflow.com/a/51785735/278836
+def custom_extract_patches(images):
+    return tf.image.extract_patches(
+        images,
+        (1, 5, 5, 1),
+        (1, 1, 1, 1),
+        (1, 1, 1, 1),
+        padding="VALID")
+
+@tf.function
+def extract_patches_inverse(shape, patches):
+    _x = tf.zeros(shape)
+    _y = custom_extract_patches(_x)
+    grad = tf.gradients(_y, _x)[0]
+    return tf.gradients(_y, _x, grad_ys=patches)[0] / grad
 
 
 
@@ -85,6 +104,8 @@ def _search_node(point, k, results, get_dist, counter, tree):
         if tree.right is not None:
             _search_node(point, k, results, get_dist, counter,tree.right)
 
+
+    # REMOVED: We will not implment the following in RTL (it slightly improves results, but is not in the original paper, and will complicate implementation)
     # Search the other side of the splitting plane if it may contain
     # # points closer than the farthest point in the current results.
     # if -plane_dist2 > results[0][0] or len(results) < k:
@@ -96,8 +117,6 @@ def _search_node(point, k, results, get_dist, counter, tree):
     #         if tree.left is not None:
     #             _search_node(point, k, results, get_dist,
     #                                     counter, tree.left)
-
-
 
 
 
@@ -193,6 +212,11 @@ def compute_all_distances_non_median(candidate, point):
 
      
         best_five = sorted(best_five)
+
+
+        current_dist = 0
+        for i in data.data:
+            current_dist =  current_dist + numpy.linalg.norm(i - point2)
 
         current_dist = compute_distance_non_median(cand[2], point)
 
@@ -516,6 +540,18 @@ def _apply_pca(patches, _pca_model):
     return patches_reduced
 
 
+def _apply_inverse_pca(patches_reduced, _pca_model):
+
+    patches = _pca_model.inverse_transform(patches_reduced)
+
+    #patches_reduced = _pca_model.transform(patches).astype(numpy.float32)
+
+    if True > 0:
+        print("Patches for un-reduced image: {}".format(patches.shape))
+
+    return patches
+
+
 
 
 if __name__ == "__main__":
@@ -526,15 +562,19 @@ if __name__ == "__main__":
     image_a = cv2.imread("flow1smallest.png")
     image_b = cv2.imread("flow6smallest.png")
 
+    reconstruct_file_name = "flow1smallest_recontruct.png"
+
 
     #Image Dimensions
     im_height = image_a.shape[1]
     im_width = image_a.shape[0]
+    print(im_height)
 
     #row_size = 56 #Row Size = (h-p+1)
 
 
     row_size = image_a.shape[1] - psize + 1
+ 
     col_size = image_a.shape[0] - psize + 1
 
     # (1) fit pca model (on subset of the data)
@@ -556,15 +596,16 @@ if __name__ == "__main__":
 
     print(patches_b_reduced.shape)
 
+    max_patches = patches_b_reduced.shape[0]
+
     inf_list = [float("inf"),float("inf"),float("inf"),float("inf"),float("inf")]
     inf_array = numpy.array([inf_list])
     print(inf_array.shape)
 
-    patches_b_reduced = numpy.append(patches_b_reduced, inf_array, axis=0 )
-    patches_b_reduced = numpy.append(patches_b_reduced, inf_array, axis=0 )
-    patches_b_reduced = numpy.append(patches_b_reduced, inf_array, axis=0 )
-    patches_b_reduced = numpy.append(patches_b_reduced, inf_array, axis=0 )
-    
+
+    while (patches_b_reduced.shape[0]%5 != 0):
+
+        patches_b_reduced = numpy.append(patches_b_reduced, inf_array, axis=0 )
 
     #Split into groups of 5 to create the KD Tree
     split_num = patches_b_reduced.shape[0]/psize
@@ -720,12 +761,12 @@ if __name__ == "__main__":
    
     for patchA3 in patches_a_reduced:
 
-        if row_idx_counter >= 2296:
+        if row_idx_counter >= max_patches:
             break
 
 
         # Look at candidates in the row above
-        candidates = row_storage[(row_idx_counter%56)]
+        candidates = row_storage[(row_idx_counter%row_size)]
 
         # Add candidates from top to bottom traversal  on current row/index
         for t in range(psize):
@@ -748,23 +789,36 @@ if __name__ == "__main__":
         nn_full_distances.append(best_dist)
 
         # Put best 5 as intial guess for the next time
-        row_storage[(row_idx_counter%56)] = best_five
+        row_storage[(row_idx_counter%row_size)] = best_five
         
         row_idx_counter = row_idx_counter + 1
        
 
 
         
-    #Compute final score
+    # Compute final score
     patches_a_reconst = patches_b[nn_full_indices]
     diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
     l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
     print("Overall Full Traversal + Process Rows L2 score: {}".format(l2))
-        
-    
 
-    
 
+    # Reconstruct Image (For Visual Debugging. The L2 score should effectively describe this same result )
+    # Note since patches_a_reconst was made by index, inverse PCA is NOT required 
+
+    recontruct_shape = (1, im_width, im_height, 3)
+
+    patches_a_reconst_format = [patches_a_reconst]
+
+    patches_a_reconst_format = tf.cast(patches_a_reconst_format, tf.float32)
+    images_reconstructed = extract_patches_inverse(recontruct_shape, patches_a_reconst_format)
+    #error = tf.reduce_mean(tf.math.squared_difference(images_reconstructed, images))
+    #print(error)
+
+    #Write the reconstructed image
+    print("Writing reconstructed image to")
+    print(reconstruct_file_name)
+    cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))
 
     
 

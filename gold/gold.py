@@ -7,6 +7,8 @@ import collections
 from sklearn.feature_extraction import image
 from sklearn.decomposition import PCA
 import cv2
+import heapq
+import itertools
 
 
 ################################################################
@@ -19,10 +21,85 @@ import cv2
 #           Jake Ke, jakeke@stanford.edu
 ################################################################
 
-def max_spread_median(axis):
 
 
-    return 
+def search_knn_custom(point, k, tree, dist=None):
+        """ Return the k nearest neighbors of point and their distances
+        point must be an actual point, not a node.
+        k is the number of results to return. The actual results can be less
+        (if there aren't more nodes to return) or more in case of equal
+        distances.
+        dist is a distance function, expecting two points and returning a
+        distance value. Distance values can be any comparable type.
+        The result is an ordered list of (node, distance) tuples.
+        """
+
+        if k < 1:
+            raise ValueError("k must be greater than 0.")
+
+        if dist is None:
+            get_dist = lambda n: n.dist(point)
+        else:
+            get_dist = lambda n: dist(n.data, point)
+
+        results = []
+
+        _search_node(point, k, results, get_dist, itertools.count(), tree)
+
+        # We sort the final result by the distance in the tuple
+        # (<KdNode>, distance).
+        return [(node, -d) for d, _, node in sorted(results, reverse=True)]
+
+
+def _search_node(point, k, results, get_dist, counter, tree):
+
+    if not tree:
+        return
+    
+    nodeDist = get_dist(tree)
+
+    # Add current node to the priority queue if it closer than
+    # at least one point in the queue.
+    #
+    # If the heap is at its capacity, we need to check if the
+    # current node is closer than the current farthest node, and if
+    # so, replace it.
+    item = (-nodeDist, next(counter), tree)
+    if len(results) >= k:
+        if -nodeDist > results[0][0]:
+            heapq.heapreplace(results, item)
+    else:
+        heapq.heappush(results, item)
+    # get the splitting plane
+    split_plane = tree.data[tree.axis]
+    # get the squared distance between the point and the splitting plane
+    # (squared since all distances are squared).
+    plane_dist = point[tree.axis] - split_plane
+    plane_dist2 = plane_dist * plane_dist
+
+    # Search the side of the splitting plane that the point is in
+    if point[tree.axis] < split_plane:
+        if tree.left is not None:
+           _search_node(point, k, results, get_dist, counter,  tree.left)
+    else:
+        if tree.right is not None:
+            _search_node(point, k, results, get_dist, counter,tree.right)
+
+    # Search the other side of the splitting plane if it may contain
+    # # points closer than the farthest point in the current results.
+    # if -plane_dist2 > results[0][0] or len(results) < k:
+    #     if point[tree.axis] < tree.data[tree.axis]:
+    #         if tree.right is not None:
+    #             _search_node(point, k, results, get_dist,
+    #                                     counter, tree.right)
+    #     else:
+    #         if tree.left is not None:
+    #             _search_node(point, k, results, get_dist,
+    #                                     counter, tree.left)
+
+
+
+
 
 def compute_distance(data, point):
     dist = 0
@@ -538,7 +615,7 @@ if __name__ == "__main__":
 
         nn_best_dists = []
 
-        result = tree.search_knn(patchA, k=5, dist=compute_distance) #TODO: use custom search knn instead
+        result = search_knn_custom(patchA, 5, tree, dist=compute_distance) #TODO: use custom search knn instead
         index = psize*(result[0][0].data.count) + result[0][0].data.best_dim_idx
         distance = result[0][1]
 
@@ -684,18 +761,6 @@ if __name__ == "__main__":
     l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
     print("Overall Full Traversal + Process Rows L2 score: {}".format(l2))
         
-        
-    
-
-
-    
-
-
-  
-        
-    
-
-
     
 
     

@@ -38,7 +38,7 @@ def compute_distance(data, point):
     return dist
 
 
-def compute_all_distances_find_best(data, point):
+def compute_all_distances_find_best(candidate, point):
     dist = 0
 
     data_list = []
@@ -50,16 +50,38 @@ def compute_all_distances_find_best(data, point):
     #dist2 = numpy.linalg.norm(point1 - point2)
     dist = inf
     best_node = None
-    for node in data.data:
+    best_five = []
+    for cand in candidate:
 
-        current_dist = numpy.linalg.norm(node - point2)
+      
+     
+        best_five = sorted(best_five)
+        for node in cand[2].data:
 
-        if current_dist < dist:
-            dist = current_dist
-            best_node = node
+            current_dist = numpy.linalg.norm(numpy.array(node) - point2)
+
+            if len(best_five) < 5:
+            
+                best_five.append([dist, cand[2].data.count, cand[2]])
+                best_five = sorted(best_five)
+
+            else:
+                for comp in best_five:
+
+                    # If calcuated distance is better than one of the current candidates
+                    if current_dist < comp[0]:
+                        best_five = sorted(best_five)
+                        best_five.pop()
+                        best_five.append([current_dist, cand[2].data.count, cand[2]])
+                        best_five = sorted(best_five)
+                        break
+
+            if current_dist < dist:
+                dist = current_dist
+                best_node = cand[2]
+
     
-
-    return dist, best_node
+    return dist, best_node, best_five
 
 
 def preorder(tree):
@@ -332,6 +354,7 @@ if __name__ == "__main__":
 
     print(patches_b_reduced.shape)
 
+    #460 is 
     split = numpy.split(patches_b_reduced, 460)
     #print(split)
     print(numpy.array(split).shape)
@@ -382,14 +405,19 @@ if __name__ == "__main__":
     im_height = 60
     im_width = 45
 
-    row_size = im_height/dim_reduced
+    row_size = 56 #int(im_height/dim_reduced)
 
 
     nn_indices = []
     nn_distances = []
+    nn_nodes = []
+    nn_best_dists = []
+    nn_row_storage = []
 
     # Top to Bottom Traversal
     for patchA in patches_a_reduced:
+
+        nn_best_dists = []
 
         result = tree.search_knn(patchA, k=5, dist=compute_distance)
         index = 5*(result[0][0].data.count) + result[0][0].data.best_dim_idx
@@ -397,6 +425,18 @@ if __name__ == "__main__":
 
         nn_indices.append(index)
         nn_distances.append(distance)
+        nn_nodes.append(result[0][0])
+
+        for j in range(5):
+            
+            nn_best_dists.append([result[j][1], result[j][0].data.count, result[j][0]])
+          
+
+        
+
+        nn_best_dists = sorted(nn_best_dists)
+       
+        nn_row_storage.append(nn_best_dists)
 
 
     patches_a_reconst = patches_b[nn_indices]
@@ -406,69 +446,149 @@ if __name__ == "__main__":
         
 
 
-    #2 If a new leaf was found in step 1, then a brute-force search is performed on that leaf to improve the k candidates. The implementation of this step is similar to the one used for PROCESSROWS, which will be explained in detail next.
-    #NOT FUNCTIONAL YET
-    # TODO: The below needs to be fixed so that it can store the best leaves encounter
+    # #2 If a new leaf was found in step 1, then a brute-force search is performed on that leaf to improve the k candidates. The implementation of this step is similar to the one used for PROCESSROWS, which will be explained in detail next.
+    # #NOT FUNCTIONAL YET
+    # # TODO: The below needs to be fixed so that it can store the best leaves encountered
 
     # # Full (Pre-Order) Traversal of first Row
-    # preorderNodes = list(preorder(tree))
-    # row_idx_counter = 0
+    preorderNodes = list(preorder(tree))
+    row_idx_counter = 0
 
-    # nn_full_indices = []
-    # nn_full_distances = []
-    # row_storage = []
-    # for patchA2 in patches_a_reduced:
+    nn_full_indices = []
+    nn_full_distances = []
+    row_storage = []
+    for patchA2 in patches_a_reduced:
 
-    #     # Only do full traversal on first row (of patch dimensions)
-    #     if row_idx_counter > row_size:
-    #         break
+        # Only do full traversal on first row (of patch dimensions)
+        if row_idx_counter >= row_size:
+            break
         
-    #     row_idx_counter = row_idx_counter + 1
+        
 
-    #     best_dist = inf
-    #     best_idx = 0
-    #     best_leaf = None
-    #     for nodeB in preorderNodes:
+        best_dist = inf
+        best_idx = 0
+        best_dists = []
+        best_idxs = []
+        best_leaves = []
 
-    #         dist = compute_distance(nodeB.data, patchA2)
-    #         if dist < best_dist:
-    #             best_dist = dist
-    #             best_idx = 5*(nodeB.data.count) + nodeB.data.best_dim_idx
-    #             best_leaf = nodeB
+        for j in range(5):
+            best_dists.append(nn_row_storage[row_idx_counter][j])
+            #print(nn_row_storage[row_idx_counter][j])
+        
 
-    #     nn_full_indices.append(best_idx)
-    #     nn_full_distances.append(best_dist)
-    #     row_storage.append(best_leaf)
+        #Determine the best 5 among all the nodes
+        for nodeB in preorderNodes:
+
+            dist = compute_distance(nodeB.data, patchA2)
+
+            # We are looking for the 5 best candidates
+            if len(best_dists) < 5:
+                best_dists.append([dist, nodeB.data.count, nodeB])
+                best_dists = sorted(best_dists)
+
+            else:
+
+                found = False
+                best_dists = sorted(best_dists)
+                for comp in best_dists:
+
+                    # If calcuated distance is better than one of the current candidates
+
+                    if dist < best_dist:
+                        best_dist = dist
+                        best_idx = 5*(nodeB.data.count) + nodeB.data.best_dim_idx
+                        #best_leaf = nodeB
+              
+                    if dist < comp[0] and found == False:
+                        print("here")
+                        print(comp[0])
+                        best_dists.pop()
+                        best_dists.append([dist, nodeB.data.count, nodeB])
+                        best_dists = sorted(best_dists)
+                        found = True
+                        
+       
+        row_idx_counter = row_idx_counter + 1
+
+        best_dists = sorted(best_dists)
+        #print(best_dists)
+        row_storage.append(best_dists)
+
+      
+        nn_full_indices.append(best_idx)
+        print(best_idx)
+        nn_full_distances.append(best_dist)
+     
 
 
-    # # Process Rows on remaning rows
-    # row_idx_counter = 0
-    # for patchA3 in patches_a_reduced:
+    # # Process Rows on remaning rows (Main Algo)
+    #row_idx_counter = 0
+    # here_count = 0
+    print("START ROW INDEX")
+    print(row_idx_counter)
+    print(len(row_storage))
+    for patchA3 in patches_a_reduced:
 
-    #     if row_idx_counter < row_size:
-    #         row_idx_counter = row_idx_counter + 1
-    #         continue
-
-
-    #     #Look at row above
-    #     leaf = row_storage[row_idx_counter-row_size]
-
-    #     dist, best_node = compute_all_distances_find_best(leaf, patchA3)
+        if row_idx_counter >= 2296:
+            break
 
 
+        #Look at candidates in the row above
+        #print(row_idx_counter%56)
+        candidates = row_storage[(row_idx_counter%56)]
+        for t in range(5):
+            candidates.append(nn_row_storage[row_idx_counter][t])
 
+        # print(nn_row_storage[row_idx_counter])
+       
+        
+    
+        dist, best_node, best_five = compute_all_distances_find_best(candidates, patchA3)
+
+
+        new_cands = []
+        # print('best 5')
+        # print(best_five)
+        # print("gap")
+        # print(nn_row_storage[row_idx_counter])
+        
+        for j in range(5):
+            
+            new_cands.append(nn_row_storage[row_idx_counter][j])
+            new_cands.append(best_five[j])
+        
+        
+        # print(row_idx_counter)
+        # print(len(nn_row_storage))
+        # print(nn_row_storage[row_idx_counter][0])
+
+
+        best_dist = dist
+        best_idx = 5*(best_node.data.count) + best_node.data.best_dim_idx
+        nn_full_indices.append(best_idx)
+        #print(best_idx)
+        nn_full_distances.append(best_dist)
+
+        row_storage[(row_idx_counter%56)] = new_cands
+        
+        row_idx_counter = row_idx_counter + 1
        
 
 
         
 
 
-    # patches_a_reconst = patches_b[nn_full_indices]
-    # diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
-    # l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
-    # print("Overall Full Traversal + Process Rows L2 score: {}".format(l2))
+    patches_a_reconst = patches_b[nn_full_indices]
+    diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
+    l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
+    print("Overall Full Traversal + Process Rows L2 score: {}".format(l2))
         
         
+    
+
+
+    
+
     
 
 

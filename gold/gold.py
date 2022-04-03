@@ -9,6 +9,16 @@ from sklearn.decomposition import PCA
 import cv2
 
 
+################################################################
+#                   GOLD.PY
+################################################################
+# A behavior model for Fast ANN Fieldious Hardware accelerator
+#
+# Author: Chris Calloway, cmc2734@stanford.edu
+# Mainters: Chris Calloway, cmc2734@stanford.edu
+#           Jake Ke, jakeke@stanford.edu
+################################################################
+
 def max_spread_median(axis):
 
 
@@ -19,23 +29,121 @@ def compute_distance(data, point):
 
     data_list = []
 
-    # print("Split dimension")
-    #print(data.best_dim_idx)
-    #print(data.best_dim)
-
-    # for i in data:
-    #     data_list.append(i)
-
     point1 = numpy.array(data_list)
     point2 = numpy.array(point)
 
     #dist2 = numpy.linalg.norm(point1 - point2)
     dist = numpy.linalg.norm(data.best_dim - point2)
-    # print("here")
-    # print(dist)
-    # print(dist2)
 
     return dist
+
+def compute_distance_non_median(data, point):
+    dist = 0
+
+    data_list = []
+
+    point1 = numpy.array(data_list)
+    point2 = numpy.array(point)
+
+    #dist2 = numpy.linalg.norm(point1 - point2)
+    dist = 0
+    for i in data.data:
+        dist =  dist + numpy.linalg.norm(i - point2)
+
+    return dist
+
+def compute_all_distances_median(candidate, point):
+
+    dist = 0
+
+    data_list = []
+
+ 
+    point1 = numpy.array(data_list)
+    point2 = numpy.array(point)
+
+    #dist2 = numpy.linalg.norm(point1 - point2)
+    dist = inf
+    best_node = None
+    best_five = []
+    for cand in candidate:
+
+        current_dist = numpy.linalg.norm(cand[2].data.best_dim - point2)
+     
+        best_five = sorted(best_five)
+
+        if len(best_five) < 5:
+        
+            best_five.append([current_dist, cand[2].data.count, cand[2]])
+            best_five = sorted(best_five)
+
+        else:
+            for comp in best_five:
+
+                # If calcuated distance is better than one of the current candidates
+                if current_dist < comp[0]:
+                    best_five = sorted(best_five)
+                    best_five.pop()
+                    best_five.append([current_dist, cand[2].data.count, cand[2]])
+                    best_five = sorted(best_five)
+                    break
+
+        if current_dist < dist:
+            dist = current_dist
+            best_node = cand[2]
+
+    
+    return dist, best_node, best_five
+
+
+
+
+
+def compute_all_distances_non_median(candidate, point):
+    dist = 0
+
+    data_list = []
+
+ 
+    point1 = numpy.array(data_list)
+    point2 = numpy.array(point)
+
+    #dist2 = numpy.linalg.norm(point1 - point2)
+    dist = inf
+    best_node = None
+    best_five = []
+    for cand in candidate:
+
+     
+        best_five = sorted(best_five)
+
+        current_dist = compute_distance_non_median(cand[2], point)
+
+
+        if len(best_five) < 5:
+        
+            best_five.append([dist, cand[2].data.count, cand[2]])
+            best_five = sorted(best_five)
+
+        else:
+            for comp in best_five:
+
+                # If calcuated distance is better than one of the current candidates
+                if current_dist < comp[0]:
+                    best_five = sorted(best_five)
+                    best_five.pop()
+                    best_five.append([current_dist, cand[2].data.count, cand[2]])
+                    best_five = sorted(best_five)
+                    break
+
+        if current_dist < dist:
+            dist = current_dist
+            best_node = cand[2]
+
+    
+    return dist, best_node, best_five
+
+
 
 
 def compute_all_distances_find_best(candidate, point):
@@ -79,6 +187,49 @@ def compute_all_distances_find_best(candidate, point):
             if current_dist < dist:
                 dist = current_dist
                 best_node = cand[2]
+
+    
+    return dist, best_node, best_five
+
+
+def compute_all_distances_find_best_new(candidate, point):
+    dist = 0
+
+    data_list = []
+
+ 
+    point1 = numpy.array(data_list)
+    point2 = numpy.array(point)
+
+    #dist2 = numpy.linalg.norm(point1 - point2)
+    dist = inf
+    best_node = None
+    best_five = []
+    for cand in candidate:
+
+        current_dist = numpy.linalg.norm(cand[2].data.best_dim - point2)
+     
+        best_five = sorted(best_five)
+
+        if len(best_five) < 5:
+        
+            best_five.append([current_dist, cand[2].data.count, cand[2]])
+            best_five = sorted(best_five)
+
+        else:
+            for comp in best_five:
+
+                # If calcuated distance is better than one of the current candidates
+                if current_dist < comp[0]:
+                    best_five = sorted(best_five)
+                    best_five.pop()
+                    best_five.append([current_dist, cand[2].data.count, cand[2]])
+                    best_five = sorted(best_five)
+                    break
+
+        if current_dist < dist:
+            dist = current_dist
+            best_node = cand[2]
 
     
     return dist, best_node, best_five
@@ -130,11 +281,11 @@ def writeLeaf(tree, f):
 
     start_str = "#Start_Node: " + str(tree.data.count) + "\n" 
     end_str = "#End_Node: " + str(tree.data.count) + "\n" 
-    #f.write(start_str)
+    f.write(start_str)
     counter =0
     for patch in tree.data.data:
-        #patch_str = "#Patch: " + str(counter) + "\n"
-        #f.write(patch_str)
+        patch_str = "#Patch: " + str(counter) + "\n"
+        f.write(patch_str)
 
         counter = counter + 1
         for dim in patch:
@@ -142,15 +293,21 @@ def writeLeaf(tree, f):
             dim_str = str(dim) + "\n"
             f.write(dim_str)
   
-    #f.write("#Median\n")
+    f.write("#Median\n")
     median_str = str(tree.data.median_max_spread) + "\n"
     f.write(median_str)
-    #f.write("#Dimension_Index\n")
+
+    f.write("#Index\n")
+    median_str = str(5*tree.data.count) + "\n"
+    f.write(median_str)
+
+
+    f.write("#Dimension_Index\n")
     dim_idx_str = str(tree.data.best_dim_idx) + "\n"
     f.write(dim_idx_str)
 
-    #f.write(end_str)
-    #f.write("#End_Node\n")
+    f.write(end_str)
+    f.write("#End_Node\n")
 
  
 
@@ -229,33 +386,7 @@ class Item(object):
     def __repr__(self):
         return 'Item({}, {}, {}, {},{})'.format(self.data[0], self.data[1], self.data[2],self.data[3],self.data[4] )
 
-# # Now we can add Items to the tree, which look like tuples to it
-# point1 = [0,4,3,1,7]
-# point2 =  [3,4,4,1,7]
-# point3 =  [2,4,5,1,4]
-# point4 =  [4,4,1,1,7]
-# point5 =  [8,4,9,1,2]
 
-# patch1 = [point1,point2,point3, point4,point5]
-# patch2 = [point2,point2,point1, point5,point4]
-# patch3 = [point5,point2,point3, point5,point4]
-
-# first = Item(patch1)
-# second = Item(patch2)
-# third = Item(patch3)
-
-# # Again, from a list of points
-# tree = kdtree.create([first, second, third])
-
-# #  The root node
-# print(tree)
-
-# # ...contains "data" field with an Item, which contains the payload in "data" field
-# #print(tree.data.data)
-
-# # All functions work as intended, a payload is never lost
-# print(tree.search_nn([1, 2,4,5,3]))
-# print(kdtree.visualize(tree))
 
 def _create_patches(img, psize):
 
@@ -319,9 +450,15 @@ if __name__ == "__main__":
     image_b = cv2.imread("flow6smallest.png")
 
 
+    #Image Dimensions
+    im_height = image_a.shape[1]
+    im_width = image_a.shape[0]
 
-    _n_cols = image_a.shape[1] - psize + 1
-    _n_rows = image_a.shape[0] - psize + 1
+    #row_size = 56 #Row Size = (h-p+1)
+
+
+    row_size = image_a.shape[1] - psize + 1
+    col_size = image_a.shape[0] - psize + 1
 
     # (1) fit pca model (on subset of the data)
 
@@ -352,26 +489,18 @@ if __name__ == "__main__":
     patches_b_reduced = numpy.append(patches_b_reduced, inf_array, axis=0 )
     
 
-    print(patches_b_reduced.shape)
+    #Split into groups of 5 to create the KD Tree
+    split_num = patches_b_reduced.shape[0]/psize
+    split = numpy.split(patches_b_reduced, split_num)
 
-    #460 is 
-    split = numpy.split(patches_b_reduced, 460)
-    #print(split)
     print(numpy.array(split).shape)
-    print(numpy.array(split[0]).shape)
-    print(split[0])
+   
 
-
+    #Create an Item Class for each node
     item_list = []
-    for patchk in range(460):
+    for nodek in range(int(split_num)):
 
-        item_list.append(Item(split[patchk], patchk))
-
-
-    # item_list = []
-    # for patcha in range(2296):
-
-    #     item_list.append(Item(split[patcha], patcha))
+        item_list.append(Item(split[nodek], nodek))
 
 
     # Again, from a list of points
@@ -380,32 +509,21 @@ if __name__ == "__main__":
     #  The root node
     #print(tree)
     # ...contains "data" field with an Item, which contains the payload in "data" field
-    #print(tree.data.median_max_spread)
-    #print(list(tree.preorder()))
-    #print(list(preorder(tree)))
-    #print(preorderMedian(tree))
+
+    # Create File For Verification
     preorderFile(tree)
 
 
-
     # All functions work as intended, a payload is never lost
-    result = tree.search_knn([ 193.19313049,   -1.66310644, -201.89816284,  -29.54750443,   42.18569565], k=1, dist=compute_distance)
-    print(result[0]) #Result Node + Distance
-    print(result[0][0])  # Node
-    print(result[0][1]) #Distance
-    print(result[0][0].data.count) #Index/5 
-    print(result[0][0].data.best_dim_idx) #Patch in thr Leaf
-    index = 5*(result[0][0].data.count) + result[0][0].data.best_dim_idx
+    result = tree.search_knn([ 193.19313049,   -1.66310644, -201.89816284,  -29.54750443,   42.18569565], k=1, dist=compute_distance_non_median)
+    # result[0] #Result Node + Distance
+    # result[0][0] # Node
+    # result[0][1] #Distance
+    # result[0][0].data.count #Index/5 
+    # result[0][0].data.best_dim_idx #Best Dimension
+    index = psize*(result[0][0].data.count) + result[0][0].data.best_dim_idx
     distance = result[0][1]
-    print(patches_b_reduced[index]) 
-    #print(kdtree.visualize(tree))
 
-
-    #Image Dimensions
-    im_height = 60
-    im_width = 45
-
-    row_size = 56 #int(im_height/dim_reduced)
 
 
     nn_indices = []
@@ -415,18 +533,21 @@ if __name__ == "__main__":
     nn_row_storage = []
 
     # Top to Bottom Traversal
+    # TODO: Make query from scratch
     for patchA in patches_a_reduced:
 
         nn_best_dists = []
 
-        result = tree.search_knn(patchA, k=5, dist=compute_distance)
-        index = 5*(result[0][0].data.count) + result[0][0].data.best_dim_idx
+        result = tree.search_knn(patchA, k=5, dist=compute_distance) #TODO: use custom search knn instead
+        index = psize*(result[0][0].data.count) + result[0][0].data.best_dim_idx
         distance = result[0][1]
 
         nn_indices.append(index)
         nn_distances.append(distance)
         nn_nodes.append(result[0][0])
 
+
+        # Add to a list that will later be used in process rows as an intial guess
         for j in range(5):
             
             nn_best_dists.append([result[j][1], result[j][0].data.count, result[j][0]])
@@ -435,7 +556,6 @@ if __name__ == "__main__":
         
 
         nn_best_dists = sorted(nn_best_dists)
-       
         nn_row_storage.append(nn_best_dists)
 
 
@@ -446,9 +566,8 @@ if __name__ == "__main__":
         
 
 
-    # #2 If a new leaf was found in step 1, then a brute-force search is performed on that leaf to improve the k candidates. The implementation of this step is similar to the one used for PROCESSROWS, which will be explained in detail next.
-    # #NOT FUNCTIONAL YET
-    # # TODO: The below needs to be fixed so that it can store the best leaves encountered
+    # If a new leaf was found in step 1, then a brute-force search is performed on that leaf to improve the k candidates. 
+
 
     # # Full (Pre-Order) Traversal of first Row
     preorderNodes = list(preorder(tree))
@@ -457,21 +576,21 @@ if __name__ == "__main__":
     nn_full_indices = []
     nn_full_distances = []
     row_storage = []
+
+
     for patchA2 in patches_a_reduced:
 
         # Only do full traversal on first row (of patch dimensions)
         if row_idx_counter >= row_size:
             break
         
-        
-
         best_dist = inf
         best_idx = 0
         best_dists = []
         best_idxs = []
         best_leaves = []
 
-        for j in range(5):
+        for j in range(psize):
             best_dists.append(nn_row_storage[row_idx_counter][j])
             #print(nn_row_storage[row_idx_counter][j])
         
@@ -482,7 +601,7 @@ if __name__ == "__main__":
             dist = compute_distance(nodeB.data, patchA2)
 
             # We are looking for the 5 best candidates
-            if len(best_dists) < 5:
+            if len(best_dists) < psize:
                 best_dists.append([dist, nodeB.data.count, nodeB])
                 best_dists = sorted(best_dists)
 
@@ -500,8 +619,7 @@ if __name__ == "__main__":
                         #best_leaf = nodeB
               
                     if dist < comp[0] and found == False:
-                        print("here")
-                        print(comp[0])
+                       
                         best_dists.pop()
                         best_dists.append([dist, nodeB.data.count, nodeB])
                         best_dists = sorted(best_dists)
@@ -510,79 +628,70 @@ if __name__ == "__main__":
        
         row_idx_counter = row_idx_counter + 1
 
+        # These resutls are stored in rows to be later used as an intial guess for process rows
         best_dists = sorted(best_dists)
-        #print(best_dists)
         row_storage.append(best_dists)
 
       
+        # These are the guesses that will actually count toward the score
         nn_full_indices.append(best_idx)
-        print(best_idx)
         nn_full_distances.append(best_dist)
      
 
 
     # # Process Rows on remaning rows (Main Algo)
-    #row_idx_counter = 0
-    # here_count = 0
-    print("START ROW INDEX")
-    print(row_idx_counter)
-    print(len(row_storage))
+   
     for patchA3 in patches_a_reduced:
 
         if row_idx_counter >= 2296:
             break
 
 
-        #Look at candidates in the row above
-        #print(row_idx_counter%56)
+        # Look at candidates in the row above
         candidates = row_storage[(row_idx_counter%56)]
-        for t in range(5):
+
+        # Add candidates from top to bottom traversal  on current row/index
+        for t in range(psize):
             candidates.append(nn_row_storage[row_idx_counter][t])
-
-        # print(nn_row_storage[row_idx_counter])
-       
-        
-    
-        dist, best_node, best_five = compute_all_distances_find_best(candidates, patchA3)
+         
+ 
+        # Find the best 5 of these reuslts   
+        dist, best_node, best_five = compute_all_distances_find_best_new(candidates, patchA3)
 
 
-        new_cands = []
-        # print('best 5')
-        # print(best_five)
-        # print("gap")
-        # print(nn_row_storage[row_idx_counter])
-        
-        for j in range(5):
+        #TODO: REMOVE
+        # new_cands = []
+        # for j in range(5):
+        #     new_cands.append(nn_row_storage[row_idx_counter][j])
             
-            new_cands.append(nn_row_storage[row_idx_counter][j])
-            new_cands.append(best_five[j])
-        
-        
-        # print(row_idx_counter)
-        # print(len(nn_row_storage))
-        # print(nn_row_storage[row_idx_counter][0])
-
-
+    
         best_dist = dist
-        best_idx = 5*(best_node.data.count) + best_node.data.best_dim_idx
+        best_idx = psize*(best_node.data.count) + best_node.data.best_dim_idx
         nn_full_indices.append(best_idx)
-        #print(best_idx)
         nn_full_distances.append(best_dist)
 
-        row_storage[(row_idx_counter%56)] = new_cands
+        # Put best 5 as intial guess for the next time
+        row_storage[(row_idx_counter%56)] = best_five
         
         row_idx_counter = row_idx_counter + 1
        
 
 
         
-
-
+    #Compute final score
     patches_a_reconst = patches_b[nn_full_indices]
     diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
     l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
     print("Overall Full Traversal + Process Rows L2 score: {}".format(l2))
         
+        
+    
+
+
+    
+
+
+  
         
     
 

@@ -1,4 +1,5 @@
 from cmath import inf
+from turtle import right
 import kdtree
 import statistics
 from matplotlib.pyplot import axes
@@ -377,8 +378,56 @@ def preorderMedian(tree):
     return result
 
 
-def writeLeaf(tree, f):
+def writeLeaf(tree, f, result):
 
+    left_address = inf
+    right_address = inf
+    current_address = inf
+
+
+    if tree.data is not None:
+        current_address = 0
+        for x in result:
+                
+            one = numpy.array(x[0])
+            two = numpy.array(tree.data.data)
+            comparison = one == two
+            equal_arrays = comparison.all()
+            if equal_arrays:
+                break
+            current_address = current_address + 1
+
+
+    if tree.left.data is not None:
+        left_address = 0
+       
+        for x in result:
+                
+            one = numpy.array(x[0])
+            two = numpy.array(tree.left.data.data)
+            comparison = one == two
+            equal_arrays = comparison.all()
+            if equal_arrays:
+                break
+            left_address = left_address + 1
+
+
+    if tree.right.data is not None:
+        right_address = 0
+        
+        for x in result:
+                
+            one = numpy.array(x[0])
+            two = numpy.array(tree.right.data.data)
+            comparison = one == two
+            equal_arrays = comparison.all()
+            if equal_arrays:
+                break
+            right_address = right_address + 1
+                
+               
+
+ 
 
     start_str = "#Start_Node: " + str(tree.data.count) + "\n" 
     end_str = "#End_Node: " + str(tree.data.count) + "\n" 
@@ -393,15 +442,23 @@ def writeLeaf(tree, f):
             
             dim_str = str(dim) + "\n"
             f.write(dim_str)
+
+
+    f.write("#Address\n")
+    median_str = str(current_address) + "\n"
+    f.write(median_str)
+
+    f.write("#Left_Address\n")
+    median_str = str(left_address) + "\n"
+    f.write(median_str)
+
+    f.write("#Right_Address\n")
+    median_str = str(right_address) + "\n"
+    f.write(median_str)
   
     f.write("#Median\n")
     median_str = str(tree.data.median_max_spread) + "\n"
     f.write(median_str)
-
-    f.write("#Index\n")
-    median_str = str(5*tree.data.count) + "\n"
-    f.write(median_str)
-
 
     f.write("#Dimension_Index\n")
     dim_idx_str = str(tree.data.best_dim_idx) + "\n"
@@ -415,15 +472,18 @@ def writeLeaf(tree, f):
 def preorderFile(tree):
     """ iterator for nodes: root, left, right """
 
-    result = []
-    f = open("myfileRaw.txt", "w")
+
+    result = preorderMedian(tree)
+
+    f = open("myfile.txt", "w")
 
     if not tree:
         return
 
     #yield tree
     #result.append([tree.data.data, tree.data.median_max_spread, tree.data.best_dim_idx])
-    writeLeaf(tree, f)
+    address = 0
+    writeLeaf(tree, f, result)
 
 
 
@@ -431,15 +491,35 @@ def preorderFile(tree):
         for x in tree.left.preorder():
             #yield x
             #result.append([x.data.data, x.data.median_max_spread, x.data.best_dim_idx])
-            writeLeaf(x, f)
+            writeLeaf(x, f,result)
 
     if tree.right:
         for x in tree.right.preorder():
             #yield x
             #result.append([x.data.data, x.data.median_max_spread, x.data.best_dim_idx])
-            writeLeaf(x, f)
+            writeLeaf(x, f,result)
 
     return result
+
+
+
+def preorderNewFile(tree, f, address):
+    """ iterator for nodes: root, left, right """
+
+    if not tree:
+        return
+
+    if tree.left:
+        preorderNewFile(tree.left, address+1)
+        
+    if tree.right:
+        preorderNewFile(tree.right, address+1)
+        
+
+
+
+   
+
 
 
 class Item(object):
@@ -559,10 +639,10 @@ if __name__ == "__main__":
     psize = 5 # Patch size of 5x5 (much better results than 8x8 for minimal memory penalty)
     dim_reduced = 5
         
-    image_a = cv2.imread("flow1smallest.png")
-    image_b = cv2.imread("flow6smallest.png")
+    image_a = cv2.imread("flow1res.png")
+    image_b = cv2.imread("flow6res.png")
 
-    reconstruct_file_name = "flow1smallest_recontruct.png"
+    reconstruct_file_name = "flow1res_recontruct.png"
 
 
     #Image Dimensions
@@ -819,6 +899,8 @@ if __name__ == "__main__":
     print("Writing reconstructed image to")
     print(reconstruct_file_name)
     cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))
+
+
 
     
 

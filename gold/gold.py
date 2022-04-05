@@ -1,6 +1,6 @@
 from cmath import inf
 from re import L
-from turtle import right
+from turtle import right, xcor
 import kdtree
 import statistics
 from matplotlib.pyplot import axes
@@ -32,7 +32,7 @@ def top_to_bottom(tree, patch):
     subtree = tree
 
     #Traverse to the naturally occurring leaf
-    while (subtree.left is not None and subtree.right is not None):\
+    while (subtree.left is not None and subtree.right is not None):
 
         dim_index = subtree.data.idx
     
@@ -48,8 +48,36 @@ def top_to_bottom(tree, patch):
 
     smallest_dist = inf
     index = 0
+
+    psize = 5
+    best_dists = []
     #print(subtree.data.patches)
+    #TODO: Add best 5
+
+    # def compute_distance(data, point):
+    # dist = 0
+
+    # data_list = []
+
+    # point1 = numpy.array(data_list)
+    # point2 = numpy.array(point)
+
+    # smallest_dist = inf
+    # index = 0
+    # for candidate in data.patches:
+    #     dist = numpy.linalg.norm(candidate[0:5] - point2)
+
+    #     if dist < smallest_dist:
+    #         smallest_dist = dist
+    #         index = candidate[5]
+
+    # return smallest_dist,  int(index)
+
+
     for candidate in subtree.data.patches:
+
+
+
         dist = numpy.linalg.norm(candidate[0:5] - patch)
 
         if dist < smallest_dist:
@@ -57,8 +85,34 @@ def top_to_bottom(tree, patch):
             index = candidate[5]
 
 
-    print(index)
-    return int(index)
+
+        # We are looking for the 5 best candidates
+        if len(best_dists) < psize:
+            best_dists.append([dist, candidate[5], subtree])
+            #best_dists = sorted(best_dists)
+            best_dists.sort(key=lambda x: x[0])
+
+        else:
+
+            found = False
+            #best_dists = sorted(best_dists)
+            best_dists.sort(key=lambda x: x[0])
+            for comp in best_dists:
+
+                # If calcuated distance is better than one of the current candidates
+            
+                if dist < comp[0] and found == False:
+                    
+                    best_dists.pop()
+                    
+                    best_dists.append([dist, candidate[5], subtree])
+                    best_dists.sort(key=lambda x: x[0])
+                    #best_dists = sorted(best_dists)
+                    found = True
+
+
+    #print(index)
+    return int(index), best_dists
 
 
 
@@ -124,7 +178,7 @@ def create_tree(patches):
     tree.right = create_tree_recurse(right, idx, depth)
 
 
-    kdtree.visualize(tree)
+    #kdtree.visualize(tree)
     print("V IMPORTANT")
     print(tree.is_balanced)
 
@@ -579,6 +633,8 @@ def compute_all_distances_find_best_new(candidate, point):
 def preorder(tree):
     """ iterator for nodes: root, left, right """
 
+    print("at tree?")
+
     if not tree:
         return
 
@@ -591,6 +647,73 @@ def preorder(tree):
     if tree.right:
         for x in tree.right.preorder():
             yield x
+
+
+
+
+def preorderLeaves(tree):
+    """ iterator for nodes: root, left, right """
+
+    result = []
+
+    leaves = []
+
+    if not tree:
+        return
+
+    #yield tree
+    #Root of tree is not a leaf (will fail in a very degenerate case of tree of size 1)
+    #result.append([tree.data.data, tree.data.median_max_spread, tree.data.best_dim_idx])
+
+    if tree.left:
+        for x in tree.left.preorder():
+            #yield x
+            #result.append([x.data.data, x.data.median_max_spread, x.data.best_dim_idx])
+
+            if (x.left is None and x.right is None):
+                leaves.append(x)
+
+            
+
+    if tree.right:
+        for x in tree.right.preorder():
+            #yield x
+            #result.append([x.data.data, x.data.median_max_spread, x.data.best_dim_idx])
+
+            if (x.left is None and x.right is None):
+                leaves.append(x)
+
+    return leaves
+
+
+
+def preorderMedian(tree):
+    """ iterator for nodes: root, left, right """
+
+    result = []
+
+    leaves = []
+
+    if not tree:
+        return
+
+    #yield tree
+    result.append([tree.data.data, tree.data.median_max_spread, tree.data.best_dim_idx])
+
+    if tree.left:
+        for x in tree.left.preorder():
+            #yield x
+            result.append([x.data.data, x.data.median_max_spread, x.data.best_dim_idx])
+
+
+    if tree.right:
+        for x in tree.right.preorder():
+            #yield x
+            result.append([x.data.data, x.data.median_max_spread, x.data.best_dim_idx])
+
+    return result
+
+
 
 
 def preorderMedian(tree):
@@ -772,7 +895,13 @@ class BetterItem(object):
 
         self.axis = idx
  
-    
+
+
+    # def __eq__(self, other):
+    #     if(self.a == other.a):
+    #         return "Both are equal"
+    #     else:
+    #         return "Not equal"   
        
 
     def __len__(self):
@@ -909,10 +1038,10 @@ if __name__ == "__main__":
     psize = 5 # Patch size of 5x5 (much better results than 8x8 for minimal memory penalty)
     dim_reduced = 5
         
-    image_a = cv2.imread("flow1res.png")
-    image_b = cv2.imread("flow6res.png")
+    image_a = cv2.imread("flow1_30.png")
+    image_b = cv2.imread("flow6_30.png")
 
-    reconstruct_file_name = "flow1res_recontruct.png"
+    reconstruct_file_name = "flow1_30_recontruct.png"
 
 
     #Image Dimensions
@@ -1011,9 +1140,9 @@ if __name__ == "__main__":
 
         nn_best_dists = []
 
-
-        index  = top_to_bottom(tree, patchA)
-        #result = search_knn_custom(patchA, 5, tree, dist=compute_distance_non_median) #TODO: use custom search knn instead
+        # TODO: Report best 5 (k) results
+        index, nn_best_dists  = top_to_bottom(tree, patchA)
+        #result = search_knn_custom(patchA, 5, tree, dist=compute_distance_non_median)
         
 
         # smallest_cand_dist = inf
@@ -1052,7 +1181,7 @@ if __name__ == "__main__":
         
 
         # nn_best_dists = sorted(nn_best_dists)
-        # nn_row_storage.append(nn_best_dists)
+        nn_row_storage.append(nn_best_dists)
 
 
     patches_a_reconst = patches_b[nn_indices]
@@ -1066,7 +1195,9 @@ if __name__ == "__main__":
 
 
     # # Full (Pre-Order) Traversal of first Row
-    preorderNodes = list(preorder(tree))
+    #TODO: Remove internal nodes
+    preorderNodes = preorderLeaves(tree)
+
     row_idx_counter = 0
 
     nn_full_indices = []
@@ -1087,8 +1218,8 @@ if __name__ == "__main__":
         best_leaves = []
 
         #TODO: Add in to bring in top to bottom results
-        # for j in range(psize):
-        #     best_dists.append(nn_row_storage[row_idx_counter][j])
+        for j in range(psize):
+            best_dists.append(nn_row_storage[row_idx_counter][j])
             #print(nn_row_storage[row_idx_counter][j])
         
 
@@ -1096,6 +1227,7 @@ if __name__ == "__main__":
         for nodeB in preorderNodes:
 
             dist, idx = compute_distance(nodeB.data, patchA2)
+      
          
 
             # We are looking for the 5 best candidates
@@ -1121,7 +1253,6 @@ if __name__ == "__main__":
                     if dist < comp[0] and found == False:
                        
                         best_dists.pop()
-                      
                         best_dists.append([dist, idx, nodeB])
                         best_dists.sort(key=lambda x: x[0])
                         #best_dists = sorted(best_dists)
@@ -1153,10 +1284,56 @@ if __name__ == "__main__":
         # Look at candidates in the row above
         candidates = row_storage[(row_idx_counter%row_size)]
 
+
+        #Get row below:
+
+        temp_count = 0
+        # print(candidates)
+        # print(len(candidates))
+        # print(candidates[1])
+        # print(candidates[1][1])
+        #asf()
+
+        # Better Propagation (Doesn't actually help)
+        for prop in range(len(candidates)):
+
+            temp_count = temp_count + 1
+            prop_index = int(candidates[prop][1] + row_size)
+
+
+
+            if prop_index >= 493:
+                continue
+
+            for tt in range(5):
+                candidates.append(nn_row_storage[prop_index][tt])
+
+            
+
+
+
+
+
+
+        # print("Old")
+        #print(candidates)
+
+        # print("new")
+     
+
         # Add candidates from top to bottom traversal  on current row/index
         # TODO: Add back in
-        # for t in range(psize):
-        #     candidates.append(nn_row_storage[row_idx_counter][t])
+        for t in range(psize):
+            candidates.append(nn_row_storage[row_idx_counter][t])
+            
+        #     print(nn_row_storage[row_idx_counter][t])
+
+
+       
+
+
+
+        #candidates_below = 
          
  
         # Find the best 5 of these reuslts   
@@ -1191,22 +1368,26 @@ if __name__ == "__main__":
     print("Overall Full Traversal + Process Rows L2 score: {}".format(l2))
 
 
-    # # Reconstruct Image (For Visual Debugging. The L2 score should effectively describe this same result )
-    # # Note since patches_a_reconst was made by index, inverse PCA is NOT required 
+    # Reconstruct Image (For Visual Debugging. The L2 score should effectively describe this same result )
+    # Note since patches_a_reconst was made by index, inverse PCA is NOT required 
 
-    # recontruct_shape = (1, im_width, im_height, 3)
+    recontruct_shape = (1, im_width, im_height, 3)
 
-    # patches_a_reconst_format = [patches_a_reconst]
+    patches_a_reconst_format = [patches_a_reconst]
 
-    # patches_a_reconst_format = tf.cast(patches_a_reconst_format, tf.float32)
-    # images_reconstructed = extract_patches_inverse(recontruct_shape, patches_a_reconst_format)
-    # #error = tf.reduce_mean(tf.math.squared_difference(images_reconstructed, images))
-    # #print(error)
+    patches_a_reconst_format = tf.cast(patches_a_reconst_format, tf.float32)
+    images_reconstructed = extract_patches_inverse(recontruct_shape, patches_a_reconst_format)
+    #error = tf.reduce_mean(tf.math.squared_difference(images_reconstructed, images))
+    #print(error)
 
-    # #Write the reconstructed image
-    # print("Writing reconstructed image to")
-    # print(reconstruct_file_name)
-    # cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))
+    #Write the reconstructed image
+    print("Writing reconstructed image to")
+    print(reconstruct_file_name)
+    cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))
+
+
+    
+
 
 
 

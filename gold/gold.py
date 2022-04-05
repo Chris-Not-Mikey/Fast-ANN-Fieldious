@@ -542,24 +542,30 @@ def compute_all_distances_find_best_new(candidate, point):
     best_five = []
     for cand in candidate:
 
-        current_dist = numpy.linalg.norm(cand[2].data.best_dim - point2)
+       # current_dist = numpy.linalg.norm(cand[2].data.best_dim - point2)
+
+        current_dist, idx = compute_distance(cand[2].data, point2)
      
-        best_five = sorted(best_five)
+        #best_five = sorted(best_five)
+        best_five.sort(key=lambda x: x[0])
 
         if len(best_five) < 5:
         
-            best_five.append([current_dist, cand[2].data.count, cand[2]])
-            best_five = sorted(best_five)
+            best_five.append([current_dist, idx, cand[2]])
+            #best_five = sorted(best_five)
+            best_five.sort(key=lambda x: x[0])
 
         else:
             for comp in best_five:
 
                 # If calcuated distance is better than one of the current candidates
                 if current_dist < comp[0]:
-                    best_five = sorted(best_five)
+                    #best_five = sorted(best_five)
+                    best_five.sort(key=lambda x: x[0])
                     best_five.pop()
-                    best_five.append([current_dist, cand[2].data.count, cand[2]])
-                    best_five = sorted(best_five)
+                    best_five.append([current_dist, idx, cand[2]])
+                    #best_five = sorted(best_five)
+                    best_five.sort(key=lambda x: x[0])
                     break
 
         if current_dist < dist:
@@ -1071,8 +1077,8 @@ if __name__ == "__main__":
     for patchA2 in patches_a_reduced:
 
         # Only do full traversal on first row (of patch dimensions)
-        # if row_idx_counter >= row_size:
-        #     break
+        if row_idx_counter >= row_size:
+            break
         
         best_dist = inf
         best_idx = 0
@@ -1138,39 +1144,42 @@ if __name__ == "__main__":
 
     # # # Process Rows on remaning rows (Main Algo)
    
-    # for patchA3 in patches_a_reduced:
+    for patchA3 in patches_a_reduced:
 
-    #     if row_idx_counter >= max_patches:
-    #         break
+        if row_idx_counter >= max_patches:
+            break
 
 
-    #     # Look at candidates in the row above
-    #     candidates = row_storage[(row_idx_counter%row_size)]
+        # Look at candidates in the row above
+        candidates = row_storage[(row_idx_counter%row_size)]
 
-    #     # Add candidates from top to bottom traversal  on current row/index
-    #     for t in range(psize):
-    #         candidates.append(nn_row_storage[row_idx_counter][t])
+        # Add candidates from top to bottom traversal  on current row/index
+        # TODO: Add back in
+        # for t in range(psize):
+        #     candidates.append(nn_row_storage[row_idx_counter][t])
          
  
-    #     # Find the best 5 of these reuslts   
-    #     dist, best_node, best_five = compute_all_distances_find_best_new(candidates, patchA3)
+        # Find the best 5 of these reuslts   
+        dist, best_node, best_five = compute_all_distances_find_best_new(candidates, patchA3)
 
 
-    #     #TODO: REMOVE
-    #     # new_cands = []
-    #     # for j in range(5):
-    #     #     new_cands.append(nn_row_storage[row_idx_counter][j])
+        #TODO: REMOVE
+        # new_cands = []
+        # for j in range(5):
+        #     new_cands.append(nn_row_storage[row_idx_counter][j])
             
-    
-    #     best_dist = dist
-    #     best_idx = psize*(best_node.data.count) + best_node.data.best_dim_idx
-    #     nn_full_indices.append(best_idx)
-    #     nn_full_distances.append(best_dist)
 
-    #     # Put best 5 as intial guess for the next time
-    #     row_storage[(row_idx_counter%row_size)] = best_five
+        dist, idx = compute_distance(best_node.data, patchA3)
+    
+        best_dist = dist
+        best_idx = idx
+        nn_full_indices.append(best_idx)
+        nn_full_distances.append(best_dist)
+
+        # Put best 5 as intial guess for the next time
+        row_storage[(row_idx_counter%row_size)] = best_five
         
-    #     row_idx_counter = row_idx_counter + 1
+        row_idx_counter = row_idx_counter + 1
        
 
 
@@ -1198,6 +1207,7 @@ if __name__ == "__main__":
     # print("Writing reconstructed image to")
     # print(reconstruct_file_name)
     # cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))
+
 
 
     

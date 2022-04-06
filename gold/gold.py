@@ -118,7 +118,7 @@ def top_to_bottom(tree, patch):
 
 def create_tree_recurse(patches, idx, depth):
 
-    if len(patches) <= 8:
+    if len(patches) <= 5:
 
         return None
 
@@ -178,7 +178,7 @@ def create_tree(patches):
     tree.right = create_tree_recurse(right, idx, depth)
 
 
-    #kdtree.visualize(tree)
+    kdtree.visualize(tree)
     print("V IMPORTANT")
     print(tree.is_balanced)
 
@@ -258,6 +258,14 @@ def find_dimension_median_max_spread(patches):
 
     final_l_index = patches_l.shape[0] - 1
     median = patches_l[final_l_index]
+
+    # Round median to nearest integer
+    for med in range(len(median)):
+
+        print(median[med])
+        median[med] = int(round(median[med]))
+        
+
 
     patches_r = numpy.array(split[1])
 
@@ -630,6 +638,81 @@ def compute_all_distances_find_best_new(candidate, point):
     return dist, best_node, best_five
 
 
+#Source: https://www.geeksforgeeks.org/breadth-first-search-or-bfs-for-a-graph/
+# Function to print a BFS of graph
+def BFS(tree):
+
+  
+    #Open Two Files
+    f_int = open("internalNodes.txt", "w")
+    f_leaf = open("leafNodes.txt", "w")
+
+
+    # Create a queue for BFS
+    queue = []
+
+    # Mark the source node as
+    # visited and enqueue it
+    queue.append(tree)
+    tree.data.visited = True
+
+  
+
+    while queue:
+
+        # Dequeue a vertex from
+        # queue and print it
+        s = queue.pop(0)
+
+        is_leaf = False
+        if s.left is None and s.right is None:
+            is_leaf = True
+
+        # print(s)
+        # print(is_leaf)
+
+        if is_leaf:
+            patch_str = "#Starting Leaf \n"
+            f_leaf.write(patch_str)
+            for data in s.data.patches:
+
+                patch_str = "#Starting Patch \n"
+                f_leaf.write(patch_str)
+                ct = 0
+                for dim in data:
+                    dim_str = str(dim) + "\n"
+                    if ct == 5:
+                        dim_str = str(int(dim)) + "\n"
+
+                    f_leaf.write(dim_str)
+                    ct = ct +1
+
+        else:
+            
+            #Axis 
+            axis_str = str(s.data.axis) + "\n"
+            median_str = str(int(s.data.median[s.data.axis])) + "\n"
+            f_int.write(axis_str)
+            f_int.write(median_str)
+
+        # Get all adjacent vertices of the
+        # dequeued vertex s. If a adjacent
+        # has not been visited, then mark it
+        # visited and enqueue it
+        
+        if s.left is not None:
+            if s.left.data.visited == False:
+                queue.append(s.left)
+                s.left.data.visited = True
+
+
+        if s.right is not None:
+            if s.right.data.visited == False:
+                queue.append(s.right)
+                s.right.data.visited = True
+
+
+
 def preorder(tree):
     """ iterator for nodes: root, left, right """
 
@@ -894,6 +977,8 @@ class BetterItem(object):
         self.depth = depth
 
         self.axis = idx
+
+        self.visited = False
  
 
 
@@ -1198,6 +1283,9 @@ if __name__ == "__main__":
     #TODO: Remove internal nodes
     preorderNodes = preorderLeaves(tree)
 
+    print("Look here!")
+    BFS(tree)
+
     row_idx_counter = 0
 
     nn_full_indices = []
@@ -1329,9 +1417,6 @@ if __name__ == "__main__":
         #     print(nn_row_storage[row_idx_counter][t])
 
 
-       
-
-
 
         #candidates_below = 
          
@@ -1384,6 +1469,17 @@ if __name__ == "__main__":
     print("Writing reconstructed image to")
     print(reconstruct_file_name)
     cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))
+
+
+    
+
+
+
+
+        
+        
+    
+
 
 
     

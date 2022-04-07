@@ -1,15 +1,10 @@
-`define DATA_WIDTH 4
+`define DATA_WIDTH 11   //Read In 11 bits from I/O
 `define FIFO_DEPTH 3
 `define COUNTER_WIDTH 1
 
-module fifo_tb;
 
-  // Write five directed tests for the fifo module that test different corner
-  // cases. For example, whether it raises the empty and full flags correctly,
-  // whether it clears (empties) when you assert the clr signal. Verify its
-  // behaviour on reset. You should also test whether the fifo gives the
-  // expected latency between when a data goes in and the earliest it can come
-  // out. 
+
+module fifo_tb;
 
   // Your code starts here
   reg clk;
@@ -32,7 +27,8 @@ module fifo_tb;
     .clk(clk),
     .rst_n(rst_n),
     .din(din),
-    .enq(enq),
+    .enq(enq), //pin 12
+    .valid(valid), //pin 13
     .full_n(full_n),
     .dout(dout),
     .deq(deq),

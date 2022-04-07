@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // TB to verify async_fifo
 //source: https://github.com/Jagannaths3/async_fifo/blob/master/async_fifo_tb.v
 

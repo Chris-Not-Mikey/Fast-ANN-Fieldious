@@ -41,6 +41,7 @@ module fifo_tb;
     rst_n <= 0;
     clr <= 0;
     enq <= 0;
+    valid <= 0;
     deq <= 0;
     din <= 0;
     #40 rst_n <= 1;
@@ -54,6 +55,7 @@ module fifo_tb;
     // negative edge of clock.
     #20
     enq <= 1;
+    valid <= 1;
     #20
     assert(empty_n == 1);
     assert(full_n == 1);

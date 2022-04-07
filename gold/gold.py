@@ -119,7 +119,8 @@ def top_to_bottom(tree, patch):
 def create_tree_recurse(patches, idx, depth):
 
     if len(patches) <= 5:
-
+        print("here len(patches")
+        print( len(patches))
         return None
 
 
@@ -156,6 +157,13 @@ def create_tree(patches):
 
 
         temp = list(patches[zz])
+        temp[0] = round(temp[0])
+        temp[1] = round(temp[1])
+        temp[2] = round(temp[2])
+        temp[3] = round(temp[3])
+        temp[4] = round(temp[4])
+        
+
         temp.append(counter)
         new_patches.append(temp)
         
@@ -178,7 +186,7 @@ def create_tree(patches):
     tree.right = create_tree_recurse(right, idx, depth)
 
 
-    kdtree.visualize(tree)
+    #kdtree.visualize(tree)
     print("V IMPORTANT")
     print(tree.is_balanced)
 
@@ -410,6 +418,41 @@ def compute_distance(data, point):
 
     return smallest_dist,  int(index)
 
+
+def compute_distance_rerank(data, point, _pca_model):
+    dist = 0
+
+    data_list = []
+
+
+    point = _apply_inverse_pca(point, _pca_model)
+
+    point1 = numpy.array(data_list)
+    point2 = numpy.array(point)
+
+
+    smallest_dist = inf
+    index = 0
+    for candidate in data.patches:
+
+        point1 = _apply_inverse_pca(candidate[0:5], _pca_model)
+
+
+        dist = numpy.linalg.norm(point1 - point2)
+        print("rerank dist")
+        print(dist)
+
+        if dist < smallest_dist:
+            smallest_dist = dist
+            index = candidate[5]
+
+    return smallest_dist,  int(index)
+
+
+
+
+
+
 def compute_distance_non_median(data, point):
 
 
@@ -589,7 +632,7 @@ def compute_all_distances_find_best(candidate, point):
     return dist, best_node, best_five
 
 
-def compute_all_distances_find_best_new(candidate, point):
+def compute_all_distances_find_best_new(candidate, point, _pca_model):
     dist = 0
 
     data_list = []
@@ -1110,8 +1153,8 @@ def _apply_inverse_pca(patches_reduced, _pca_model):
 
     #patches_reduced = _pca_model.transform(patches).astype(numpy.float32)
 
-    if True > 0:
-        print("Patches for un-reduced image: {}".format(patches.shape))
+    # if True > 0:
+    #     print("Patches for un-reduced image: {}".format(patches.shape))
 
     return patches
 
@@ -1123,13 +1166,24 @@ if __name__ == "__main__":
     psize = 5 # Patch size of 5x5 (much better results than 8x8 for minimal memory penalty)
     dim_reduced = 5
         
-    image_a = cv2.imread("flow1_30.png")
-    image_b = cv2.imread("flow6_30.png")
+    image_a = cv2.imread("frame1ball_30.png")
+    # image_a = cv2.cvtColor(image_a, cv2.COLOR_BGR2GRAY)
+    # image_a = cv2.cvtColor(image_a,cv2.COLOR_GRAY2RGB)
+    print(image_a[1][1][0])
+    print(image_a[1][1][1])
+    print(image_a[1][1][2])
 
-    reconstruct_file_name = "flow1_30_recontruct.png"
+    image_b = cv2.imread("frame2ball_30.png")
+    # image_b = cv2.cvtColor(image_b, cv2.COLOR_BGR2GRAY)
+    # image_b = cv2.cvtColor(image_b,cv2.COLOR_GRAY2RGB)
+
+    reconstruct_file_name = "frame1ball_30_recontruct.png"
 
 
     #Image Dimensions
+    print(image_a.shape)
+    print("STOP")
+
     im_height = image_a.shape[1]
     im_width = image_a.shape[0]
     print(im_height)
@@ -1212,6 +1266,16 @@ if __name__ == "__main__":
     # distance = result[0][1]
 
 
+    #Experiment with using ints instead
+    for patchRound in patches_a_reduced:
+
+        patchRound[0] = round(patchRound[0])
+        patchRound[1] = round(patchRound[1])
+        patchRound[2] = round(patchRound[2])
+        patchRound[3] = round(patchRound[3])
+        patchRound[4] = round(patchRound[4])
+
+
 
     nn_indices = []
     nn_distances = []
@@ -1227,6 +1291,7 @@ if __name__ == "__main__":
 
         # TODO: Report best 5 (k) results
         index, nn_best_dists  = top_to_bottom(tree, patchA)
+
         #result = search_knn_custom(patchA, 5, tree, dist=compute_distance_non_median)
         
 
@@ -1306,8 +1371,8 @@ if __name__ == "__main__":
         best_leaves = []
 
         #TODO: Add in to bring in top to bottom results
-        for j in range(psize):
-            best_dists.append(nn_row_storage[row_idx_counter][j])
+        # for j in range(psize):
+        #     best_dists.append(nn_row_storage[row_idx_counter][j])
             #print(nn_row_storage[row_idx_counter][j])
         
 
@@ -1383,23 +1448,20 @@ if __name__ == "__main__":
         #asf()
 
         # Better Propagation (Doesn't actually help)
+        better = []
         for prop in range(len(candidates)):
 
             temp_count = temp_count + 1
             prop_index = int(candidates[prop][1] + row_size)
 
 
-
-            if prop_index >= 493:
+            if prop_index >= 494:
                 continue
 
-            for tt in range(5):
-                candidates.append(nn_row_storage[prop_index][tt])
+            # for tt in range(5):
+            #    # candidates.append(nn_row_storage[prop_index][tt])
 
             
-
-
-
 
 
 
@@ -1411,8 +1473,8 @@ if __name__ == "__main__":
 
         # Add candidates from top to bottom traversal  on current row/index
         # TODO: Add back in
-        for t in range(psize):
-            candidates.append(nn_row_storage[row_idx_counter][t])
+        # for t in range(psize):
+        #     better.append(nn_row_storage[row_idx_counter][t])
             
         #     print(nn_row_storage[row_idx_counter][t])
 
@@ -1422,7 +1484,7 @@ if __name__ == "__main__":
          
  
         # Find the best 5 of these reuslts   
-        dist, best_node, best_five = compute_all_distances_find_best_new(candidates, patchA3)
+        dist, best_node, best_five = compute_all_distances_find_best_new(candidates, patchA3, _pca_model)
 
 
         #TODO: REMOVE
@@ -1470,19 +1532,6 @@ if __name__ == "__main__":
     print(reconstruct_file_name)
     cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))
 
-
-    
-
-
-
-
-        
-        
-    
-
-
-
-    
 
 
 

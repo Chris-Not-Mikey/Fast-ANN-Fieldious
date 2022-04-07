@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // TB to verify async_fifo
 //source: https://github.com/Jagannaths3/async_fifo/blob/master/async_fifo_tb.v
 
@@ -59,15 +58,15 @@ end
 initial begin
     repeat (4) @ (posedge wclk); // 4 cycles of nothing
      @(negedge wclk); wreq = 1;wdata = 8'd1;
-     @(negedge rclk); rreq = 1;
+    // @(negedge rclk); rreq = 1;
      @(negedge wclk); wreq = 1;wdata = 8'd2;
-     @(negedge rclk); rreq = 1;
+    // @(negedge rclk); rreq = 1;
      @(negedge wclk); wreq = 1;wdata = 8'd3;
-     @(negedge rclk); rreq = 1;
+    // @(negedge rclk); rreq = 1;
      @(negedge wclk); wreq = 1;wdata = 8'd4;
-     @(negedge rclk); rreq = 1;
+    // @(negedge rclk); rreq = 1;
      @(negedge wclk); wreq = 1;wdata = 8'd5;
-     @(negedge rclk); rreq = 1;
+    // @(negedge rclk); rreq = 1;
     //  @(negedge wclk); wreq = 1;wdata = 8'd6;
     //  @(negedge wclk); wreq = 1;wdata = 8'd7;
     //  @(negedge wclk); wreq = 1;wdata = 8'd8;
@@ -79,7 +78,7 @@ initial begin
     //  @(negedge wclk); wreq = 1;wdata = 8'd14;
     //  @(negedge wclk); wreq = 1;wdata = 8'd15;
     //  @(negedge wclk); wreq = 1;wdata = 8'd16;
-    //  @(negedge wclk); wreq = 0;
+     @(negedge wclk); wreq = 0;
 
     //  @(negedge rclk); rreq = 1;
     //  repeat (17) @(posedge rclk);

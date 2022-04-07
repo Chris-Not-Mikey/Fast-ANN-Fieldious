@@ -111,6 +111,10 @@ def test_fifo_tb():
     print("Running test_fifo_tb")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/fifo_tb.v', 'rtl/fifo.v', 'rtl/SizedFIFO.v'])
 
+def test_async_fifo_tb():
+    print("Running test_fifo_tb")
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/async_fifo_tb.v', 'rtl/async_fifo.v'])
+
 def test_ram_sync_1r1w_tb_uvm():
     print("Running test_ram_sync_1r1w_tb_uvm")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/ram_sync_1r1w_tb_uvm.v', 'rtl/ram_sync_1r1w.v'])

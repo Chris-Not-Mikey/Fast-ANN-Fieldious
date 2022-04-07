@@ -128,23 +128,31 @@ module fifo_tb;
 
     // Try more releastic data
     enq <= 1;
-    din <= 11'b0;
-    #20 
+    din <= 0;
+    #20
+    deq <=1;
+    assert(dout == 0); 
     enq <= 1;
     din <= 11'b01010101101;
-    deq <= 1;
+   // deq <= 1;
+    #20
     assert(dout == 11'b01010101101);
-    #20 
+   // #20 
     enq <= 1;
     din <= 11'b11111111111;
-    deq <= 1;
-    assert(dout == 11'b11111111111);
-    #20 
-    enq <= 1;
-    din <= 11'b11110011111;
-    deq <= 1;
-    assert(dout == 11'b11110011111);
-
+   // deq <= 1;
+   #20
+   assert(dout == 11'b11111111111);
+   // #20 
+   enq <= 1;
+   valid <= 0;
+   din <= 11'b11110011111;
+   deq <= 1;
+   #20
+   assert(dout != 11'b11110011111);
+   assert(dout == 11'b11111111111); 
+   deq <=0;
+   enq <=0;
 
 
 

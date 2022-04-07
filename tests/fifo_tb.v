@@ -50,7 +50,7 @@ module fifo_tb;
     // We will first check if after reset, the fifo is empty
     assert(empty_n == 0); // Meaning empty is high
     assert(full_n  == 1); // Meaning fifo is not full
-    //assert(valid == 0); //Intial data coming in is garbadge    
+    assert(valid == 0); //Intial data coming in is garbadge    
 
  
     // Now we will write 3 data into the fifo and check if it becomes full
@@ -118,6 +118,37 @@ module fifo_tb;
     #20
     deq <= 0;
     assert(empty_n == 0);
+
+
+    // Clear and then try 
+    clr <= 1;
+    #20;
+    clr <= 0;
+    assert(empty_n == 0);
+
+    // Try more releastic data
+    enq <= 1;
+    din <= 11'b0;
+    #20 
+    enq <= 1;
+    din <= 11'b01010101101;
+    deq <= 1;
+    assert(dout == 11'b01010101101);
+    #20 
+    enq <= 1;
+    din <= 11'b11111111111;
+    deq <= 1;
+    assert(dout == 11'b11111111111);
+    #20 
+    enq <= 1;
+    din <= 11'b11110011111;
+    deq <= 1;
+    assert(dout == 11'b11110011111);
+
+
+
+
+
   end 
   // Your code ends here
 

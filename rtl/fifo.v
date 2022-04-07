@@ -25,7 +25,7 @@ module fifo
     .CLK(clk), 
     .RST(rst_n), // By default this is a synchronous active low reset, but it can be made asynchronous by defining BSV_ASYNC_RESET in SizedFIFO, and it can be made active high by defining BSV_POSITIVE_RESET in SizedFIFO.v
     .D_IN(din), 
-    .ENQ(enq && valid), //Enquue when inc
+    .ENQ(enq && valid), //Enqueue when enq and valid are both true
     .FULL_N(full_n), 
     .D_OUT(dout), 
     .DEQ(deq), 

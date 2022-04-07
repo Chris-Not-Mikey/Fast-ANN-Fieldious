@@ -11,6 +11,7 @@ module fifo_tb;
   reg rst_n;
   reg [`DATA_WIDTH - 1 : 0] din;
   reg enq;
+  reg valid;
   wire full_n;
   wire [`DATA_WIDTH - 1 : 0] dout;
   reg deq;
@@ -49,7 +50,9 @@ module fifo_tb;
     // We will first check if after reset, the fifo is empty
     assert(empty_n == 0); // Meaning empty is high
     assert(full_n  == 1); // Meaning fifo is not full
-    
+    //assert(valid == 0); //Intial data coming in is garbadge    
+
+ 
     // Now we will write 3 data into the fifo and check if it becomes full
     // after that. Note that we are changing testbench signals on the
     // negative edge of clock.

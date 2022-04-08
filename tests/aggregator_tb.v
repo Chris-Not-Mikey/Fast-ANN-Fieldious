@@ -96,17 +96,17 @@ module aggregator_tb;
     fifo_valid <=1;
   end
 
-  assign fifo_enq = rst_n && fifo_full_n && (!stall);
+  assign fifo_enq = rrst_n && wfull && (!stall);
 
   always @ (posedge clk) begin
-    if (rst_n) begin
+    if (wrst_n) begin
       stall <= $urandom % 2;
       receiver_full_n <= 1;
       if (fifo_enq) begin
-        fifo_din <= fifo_din + 1;
+        wdata <= wdata + 1;
       end
     end else begin
-      fifo_din <= 0;
+      wdata <= 0;
     end
   end
 

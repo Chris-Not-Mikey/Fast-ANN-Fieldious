@@ -18,6 +18,7 @@ def run_process(call_arr):
 
     if "Error" in process.stdout or process.returncode != 0:
         print(CRED + "Test failed to compile\n" + CEND)
+        print(process.stdout)
         return 0
 
     process = subprocess.run(['./simv'], 
@@ -115,6 +116,11 @@ def test_fifo_tb():
 def test_async_fifo_tb():
     print("Running test_fifo_tb")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/async_fifo_tb.v', 'rtl/async_fifo.v'])
+
+def test_new_async_fifo_tb():
+    print("Running test_fifo_tb")
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/new_async_fifo_tb.v', 'rtl/dual_clock_async_fifo_design.v'])
+
 
 def test_ram_sync_1r1w_tb_uvm():
     print("Running test_ram_sync_1r1w_tb_uvm")

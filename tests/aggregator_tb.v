@@ -55,8 +55,8 @@ module aggregator_tb;
   )
   dut (
     
-    .winc(winc), .wclk(wclk), .wrst_n(wrst_n),
-    .rinc(rinc), .rclk(clk), .rrst_n(rrst_n),
+    .winc(fifo_enq), .wclk(wclk), .wrst_n(wrst_n),
+    .rinc(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
     .wdata(wdata),
     .rdata(rdata),
     .wfull(wfull),

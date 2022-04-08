@@ -1,4 +1,4 @@
-`define DATA_WIDTH 16
+`define DATA_WIDTH 11
 `define FETCH_WIDTH 4
 `define DSIZE 11
 `define ASIZE 4
@@ -37,7 +37,7 @@ module aggregator_tb;
     .clk(clk),
     .rst_n(rst_n),
     .sender_data(rdata),
-    .sender_empty_n(rempty),
+    .sender_empty_n(!rempty),
     .sender_deq(fifo_deq),
     .receiver_data(receiver_din),
     .receiver_full_n(receiver_full_n),
@@ -101,7 +101,7 @@ module aggregator_tb;
   end
 
     //comment
-  assign fifo_enq = rrst_n && (!wfull) && (!stall);
+  assign fifo_enq = wrst_n && (!wfull) && (!stall);
 
   always @ (posedge clk) begin
     if (wrst_n) begin

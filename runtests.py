@@ -29,6 +29,7 @@ def run_process(call_arr):
 
     if "Failed" in process.stdout or "failed" in process.stdout or "Error" in process.stdout or "error" in process.stdout:
         print(CRED + "Test failed\n" + CEND)
+        print(process.stdout)
         return 0
     elif "Time: 0 ps" in process.stdout:
         print(CRED + "Test not implemented\n" + CEND)
@@ -121,7 +122,7 @@ def test_ram_sync_1r1w_tb_uvm():
 
 def test_aggregator_tb():
     print("Running test_aggregator_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/aggregator_tb.v', 'rtl/aggregator.v', 'rtl/fifo.v', 'rtl/SizedFIFO.v'])
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/aggregator_tb.v', 'rtl/aggregator.v', 'rtl/fifo.v', 'rtl/SizedFIFO.v' , "rtl/async_fifo.v"])
 
 def test_adr_gen_sequential_tb():
     print("Running test_adr_gen_sequential_tb")

@@ -20,11 +20,15 @@ module aggregator_tb;
   reg stall;
   reg fifo_valid;
 
-  reg wreq, wclk, wrst_n, rreq, rrst_n;
-  reg [`DSIZE-1:0] wdata;
-  wire [`DSIZE-1:0] rdata;
-  wire wfull, rempty;
-
+   
+  logic [`DSIZE-1:0] rdata;
+  logic wfull;
+  logic rempty;
+  logic [`DSIZE-1:0] wdata;
+  logic winc, wclk, wrst_n;
+  logic rinc, rrst_n;
+  
+  
   always #20 clk =~clk;
   always #20 wclk =~wclk;
   
@@ -44,35 +48,34 @@ module aggregator_tb;
     .receiver_enq(receiver_enq)
   );
 
-//   fifo
-//   #(
-//     .DATA_WIDTH(`DATA_WIDTH),
-//     .FIFO_DEPTH(3),
-//     .COUNTER_WIDTH(1)
-//   ) fifo_inst (
-//     .clk(clk),
-//     .rst_n(rst_n),
-//     .din(fifo_din),
-//     .enq(fifo_enq),
-//     .valid(fifo_valid),
-//     .full_n(fifo_full_n),
-//     .dout(fifo_dout),
-//     .deq(fifo_deq),
-//     .empty_n(fifo_empty_n),
-//     .clr(1'b0)
-//   );
 
-  async_fifo 
-  #(     
-      .DSIZE(`DSIZE),
-      .ASIZE(`ASIZE)
+
+//   async_fifo 
+//   #(     
+//       .DSIZE(`DSIZE),
+//       .ASIZE(`ASIZE)
+//   )
+//   u_async_fifo
+//   ( 
+//       .valid(fifo_valid),
+//       .wreq (fifo_enq), .wrst_n(wrst_n), .wclk(wclk),
+//       .rreq(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
+//       .wdata(wdata), .rdata(rdata), .wfull(wfull), .rempty(rempty)
+//   );
+  
+  async_fifo1 #(
+    .DSIZE(`DSIZE),
+    .ASIZE(`ASIZE)
   )
-  u_async_fifo
-  ( 
-      .valid(fifo_valid),
-      .wreq (fifo_enq), .wrst_n(wrst_n), .wclk(wclk),
-      .rreq(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
-      .wdata(wdata), .rdata(rdata), .wfull(wfull), .rempty(rempty)
+  dut (
+    
+    .winc(winc), .wclk(wclk), .wrst_n(wrst_n),
+    .rinc(rinc), .rclk(clk), .rrst_n(rrst_n),
+    .wdata(wdata),
+    .rdata(rdata),
+    .wfull(wfull),
+    .rempty(rempty)
+    
   );
 
   initial begin

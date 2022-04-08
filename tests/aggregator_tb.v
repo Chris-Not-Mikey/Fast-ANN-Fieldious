@@ -6,7 +6,6 @@
 module aggregator_tb;
 
   reg clk;
-  reg wclck;
   reg rst_n;
   wire [`DATA_WIDTH - 1 : 0] fifo_dout;
   wire fifo_empty_n;
@@ -20,7 +19,14 @@ module aggregator_tb;
   wire fifo_full_n;
   reg stall;
 
+
+  reg valid, wreq, wclk, wrst_n, rreq, rrst_n;
+  reg [`DSIZE-1:0] wdata;
+  wire [`DSIZE-1:0] rdata;
+  wire wfull, rempty;
+
   always #10 clk =~clk;
+  always #10 wclk =~wclk;
   
   aggregator
   #(
@@ -108,4 +114,3 @@ module aggregator_tb;
   end
 
 endmodule
-

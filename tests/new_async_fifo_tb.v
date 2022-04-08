@@ -3,7 +3,7 @@
 //
 module async_fifo1_tb;
 
-  parameter DSIZE = 8;
+  parameter DSIZE = 11;
   parameter ASIZE = 4;
 
   logic [DSIZE-1:0] rdata;
@@ -26,8 +26,8 @@ module async_fifo1_tb;
     rclk = 1'b0;
 
     fork
-      forever #10ns wclk = ~wclk;
-      forever #35ns rclk = ~rclk;
+      forever #20ns wclk = ~wclk;
+      forever #6.66ns rclk = ~rclk;
     join
   end
 

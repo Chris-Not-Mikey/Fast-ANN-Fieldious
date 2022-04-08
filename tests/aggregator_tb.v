@@ -38,7 +38,7 @@ module aggregator_tb;
     .rst_n(rst_n),
     .sender_data(rdata),
     .sender_empty_n(rempty),
-    .sender_deq(1),
+    .sender_deq(fifo_deq),
     .receiver_data(receiver_din),
     .receiver_full_n(receiver_full_n),
     .receiver_enq(receiver_enq)
@@ -71,7 +71,7 @@ module aggregator_tb;
   ( 
       .valid(fifo_valid),
       .wreq (fifo_enq), .wrst_n(wrst_n), .wclk(wclk),
-      .rreq(fifo_enq), .rclk(clk), .rrst_n(rrst_n),
+      .rreq(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
       .wdata(wdata), .rdata(rdata), .wfull(wfull), .rempty(rempty)
   );
 

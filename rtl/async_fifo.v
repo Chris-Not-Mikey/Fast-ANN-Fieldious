@@ -78,7 +78,7 @@ always @ (posedge rclk or negedge rrst_n)
         rptr <= rptr_nxt;
 
 // generating write address for fifomem
-assign wbin_nxt = wbin + ( & valid & !wfull);
+assign wbin_nxt = wbin + (wreq & valid & !wfull);
 
 always @ (posedge wclk or negedge wrst_n)
     if(!wrst_n)

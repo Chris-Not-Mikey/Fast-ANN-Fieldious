@@ -11,7 +11,7 @@ parameter ASIZE = 4;
 parameter WCLK_PERIOD = 20; //50 MHz write clock
 parameter RCLK_PERIOD = 6.6666; //150 MHz compute clock
 
-reg wreq, wclk, wrst_n, rreq, rclk, rrst_n;
+reg valid, wreq, wclk, wrst_n, rreq, rclk, rrst_n;
 reg [DSIZE-1:0] wdata;
 wire [DSIZE-1:0] rdata;
 wire wfull, rempty;
@@ -23,7 +23,8 @@ async_fifo
     .ASIZE(ASIZE)
 )
 u_async_fifo
-(
+( 
+    .valid(valid),
     .wreq (wreq), .wrst_n(wrst_n), .wclk(wclk),
     .rreq(rreq), .rclk(rclk), .rrst_n(rrst_n),
     .wdata(wdata), .rdata(rdata), .wfull(wfull), .rempty(rempty)
@@ -31,11 +32,13 @@ u_async_fifo
 
 initial begin
     wrst_n = 0;
+    valid = 0;
     wclk = 0;
     wreq = 0;
     wdata = 0;
     repeat (2) #(WCLK_PERIOD/2) wclk = ~wclk;
     wrst_n = 1;
+    valid = 1;
     forever #(WCLK_PERIOD/2) wclk = ~wclk;
 end
 
@@ -73,7 +76,9 @@ initial begin
      @(posedge rclk); rreq = 0;
      @(negedge rclk); assert(rdata == 11'd4);
 
-    //  @(negedge wclk); wreq = 1;wdata = 8'd7;
+     @(negedge wclk); valid=0; wreq = 1;wdata = 8'd7;
+     @(negedge wclk); rreq =1;
+      
     //  @(negedge wclk); wreq = 1;wdata = 8'd8;
     //  @(negedge wclk); wreq = 1;wdata = 8'd9;
     //  @(negedge wclk); wreq = 1;wdata = 8'd10;

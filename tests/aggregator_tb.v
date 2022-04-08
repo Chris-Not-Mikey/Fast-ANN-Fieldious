@@ -79,9 +79,15 @@ module aggregator_tb;
     clk <= 0;
     wclk <= 0;
     wreq <= 0;
+    wrst_n <= 0;
+    rreq <= 0;
+    wdata <= 0;
+    
 
     fifo_valid <=0;
     rst_n <= 0;
+    rrst_n <= 0;
+    wrst_n <=0;
     stall <= 0; 
     expected_dout <= 0;
     receiver_full_n <= 1;

@@ -130,9 +130,10 @@ module aggregator_tb;
   end
 
   initial begin
-    $vcdplusfile("dump.vcd");
-    $vcdplusmemon();
-    $vcdpluson(0, aggregator_tb);
+    $dumpfile("dump.vcd");
+    $dumpvars;
+//     $vcdplusmemon();
+//     $vcdpluson(0, aggregator_tb);
     #2000;
     $finish(2);
   end

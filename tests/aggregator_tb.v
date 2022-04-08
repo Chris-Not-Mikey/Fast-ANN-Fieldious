@@ -96,6 +96,7 @@ module aggregator_tb;
     fifo_valid <=1;
   end
 
+    //comment
   assign fifo_enq = rrst_n && wfull && (!stall);
 
   always @ (posedge clk) begin

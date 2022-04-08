@@ -25,8 +25,8 @@ module aggregator_tb;
   wire [`DSIZE-1:0] rdata;
   wire wfull, rempty;
 
-  always #10 clk =~clk;
-  always #10 wclk =~wclk;
+  always #6.6666 clk =~clk;
+  always #20 wclk =~wclk;
   
   aggregator
   #(

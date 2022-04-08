@@ -106,7 +106,7 @@ module aggregator_tb;
   end
 
     //comment
-  assign fifo_enq = wrst_n && (!wfull) && (!stall);
+  assign fifo_enq = wrst_n && (wfull) && (!stall);
 
   always @ (posedge clk) begin
     if (wrst_n) begin

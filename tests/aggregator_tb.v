@@ -29,7 +29,7 @@ module aggregator_tb;
   logic rinc, rrst_n;
   
   
-  always #20 clk =~clk;
+  always #20 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
   always #20 wclk =~wclk;
   
   aggregator
@@ -77,7 +77,7 @@ module aggregator_tb;
     rinc = 1'b0;
 
     rrst_n = 1'b0;
-    repeat(8) @(posedge rclk);
+    repeat(8) @(posedge clk);
     rrst_n = 1'b1;
 
   end

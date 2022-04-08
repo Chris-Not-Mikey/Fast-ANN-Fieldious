@@ -1,9 +1,12 @@
 `define DATA_WIDTH 16
 `define FETCH_WIDTH 4
+`define DSIZE 11
+`define ASIZE 4
 
 module aggregator_tb;
 
   reg clk;
+  reg wclck;
   reg rst_n;
   wire [`DATA_WIDTH - 1 : 0] fifo_dout;
   wire fifo_empty_n;
@@ -45,6 +48,7 @@ module aggregator_tb;
     .rst_n(rst_n),
     .din(fifo_din),
     .enq(fifo_enq),
+    .valid(fifo_valid),
     .full_n(fifo_full_n),
     .dout(fifo_dout),
     .deq(fifo_deq),

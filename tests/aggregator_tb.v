@@ -1,6 +1,6 @@
-`define DATA_WIDTH 11
-`define FETCH_WIDTH 4
-`define DSIZE 11
+`define DATA_WIDTH 8
+`define FETCH_WIDTH 2
+`define DSIZE 8
 `define ASIZE 4
 
 module aggregator_tb;
@@ -18,8 +18,9 @@ module aggregator_tb;
   wire fifo_enq;
   wire fifo_full_n;
   reg stall;
-  reg fifo_valid;
+  reg fifo_valid; 
 
+  reg iseven;
    
   logic [`DSIZE-1:0] rdata;
   logic wfull;
@@ -29,7 +30,7 @@ module aggregator_tb;
   logic rinc, rrst_n;
   
   
-  always #20 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
+  always #10 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
   always #20 wclk =~wclk;
   
   aggregator
@@ -41,7 +42,7 @@ module aggregator_tb;
     .clk(clk),
     .rst_n(rst_n),
     .sender_data(rdata),
-    .sender_empty_n(rempty),
+    .sender_empty_n(!rempty),
     .sender_deq(fifo_deq),
     .receiver_data(receiver_din),
     .receiver_full_n(receiver_full_n),
@@ -66,10 +67,13 @@ module aggregator_tb;
 
   initial begin
     winc = 1'b0;
+    iseven = 1'b0;
     wdata = '0;
     wrst_n = 1'b0;
+    rst_n = 1'b0;
     repeat(5) @(posedge wclk);
     wrst_n = 1'b1;
+    rst_n = 1'b1;
 
   end
 
@@ -88,32 +92,37 @@ module aggregator_tb;
   initial begin
     clk <= 0;
     wclk <= 0;
-    wdata <= 0;
+    wdata <= 11'b0;
     
 
     fifo_valid <=0;
-    rst_n <= 0;
+    //rst_n <= 0;
    
     stall <= 0; 
-    expected_dout <= 0;
+    expected_dout <= 11'b0;
     receiver_full_n <= 0;
-    #20 rst_n <= 0;
+    #20 //rst_n <= 0;
     receiver_full_n <= 1;
-    #20 rst_n <= 1;
+    #20 //rst_n <= 1;
 
  
     fifo_valid <=1;
   end
 
     //comment
-  assign fifo_enq = wrst_n && (wfull) && (!stall);
+  assign fifo_enq = wrst_n && (!wfull) && (!stall);
+
+
+  always @ (negedge clk) begin
+	iseven <= ~iseven; 
+  end
 
   always @ (posedge clk) begin
-    if (wrst_n) begin
+    if (wrst_n && iseven) begin
       stall <= $urandom % 2;
       receiver_full_n <= 1;
       if (fifo_enq) begin
-        wdata <= wdata + 1;
+        wdata <= wdata + 11'b1;
       end
     end else begin
       wdata <= 0;
@@ -123,7 +132,7 @@ module aggregator_tb;
   genvar i;
   generate
     for (i = 0; i < `FETCH_WIDTH; i++) begin
-      always @ (posedge clk) begin
+      always @ (posedge clk && iseven) begin
         if (receiver_enq) begin
           assert(receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH] == expected_dout + i);
           $display("%t: received = %d, expected = %d", $time, 
@@ -133,7 +142,7 @@ module aggregator_tb;
     end
   endgenerate
 
-  always @ (posedge clk) begin
+  always @ (posedge clk && iseven) begin
     if (receiver_enq) begin
       expected_dout <= expected_dout + `FETCH_WIDTH;
     end 

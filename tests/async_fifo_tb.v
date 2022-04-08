@@ -6,7 +6,7 @@
 
 module async_fifo_tb ();
 
-parameter DSIZE = 8;
+parameter DSIZE = 11;
 parameter ASIZE = 4;
 parameter WCLK_PERIOD = 20; //50 MHz write clock
 parameter RCLK_PERIOD = 6.6666; //150 MHz compute clock
@@ -57,21 +57,21 @@ end
 
 initial begin
     repeat (4) @ (posedge wclk); // 4 cycles of nothing
-     @(negedge wclk); wreq = 1; wdata = 8'd1;
-     @(negedge wclk); rreq = 1; wreq = 1;wdata = 8'd2;
+     @(negedge wclk); wreq = 1; wdata = 11'd1;
+     @(negedge wclk); rreq = 1; wreq = 1;wdata = 11'd2;
      @(posedge rclk); rreq = 0;
-     @(negedge rclk); assert(rdata == 8'd1);
-     @(negedge wclk); rreq = 1; wreq = 1;wdata = 8'd3;
+     @(negedge rclk); assert(rdata == 11'd1);
+     @(negedge wclk); rreq = 1; wreq = 1;wdata = 11'd3;
      @(posedge rclk); rreq = 0;
-     @(negedge rclk); assert(rdata == 8'd2);
+     @(negedge rclk); assert(rdata == 11'd2);
 	
 
-     @(negedge wclk); rreq = 1;wreq = 1;wdata = 8'd4;
+     @(negedge wclk); rreq = 1;wreq = 1;wdata = 11'd4;
      @(posedge rclk); rreq = 0;
-     @(negedge wclk); wreq = 1;wdata = 8'd5;
-     @(negedge wclk); rreq = 1; wreq = 1;wdata = 8'd6;
+     @(negedge wclk); wreq = 1;wdata = 11'd5;
+     @(negedge wclk); rreq = 1; wreq = 1;wdata = 11'd6;
      @(posedge rclk); rreq = 0;
-     @(negedge rclk); assert(rdata == 8'd4);
+     @(negedge rclk); assert(rdata == 11'd4);
 
     //  @(negedge wclk); wreq = 1;wdata = 8'd7;
     //  @(negedge wclk); wreq = 1;wdata = 8'd8;

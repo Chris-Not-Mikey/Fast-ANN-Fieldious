@@ -1,5 +1,6 @@
 // Asynchronous memory with gray code pointer exchange
 // 2^n depth supported
+// Source: https://github.com/Jagannaths3/async_fifo/blob/master/async_fifo.v
 
 `default_nettype none
 `timescale 1ps/1ps
@@ -8,6 +9,7 @@ module async_fifo #(
     parameter DSIZE = 8,
     parameter ASIZE = 4
 ) (
+    input   valid,
     input   wreq, wclk, wrst_n,
     input   rreq, rclk, rrst_n,
     input   [DSIZE-1:0] wdata,
@@ -76,7 +78,7 @@ always @ (posedge rclk or negedge rrst_n)
         rptr <= rptr_nxt;
 
 // generating write address for fifomem
-assign wbin_nxt = wbin + (wreq & !wfull);
+assign wbin_nxt = wbin + ( & valid & !wfull);
 
 always @ (posedge wclk or negedge wrst_n)
     if(!wrst_n)
@@ -114,6 +116,6 @@ reg [DSIZE-1 : 0] mem [0: DEPTH -1];
 assign rdata = mem[raddr];
 
 always @ (posedge wclk)
-    if (wreq & !wfull) mem[waddr] <= wdata;
+    if (wreq & valid & !wfull) mem[waddr] <= wdata;
 
 endmodule

@@ -2,14 +2,14 @@
 //source: https://github.com/Jagannaths3/async_fifo/blob/master/async_fifo_tb.v
 
 `default_nettype none
-`timescale 1ps/1ps
+`timescale 1ns/1ps
 
 module async_fifo_tb ();
 
 parameter DSIZE = 8;
 parameter ASIZE = 4;
-parameter WCLK_PERIOD = 10;
-parameter RCLK_PERIOD = 40;
+parameter WCLK_PERIOD = 20; //50 MHz write clock
+parameter RCLK_PERIOD = 6.6666; //150 MHz compute clock
 
 reg wreq, wclk, wrst_n, rreq, rclk, rrst_n;
 reg [DSIZE-1:0] wdata;
@@ -57,17 +57,22 @@ end
 
 initial begin
     repeat (4) @ (posedge wclk); // 4 cycles of nothing
-     @(negedge wclk); wreq = 1;wdata = 8'd1;
-    // @(negedge rclk); rreq = 1;
-     @(negedge wclk); wreq = 1;wdata = 8'd2;
-    // @(negedge rclk); rreq = 1;
-     @(negedge wclk); wreq = 1;wdata = 8'd3;
-    // @(negedge rclk); rreq = 1;
-     @(negedge wclk); wreq = 1;wdata = 8'd4;
-    // @(negedge rclk); rreq = 1;
+     @(negedge wclk); wreq = 1; wdata = 8'd1;
+     @(negedge wclk); rreq = 1; wreq = 1;wdata = 8'd2;
+     @(posedge rclk); rreq = 0;
+     @(negedge rclk); assert(rdata == 8'd1);
+     @(negedge wclk); rreq = 1; wreq = 1;wdata = 8'd3;
+     @(posedge rclk); rreq = 0;
+     @(negedge rclk); assert(rdata == 8'd2);
+	
+
+     @(negedge wclk); rreq = 1;wreq = 1;wdata = 8'd4;
+     @(posedge rclk); rreq = 0;
      @(negedge wclk); wreq = 1;wdata = 8'd5;
-    // @(negedge rclk); rreq = 1;
-    //  @(negedge wclk); wreq = 1;wdata = 8'd6;
+     @(negedge wclk); rreq = 1; wreq = 1;wdata = 8'd6;
+     @(posedge rclk); rreq = 0;
+     @(negedge rclk); assert(rdata == 8'd4);
+
     //  @(negedge wclk); wreq = 1;wdata = 8'd7;
     //  @(negedge wclk); wreq = 1;wdata = 8'd8;
     //  @(negedge wclk); wreq = 1;wdata = 8'd9;

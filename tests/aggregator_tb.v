@@ -62,6 +62,19 @@ module aggregator_tb;
     .clr(1'b0)
   );
 
+  async_fifo 
+  #(     
+      .DSIZE(`DSIZE),
+      .ASIZE(`ASIZE)
+  )
+  u_async_fifo
+  ( 
+      .valid(fifo_valid),
+      .wreq (wreq), .wrst_n(wrst_n), .wclk(wclk),
+      .rreq(rreq), .rclk(clk), .rrst_n(rrst_n),
+      .wdata(wdata), .rdata(rdata), .wfull(wfull), .rempty(rempty)
+  );
+
   initial begin
     clk <= 0;
     rst_n <= 0;

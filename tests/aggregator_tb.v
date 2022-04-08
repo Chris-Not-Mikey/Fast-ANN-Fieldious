@@ -1,5 +1,5 @@
-`define DATA_WIDTH 16
-`define FETCH_WIDTH 4
+`define DATA_WIDTH 11
+`define FETCH_WIDTH 6
 
 module aggregator_tb;
 
@@ -14,10 +14,20 @@ module aggregator_tb;
   wire receiver_enq;
   reg [`DATA_WIDTH - 1 : 0] fifo_din;
   wire fifo_enq;
+  reg fifo_valid;
   wire fifo_full_n;
   reg stall;
 
-  always #10 clk =~clk;
+  reg wreq, wclk, wrst_n, rreq, rrst_n;
+  reg [DSIZE-1:0] wdata;
+  wire [DSIZE-1:0] rdata;
+  wire wfull, rempty;
+
+  always #6.6666 clk =~clk;
+  always #20 wclk = ~wclk;
+
+  parameter DSIZE = 11;
+  parameter ASIZE = 4;
   
   aggregator
   #(
@@ -35,31 +45,38 @@ module aggregator_tb;
     .receiver_enq(receiver_enq)
   );
 
-  fifo
-  #(
-    .DATA_WIDTH(`DATA_WIDTH),
-    .FIFO_DEPTH(3),
-    .COUNTER_WIDTH(1)
-  ) fifo_inst (
-    .clk(clk),
-    .rst_n(rst_n),
-    .din(fifo_din),
-    .enq(fifo_enq),
-    .full_n(fifo_full_n),
-    .dout(fifo_dout),
-    .deq(fifo_deq),
-    .empty_n(fifo_empty_n),
-    .clr(1'b0)
+  async_fifo 
+  #(     
+      .DSIZE(DSIZE),
+      .ASIZE(ASIZE)
+  )
+  u_async_fifo
+  (
+      .valid(fifo_valid),
+      .wreq (wreq), .wrst_n(wrst_n), .wclk(wclk),
+      .rreq(rreq), .rclk(clk), .rrst_n(rrst_n),
+      .wdata(wdata), .rdata(rdata), .wfull(wfull), .rempty(rempty)
   );
 
   initial begin
     clk <= 0;
     rst_n <= 0;
+    rrst_n <= 0;
+    wrst_n <= 0;
     stall <= 0; 
+    fifo_valid <=0;
     expected_dout <= 0;
     receiver_full_n <= 1;
+    wreq <= 0;
+    wdata <= 0;
+    rreq <= 0;
     #20 rst_n <= 0;
+    rrst_n <= 0;
+    wrst_n <= 0;
     #20 rst_n <= 1;
+    rrst_n <= 1;
+    wrst_n <= 1;
+    fifo_valid <= 1;
   end
 
   assign fifo_enq = rst_n && fifo_full_n && (!stall);

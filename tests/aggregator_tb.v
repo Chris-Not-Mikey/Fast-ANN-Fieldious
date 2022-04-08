@@ -44,23 +44,23 @@ module aggregator_tb;
     .receiver_enq(receiver_enq)
   );
 
-  fifo
-  #(
-    .DATA_WIDTH(`DATA_WIDTH),
-    .FIFO_DEPTH(3),
-    .COUNTER_WIDTH(1)
-  ) fifo_inst (
-    .clk(clk),
-    .rst_n(rst_n),
-    .din(fifo_din),
-    .enq(fifo_enq),
-    .valid(fifo_valid),
-    .full_n(fifo_full_n),
-    .dout(fifo_dout),
-    .deq(fifo_deq),
-    .empty_n(fifo_empty_n),
-    .clr(1'b0)
-  );
+//   fifo
+//   #(
+//     .DATA_WIDTH(`DATA_WIDTH),
+//     .FIFO_DEPTH(3),
+//     .COUNTER_WIDTH(1)
+//   ) fifo_inst (
+//     .clk(clk),
+//     .rst_n(rst_n),
+//     .din(fifo_din),
+//     .enq(fifo_enq),
+//     .valid(fifo_valid),
+//     .full_n(fifo_full_n),
+//     .dout(fifo_dout),
+//     .deq(fifo_deq),
+//     .empty_n(fifo_empty_n),
+//     .clr(1'b0)
+//   );
 
   async_fifo 
   #(     

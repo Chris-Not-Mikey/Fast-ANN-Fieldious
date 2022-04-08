@@ -1,7 +1,7 @@
 `define DATA_WIDTH 11
-`define FETCH_WIDTH 4
+`define FETCH_WIDTH 2
 `define DSIZE 11
-`define ASIZE 4
+`define ASIZE 3
 
 module aggregator_tb;
 

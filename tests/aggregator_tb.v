@@ -20,7 +20,7 @@ module aggregator_tb;
   reg stall;
 
 
-  reg valid, wreq, wclk, wrst_n, rreq, rrst_n;
+  reg wreq, wclk, wrst_n, rreq, rrst_n;
   reg [`DSIZE-1:0] wdata;
   wire [`DSIZE-1:0] rdata;
   wire wfull, rempty;
@@ -77,12 +77,17 @@ module aggregator_tb;
 
   initial begin
     clk <= 0;
+    wclk <= 0;
+    wreq <= 0;
+
+    fifo_valid <=0;
     rst_n <= 0;
     stall <= 0; 
     expected_dout <= 0;
     receiver_full_n <= 1;
     #20 rst_n <= 0;
     #20 rst_n <= 1;
+    fifo_valid <=1;
   end
 
   assign fifo_enq = rst_n && fifo_full_n && (!stall);

@@ -1,5 +1,7 @@
 `define DATA_WIDTH 11
 `define FETCH_WIDTH 6
+`define DSIZE 11
+`define ASIZE 4
 
 module aggregator_tb;
 
@@ -23,11 +25,11 @@ module aggregator_tb;
   wire [DSIZE-1:0] rdata;
   wire wfull, rempty;
 
-  always #6.6666 clk =~clk;
+  always #6 clk =~clk;
   always #20 wclk = ~wclk;
 
-  parameter DSIZE = 11;
-  parameter ASIZE = 4;
+  //parameter DSIZE = 11;
+  //parameter ASIZE = 4;
   
   aggregator
   #(
@@ -45,18 +47,18 @@ module aggregator_tb;
     .receiver_enq(receiver_enq)
   );
 
-  async_fifo 
-  #(     
-      .DSIZE(DSIZE),
-      .ASIZE(ASIZE)
-  )
-  u_async_fifo
-  (
-      .valid(fifo_valid),
-      .wreq (wreq), .wrst_n(wrst_n), .wclk(wclk),
-      .rreq(rreq), .rclk(clk), .rrst_n(rrst_n),
-      .wdata(wdata), .rdata(rdata), .wfull(wfull), .rempty(rempty)
-  );
+//  async_fifo 
+//  #(     
+//      .DSIZE(`DSIZE),
+//      .ASIZE(`ASIZE)
+//  )
+//  u_async_fifo
+//  (
+//      .valid(fifo_valid),
+//      .wreq (wreq), .wrst_n(wrst_n), .wclk(wclk),
+//      .rreq(rreq), .rclk(clk), .rrst_n(rrst_n),
+//      .wdata(wdata), .rdata(rdata), .wfull(wfull), .rempty(rempty)
+//  );
 
   initial begin
     clk <= 0;
@@ -83,7 +85,7 @@ module aggregator_tb;
 
   always @ (posedge clk) begin
     if (rst_n) begin
-      stall <= $urandom % 2;
+      stall <= 0; //i$urandom % 2;
       receiver_full_n <= 1;
       if (fifo_enq) begin
         fifo_din <= fifo_din + 1;
@@ -99,7 +101,7 @@ module aggregator_tb;
       always @ (posedge clk) begin
         if (receiver_enq) begin
           assert(receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH] == expected_dout + i);
-          $display("%t: received = %d, expected = %d", $time, 
+          //$display("%t: received = %d, expected = %d", $time, 
             receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH], expected_dout + i);
         end
       end
@@ -113,9 +115,10 @@ module aggregator_tb;
   end
 
   initial begin
-    $vcdplusfile("dump.vcd");
-    $vcdplusmemon();
-    $vcdpluson(0, aggregator_tb);
+    $dumpfile("dump.vcd");
+    $dumpvars;
+   // $vcdplusmemon();
+   // $vcdpluson(0, aggregator_tb);
     #2000;
     $finish(2);
   end

@@ -74,5 +74,14 @@ module async_fifo1_tb;
 
     $finish;
   end
+  
+  initial begin
+    $dumpfile("dump.vcd");
+    $dumpvars;
+//     $vcdplusmemon();
+//     $vcdpluson(0, aggregator_tb);
+    #2000000;
+    $finish(2);
+  end
 
 endmodule

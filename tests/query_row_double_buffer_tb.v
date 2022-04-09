@@ -92,7 +92,7 @@ module query_row_double_buffer_tb;
   .ren(ren),
   .radr(radr),
   .sender_data(receiver_din),
-  .receiver_data(ram_output),  
+  .receiver_data(ram_output)  
 
 );
 

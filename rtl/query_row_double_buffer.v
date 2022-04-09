@@ -27,7 +27,7 @@ module query_row_double_buffer
   input ren,
   input [ADDR_WIDTH -1 : 0] radr,
   input [DATA_WIDTH - 1 : 0] sender_data,
-  output [DATA_WIDTH - 1 : 0] receiver_data,
+  output [DATA_WIDTH - 1 : 0] receiver_data
 
 );
 

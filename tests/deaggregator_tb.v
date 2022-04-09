@@ -1,6 +1,6 @@
-`define DATA_WIDTH 11
+`define DATA_WIDTH 9
 `define FETCH_WIDTH 4
-`define DSIZE 11
+`define DSIZE 9
 `define ASIZE 4
 
 
@@ -11,7 +11,7 @@ module deaggregator_tb;
   reg rst_n;
   wire [`FETCH_WIDTH * `DATA_WIDTH - 1 : 0] sender_data;
   reg [`DATA_WIDTH - 1 : 0] sender_data_r [`FETCH_WIDTH - 1 : 0];
-  wire sender_empty_n;
+  reg sender_empty_n;
   wire sender_deq;
   wire [`DATA_WIDTH - 1 : 0] fifo_din;
   wire [`DATA_WIDTH - 1 : 0] fifo_dout;
@@ -20,17 +20,18 @@ module deaggregator_tb;
   wire fifo_enq;
   wire fifo_deq;
   
+  reg even;
   reg stall;
   reg [`DATA_WIDTH - 1 : 0] expected_dout;
 
-  always #10 clk =~clk; //Read clock
-  always #10 wclk =~wclk; //Slower I/O clock
+  always #10 clk =~clk; //Write clock + General Purpose system clock
+  always #20 wclk =~wclk; //Slower I/O clock (Name is misleading, is actually read clock)
 
   logic [`DSIZE-1:0] rdata;
   logic wfull;
   logic rempty;
   logic [`DSIZE-1:0] wdata;
-  logic winc, wclk, wrst_n;
+  logic winc, wrst_n;
   logic rinc, rrst_n;
   
   deaggregator
@@ -45,26 +46,10 @@ module deaggregator_tb;
     .sender_empty_n(sender_empty_n),
     .sender_deq(sender_deq),
     .receiver_data(fifo_din),
-    .receiver_full_n(fifo_full_n),
+    .receiver_full_n(!wfull),
     .receiver_enq(fifo_enq)
   );
 
-  // fifo
-  // #(
-  //   .DATA_WIDTH(`DATA_WIDTH),
-  //   .FIFO_DEPTH(3),
-  //   .COUNTER_WIDTH(1)
-  // ) fifo_inst (
-  //   .clk(clk),
-  //   .rst_n(rst_n),
-  //   .din(fifo_din),
-  //   .enq(fifo_enq),
-  //   .full_n(fifo_full_n),
-  //   .dout(fifo_dout),
-  //   .deq(fifo_deq),
-  //   .empty_n(fifo_empty_n),
-  //   .clr(1'b0)
-  // );
 
   async_fifo1 #(
     .DSIZE(`DSIZE),
@@ -72,8 +57,8 @@ module deaggregator_tb;
   )
   dut (
     
-    .winc(fifo_enq), .wclk(wclk), .wrst_n(wrst_n),
-    .rinc(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
+    .winc(fifo_enq), .wclk(clk), .wrst_n(wrst_n),
+    .rinc(fifo_deq), .rclk(wclk), .rrst_n(rrst_n),
     .wdata(fifo_din),
     .rdata(fifo_dout),
     .wfull(wfull),
@@ -83,18 +68,35 @@ module deaggregator_tb;
 
   initial begin
     clk <= 0;
+    sender_empty_n = 0;
+    even <= 0;
+    wclk <= 0;
     rst_n <= 0;
     stall <= 0;
+    wrst_n = 1'b0;
+    rrst_n = 1'b0;
     sender_data_r[0] <= 0;
     sender_data_r[1] <= 1;
     sender_data_r[2] <= 2;
     sender_data_r[3] <= 3;
+    sender_data_r[4] <= 4;
     expected_dout <= 4;
     #20 rst_n <= 0;
+    wrst_n = 1'b0;
+    rrst_n = 1'b0;
     #20 rst_n <= 1;
+    wrst_n = 1'b1;
+    rrst_n = 1'b1;
+    sender_empty_n = 1;
   end
 
-  assign sender_empty_n = 1;
+  //assign sender_empty_n = 1;
+  //
+ 
+  always @ (negedge clk) begin
+	even <= ~even;
+  end
+
 
   genvar i;
   generate
@@ -109,11 +111,10 @@ module deaggregator_tb;
       end
     end
   endgenerate
-
   assign fifo_deq = rst_n && (!rempty) && (!stall);
 
-  always @ (posedge clk) begin
-    if (rst_n) begin
+  always @ (negedge clk) begin
+    if (rst_n && even) begin
       stall <= $urandom % 2;
       if (fifo_deq) begin
         $display("%t: fifo_dout = %d, expected_dout = %d", $time, fifo_dout, expected_dout);

@@ -148,7 +148,7 @@ def test_systolic_array_with_skew_tb():
 
 def test_deaggregator_tb():
     print("Running test_deaggregator_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/deaggregator_tb.v', 'rtl/deaggregator.v', 'rtl/fifo.v', 'rtl/SizedFIFO.v'])
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/deaggregator_tb.v', 'rtl/deaggregator.v', 'rtl/dual_clock_async_fifo_design.v', 'rtl/fifo.v', 'rtl/SizedFIFO.v'])
 
 def test_double_buffer_tb():
     print("Running test_double_buffer_tb")

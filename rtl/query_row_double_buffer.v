@@ -71,3 +71,5 @@ assign wen = fsm_enable && sender_enable;
       end
 
   end
+
+endmodule

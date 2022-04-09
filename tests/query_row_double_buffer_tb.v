@@ -204,7 +204,7 @@ module query_row_double_buffer_tb;
              $display("%t: received = %d", $time, ram_output);
         end
 	else begin
-	    ren <= 0;
+	    ren <= 1;
       	    read_latency_counter <= read_latency_counter + 1;
 		
 	end

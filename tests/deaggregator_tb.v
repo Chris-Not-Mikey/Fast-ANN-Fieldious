@@ -71,7 +71,7 @@ module deaggregator_tb;
     rst_n <= 0;
     stall <= 0;
     wrst_n = 1'b0;
-    rst_n = 1'b0;
+    rrst_n = 1'b0;
     sender_data_r[0] <= 0;
     sender_data_r[1] <= 1;
     sender_data_r[2] <= 2;
@@ -79,10 +79,10 @@ module deaggregator_tb;
     expected_dout <= 4;
     #20 rst_n <= 0;
     wrst_n = 1'b0;
-    rst_n = 1'b0;
+    rrst_n = 1'b0;
     #20 rst_n <= 1;
     wrst_n = 1'b1;
-    rst_n = 1'b1;
+    rrst_n = 1'b1;
   end
 
   assign sender_empty_n = 1;

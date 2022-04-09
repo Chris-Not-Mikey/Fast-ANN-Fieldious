@@ -30,7 +30,7 @@ module deaggregator_tb;
   logic wfull;
   logic rempty;
   logic [`DSIZE-1:0] wdata;
-  logic winc, wclk, wrst_n;
+  logic winc, wrst_n;
   logic rinc, rrst_n;
   
   deaggregator
@@ -49,22 +49,6 @@ module deaggregator_tb;
     .receiver_enq(fifo_enq)
   );
 
-  // fifo
-  // #(
-  //   .DATA_WIDTH(`DATA_WIDTH),
-  //   .FIFO_DEPTH(3),
-  //   .COUNTER_WIDTH(1)
-  // ) fifo_inst (
-  //   .clk(clk),
-  //   .rst_n(rst_n),
-  //   .din(fifo_din),
-  //   .enq(fifo_enq),
-  //   .full_n(fifo_full_n),
-  //   .dout(fifo_dout),
-  //   .deq(fifo_deq),
-  //   .empty_n(fifo_empty_n),
-  //   .clr(1'b0)
-  // );
 
   async_fifo1 #(
     .DSIZE(`DSIZE),

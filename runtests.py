@@ -132,7 +132,7 @@ def test_aggregator_tb():
 
 def test_query_buffer_tb():
     print("Running query_row_double_buffer_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/query_row_double_buffer_tb.v', 'rtl/query_row_double_buffer.v',  'rtl/aggregator.v', 'rtl/dual_clock_async_fifo_design.v', 'rtl/ram_sync_1r1w'])
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/query_row_double_buffer_tb.v', 'rtl/query_row_double_buffer.v',  'rtl/aggregator.v', 'rtl/dual_clock_async_fifo_design.v', 'rtl/ram_sync_1r1w.v'])
 
 
 def test_adr_gen_sequential_tb():

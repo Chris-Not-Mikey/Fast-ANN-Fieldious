@@ -1,7 +1,7 @@
-`define DATA_WIDTH 11
+`define DATA_WIDTH 8
 `define FETCH_WIDTH 2
-`define DSIZE 11
-`define ASIZE 3
+`define DSIZE 8
+`define ASIZE 4
 
 module aggregator_tb;
 
@@ -18,15 +18,22 @@ module aggregator_tb;
   wire fifo_enq;
   wire fifo_full_n;
   reg stall;
-  reg fifo_valid;
+  reg fifo_valid; 
 
-  reg wreq, wclk, wrst_n, rreq, rrst_n;
-  reg [`DSIZE-1:0] wdata;
-  wire [`DSIZE-1:0] rdata;
-  wire wfull, rempty;
+  reg [1:0] iseven;
+  wire even;
 
-  always #20 clk =~clk;
-  always #20 wclk =~wclk;
+
+  logic [`DSIZE-1:0] rdata;
+  logic wfull;
+  logic rempty;
+  logic [`DSIZE-1:0] wdata;
+  logic winc, wclk, wrst_n;
+  logic rinc, rrst_n;
+  
+  
+  always #10 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
+  always #30 wclk =~wclk;
   
   aggregator
   #(
@@ -44,82 +51,96 @@ module aggregator_tb;
     .receiver_enq(receiver_enq)
   );
 
-//   fifo
-//   #(
-//     .DATA_WIDTH(`DATA_WIDTH),
-//     .FIFO_DEPTH(3),
-//     .COUNTER_WIDTH(1)
-//   ) fifo_inst (
-//     .clk(clk),
-//     .rst_n(rst_n),
-//     .din(fifo_din),
-//     .enq(fifo_enq),
-//     .valid(fifo_valid),
-//     .full_n(fifo_full_n),
-//     .dout(fifo_dout),
-//     .deq(fifo_deq),
-//     .empty_n(fifo_empty_n),
-//     .clr(1'b0)
-//   );
-
-  async_fifo 
-  #(     
-      .DSIZE(`DSIZE),
-      .ASIZE(`ASIZE)
+  
+  async_fifo1 #(
+    .DSIZE(`DSIZE),
+    .ASIZE(`ASIZE)
   )
-  u_async_fifo
-  ( 
-      .valid(fifo_valid),
-      .wreq (fifo_enq), .wrst_n(wrst_n), .wclk(wclk),
-      .rreq(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
-      .wdata(wdata), .rdata(rdata), .wfull(wfull), .rempty(rempty)
+  dut (
+    
+    .winc(fifo_enq), .wclk(wclk), .wrst_n(wrst_n),
+    .rinc(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
+    .wdata(wdata),
+    .rdata(rdata),
+    .wfull(wfull),
+    .rempty(rempty)
+    
   );
+
+  initial begin
+    winc = 1'b0;
+    iseven = 2'b10;
+    wdata = '0;
+    wrst_n = 1'b0;
+    rst_n = 1'b0;
+    repeat(5) @(posedge wclk);
+    //#5
+    wrst_n = 1'b1;
+    rst_n = 1'b1;
+    //iseven = 1'b0;
+  end
+
+  initial begin
+    rinc = 1'b0;
+
+    rrst_n = 1'b0;
+    repeat(8) @(posedge clk);
+    rrst_n = 1'b1;
+
+  end
+
+
+
 
   initial begin
     clk <= 0;
     wclk <= 0;
-    wreq <= 0;
-    rreq <= 0;
-    wdata <= 0;
+    wdata <= 11'b0;
     
 
     fifo_valid <=0;
-    rst_n <= 0;
-    rrst_n <= 0;
-    wrst_n <=0;
+    //rst_n <= 0;
+   
     stall <= 0; 
-    expected_dout <= 0;
+    expected_dout <= 11'b0;
     receiver_full_n <= 0;
-    #20 rst_n <= 0;
-    rrst_n <= 0;
-    wrst_n <= 0;
+    #20 //rst_n <= 0;
     receiver_full_n <= 1;
-    #20 rst_n <= 1;
-    rrst_n <= 1;
-    wrst_n <= 1;
+    #20 //rst_n <= 1;
+
+ 
     fifo_valid <=1;
   end
 
     //comment
   assign fifo_enq = wrst_n && (!wfull) && (!stall);
+  assign even = (iseven == 2'b10) || (iseven == 2'b00);
 
   always @ (posedge clk) begin
+       
+	#1 
+	iseven <= (iseven == 2'b10) ? 2'b00: iseven+2'b01; 
+  end
+
+  always @ (posedge clk) begin
+    if (even && (iseven == 2'b00)) begin
     if (wrst_n) begin
       stall <= $urandom % 2;
       receiver_full_n <= 1;
       if (fifo_enq) begin
-        wdata <= wdata + 1;
+        wdata <= wdata + 11'b1;
       end
     end else begin
       wdata <= 0;
     end
+   end
   end
 
   genvar i;
   generate
     for (i = 0; i < `FETCH_WIDTH; i++) begin
-      always @ (posedge clk) begin
-        if (receiver_enq) begin
+      always @ (negedge clk) begin
+        if (receiver_enq && even ) begin
           assert(receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH] == expected_dout + i);
           $display("%t: received = %d, expected = %d", $time, 
             receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH], expected_dout + i);
@@ -128,8 +149,8 @@ module aggregator_tb;
     end
   endgenerate
 
-  always @ (posedge clk) begin
-    if (receiver_enq) begin
+  always @ (negedge clk) begin
+    if (receiver_enq && even ) begin
       expected_dout <= expected_dout + `FETCH_WIDTH;
     end 
   end

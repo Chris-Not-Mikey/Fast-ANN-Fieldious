@@ -77,6 +77,7 @@ module deaggregator_tb;
     sender_data_r[1] <= 1;
     sender_data_r[2] <= 2;
     sender_data_r[3] <= 3;
+    sender_data_r[4] <= 4;
     expected_dout <= 4;
     #20 rst_n <= 0;
     wrst_n = 1'b0;

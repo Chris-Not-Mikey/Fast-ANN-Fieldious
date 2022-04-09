@@ -218,7 +218,7 @@ module query_row_double_buffer_tb;
     $dumpvars;
 //     $vcdplusmemon();
 //     $vcdpluson(0, aggregator_tb);
-    #2000;
+    #20000;
     $finish(2);
   end
 

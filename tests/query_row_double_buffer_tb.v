@@ -43,8 +43,8 @@ module query_row_double_buffer_tb;
   logic [1:0] read_latency_counter; 
   logic  [`FETCH_WIDTH * `DATA_WIDTH - 1 : 0] expected_ram_dout;
   
-  always #20 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
-  always #20 wclk =~wclk;
+  always #10 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
+  always #30 wclk =~wclk;
   
   aggregator
   #(
@@ -161,7 +161,7 @@ module query_row_double_buffer_tb;
   end
 
   always @ (posedge clk) begin
-    if (1) begin
+  if (even) begin
     if (wrst_n) begin
       stall <= $urandom % 2;
       receiver_full_n <= 1;
@@ -177,8 +177,8 @@ module query_row_double_buffer_tb;
   genvar i;
   generate
     for (i = 0; i < `FETCH_WIDTH; i++) begin
-      always @ (posedge clk) begin
-        if (receiver_enq ) begin
+     always @ (negedge clk) begin
+      if (receiver_enq && even ) begin
           assert(receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH] == expected_dout + i);
           $display("%t: received = %d, expected = %d", $time, 
             receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH], expected_dout + i);
@@ -186,16 +186,16 @@ module query_row_double_buffer_tb;
       end
     end
   endgenerate
-
-  always @ (posedge clk) begin
-    if (receiver_enq) begin
+ 
+  always @ (negedge clk) begin
+   if (receiver_enq && even) begin
       expected_dout <= expected_dout + `FETCH_WIDTH;
     end 
   end
 
 
-  always @ (posedge clk) begin
-    if (receiver_enq) begin
+  always @ (negedge clk) begin
+  if (receiver_enq && even) begin
       ren <= 1;
       read_latency_counter <= 0;
     end 

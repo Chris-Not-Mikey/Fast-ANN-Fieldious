@@ -1,5 +1,5 @@
 `define DATA_WIDTH 9
-`define FETCH_WIDTH 5
+`define FETCH_WIDTH 4
 `define DSIZE 9
 `define ASIZE 4
 
@@ -20,11 +20,12 @@ module deaggregator_tb;
   wire fifo_enq;
   wire fifo_deq;
   
+  reg even;
   reg stall;
   reg [`DATA_WIDTH - 1 : 0] expected_dout;
 
-  always #10 clk =~clk; //Read clock
-  always #10 wclk =~wclk; //Slower I/O clock
+  always #10 clk =~clk; //Write clock + General Purpose system clock
+  always #20 wclk =~wclk; //Slower I/O clock (Name is misleading, is actually read clock)
 
   logic [`DSIZE-1:0] rdata;
   logic wfull;
@@ -56,8 +57,8 @@ module deaggregator_tb;
   )
   dut (
     
-    .winc(fifo_enq), .wclk(wclk), .wrst_n(wrst_n),
-    .rinc(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
+    .winc(fifo_enq), .wclk(clk), .wrst_n(wrst_n),
+    .rinc(fifo_deq), .rclk(wclk), .rrst_n(rrst_n),
     .wdata(fifo_din),
     .rdata(fifo_dout),
     .wfull(wfull),
@@ -68,6 +69,7 @@ module deaggregator_tb;
   initial begin
     clk <= 0;
     sender_empty_n = 0;
+    even <= 0;
     wclk <= 0;
     rst_n <= 0;
     stall <= 0;
@@ -89,6 +91,12 @@ module deaggregator_tb;
   end
 
   //assign sender_empty_n = 1;
+  //
+ 
+  always @ (negedge clk) begin
+	even <= ~even;
+  end
+
 
   genvar i;
   generate
@@ -103,11 +111,10 @@ module deaggregator_tb;
       end
     end
   endgenerate
-
   assign fifo_deq = rst_n && (!rempty) && (!stall);
 
-  always @ (posedge clk) begin
-    if (rst_n) begin
+  always @ (negedge clk) begin
+    if (rst_n && even) begin
       stall <= $urandom % 2;
       if (fifo_deq) begin
         $display("%t: fifo_dout = %d, expected_dout = %d", $time, fifo_dout, expected_dout);

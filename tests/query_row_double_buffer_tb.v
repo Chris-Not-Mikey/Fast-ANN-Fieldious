@@ -1,5 +1,5 @@
 `define DATA_WIDTH 11
-`define FETCH_WIDTH 1
+`define FETCH_WIDTH 2
 `define DSIZE 11
 `define ASIZE 4
 `define ADDRESS_WIDTH 7
@@ -218,7 +218,7 @@ module query_row_double_buffer_tb;
     $dumpvars;
 //     $vcdplusmemon();
 //     $vcdpluson(0, aggregator_tb);
-    #20000;
+    #2000;
     $finish(2);
   end
 

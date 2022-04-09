@@ -51,7 +51,7 @@ assign wen = fsm_enable && sender_enable;
     .ren(ren),
     .radr(radr),
     .rdata(receiver_data)
-  ]
+  );
 
   //Update internal wadr register.
   //If rst_n is low, we set wadr to 0.

@@ -11,7 +11,7 @@ module deaggregator_tb;
   reg rst_n;
   wire [`FETCH_WIDTH * `DATA_WIDTH - 1 : 0] sender_data;
   reg [`DATA_WIDTH - 1 : 0] sender_data_r [`FETCH_WIDTH - 1 : 0];
-  wire sender_empty_n;
+  reg sender_empty_n;
   wire sender_deq;
   wire [`DATA_WIDTH - 1 : 0] fifo_din;
   wire [`DATA_WIDTH - 1 : 0] fifo_dout;
@@ -67,6 +67,7 @@ module deaggregator_tb;
 
   initial begin
     clk <= 0;
+    sender_empty_n = 0;
     wclk <= 0;
     rst_n <= 0;
     stall <= 0;
@@ -83,9 +84,10 @@ module deaggregator_tb;
     #20 rst_n <= 1;
     wrst_n = 1'b1;
     rrst_n = 1'b1;
+    sender_empty_n = 1;
   end
 
-  assign sender_empty_n = 1;
+  //assign sender_empty_n = 1;
 
   genvar i;
   generate

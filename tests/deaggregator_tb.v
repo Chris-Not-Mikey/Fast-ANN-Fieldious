@@ -45,7 +45,7 @@ module deaggregator_tb;
     .sender_empty_n(sender_empty_n),
     .sender_deq(sender_deq),
     .receiver_data(fifo_din),
-    .receiver_full_n(fifo_full_n),
+    .receiver_full_n(!wfull),
     .receiver_enq(fifo_enq)
   );
 

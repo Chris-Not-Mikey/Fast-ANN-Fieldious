@@ -74,7 +74,7 @@ module aggregator_tb;
     repeat(5) @(posedge wclk);
     wrst_n = 1'b1;
     rst_n = 1'b1;
-
+    //iseven = 1'b0;
   end
 
   initial begin
@@ -113,12 +113,14 @@ module aggregator_tb;
   assign fifo_enq = wrst_n && (!wfull) && (!stall);
 
 
-  always @ (negedge clk) begin
+  always @ (posedge clk) begin
+        
 	iseven <= ~iseven; 
   end
 
-  always @ (posedge clk) begin
-    if (wrst_n && iseven) begin
+  always @ (negedge clk) begin
+    if (iseven) begin
+    if (wrst_n) begin
       stall <= $urandom % 2;
       receiver_full_n <= 1;
       if (fifo_enq) begin
@@ -127,13 +129,14 @@ module aggregator_tb;
     end else begin
       wdata <= 0;
     end
+   end
   end
 
   genvar i;
   generate
     for (i = 0; i < `FETCH_WIDTH; i++) begin
-      always @ (posedge clk && iseven) begin
-        if (receiver_enq) begin
+      always @ (negedge clk) begin
+        if (receiver_enq && iseven) begin
           assert(receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH] == expected_dout + i);
           $display("%t: received = %d, expected = %d", $time, 
             receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH], expected_dout + i);
@@ -142,8 +145,8 @@ module aggregator_tb;
     end
   endgenerate
 
-  always @ (posedge clk && iseven) begin
-    if (receiver_enq) begin
+  always @ (negedge clk) begin
+    if (receiver_enq && iseven) begin
       expected_dout <= expected_dout + `FETCH_WIDTH;
     end 
   end

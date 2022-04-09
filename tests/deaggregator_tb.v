@@ -67,7 +67,6 @@ module deaggregator_tb;
 
   initial begin
     clk <= 0;
-    assign sender_empty_n = 0;
     wclk <= 0;
     rst_n <= 0;
     stall <= 0;

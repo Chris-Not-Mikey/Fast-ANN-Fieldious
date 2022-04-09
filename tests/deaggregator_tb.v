@@ -1,7 +1,7 @@
 `define DATA_WIDTH 9
 `define FETCH_WIDTH 4
 `define DSIZE 9
-`define ASIZE 4
+`define ASIZE 7
 
 
 module deaggregator_tb;

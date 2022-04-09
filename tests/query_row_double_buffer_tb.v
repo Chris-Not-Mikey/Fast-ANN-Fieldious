@@ -1,5 +1,5 @@
 `define DATA_WIDTH 11
-`define FETCH_WIDTH 1
+`define FETCH_WIDTH 
 `define DSIZE 11
 `define ASIZE 4
 `define ADDRESS_WIDTH 7
@@ -161,7 +161,7 @@ module query_row_double_buffer_tb;
   end
 
   always @ (posedge clk) begin
-  if (even) begin
+   if (even && (iseven == 2'b00)) begin
     if (wrst_n) begin
       stall <= $urandom % 2;
       receiver_full_n <= 1;

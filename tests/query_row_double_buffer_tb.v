@@ -1,10 +1,10 @@
 `define DATA_WIDTH 11
-`define FETCH_WIDTH 5
+`define FETCH_WIDTH 1
 `define DSIZE 11
 `define ASIZE 4
 `define ADDRESS_WIDTH 7
 `define DEPTH 128
-`define RAM_WIDTH 55
+`define RAM_WIDTH 11
 
 
 module query_row_double_buffer_tb;
@@ -40,7 +40,7 @@ module query_row_double_buffer_tb;
   logic ren;
   logic [`ADDRESS_WIDTH -1:0] radr;
   logic [`RAM_WIDTH-1:0] ram_output;
-  
+  logic [1:0] read_latency_counter;
   
   always #20 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
   always #20 wclk =~wclk;
@@ -102,6 +102,7 @@ module query_row_double_buffer_tb;
     //RAM Stuff
     ren = 1'b0;
     radr = 0;
+    read_latency_counter = 2'b0;
 
     winc = 1'b0;
     iseven = 2'b10;
@@ -194,10 +195,20 @@ module query_row_double_buffer_tb;
   always @ (posedge clk) begin
     if (receiver_enq) begin
       ren <= 1;
+      read_latency_counter <= 0;
     end 
     if (ren) begin
-        ren <= 0;
-        $display("%t: received = %d", $time, ram_output);
+        if (read_latency_counter == 2'b01) begin
+	     ren <= 0;
+	     radr <= radr + 1;
+             $display("%t: received = %d", $time, ram_output);
+        end
+	else begin
+	    ren <= 0;
+      	    read_latency_counter <= read_latency_counter + 1;
+		
+	end
+      
 
     end
   end

@@ -38,6 +38,7 @@ module deaggregator
         .rst_n(rst_n),
         .din(sender_data[(i + 1)*DATA_WIDTH - 1 : i*DATA_WIDTH]),
         .enq(sender_deq_r), // enq must be 1 cycle after sender is dequeued 
+        .valid(1),
         .full_n(fifo_full_n[i]),
         .dout(fifo_dout[i]),
         .deq(fifo_deq[i]),

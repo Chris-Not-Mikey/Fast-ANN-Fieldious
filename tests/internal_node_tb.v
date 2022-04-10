@@ -23,9 +23,7 @@ module internal_node_tb;
   #(
    .DATA_WIDTH(`DATA_WIDTH),
    .STORAGE_WIDTH(`STORAGE_WIDTH)
-  )
-  dut
-  (
+  ) dut (
   .clk(clk),
   .rst_n(rst_n),
   .wen(wen), //Determined by FSM, reciever enq, and DECODER from KD Tree
@@ -73,6 +71,7 @@ module internal_node_tb;
     assert(valid_left == 1'b1);
     assert(valid_right == 1'b0);
     #20
+    valid <= 0;
 
    end
 

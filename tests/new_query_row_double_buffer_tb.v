@@ -47,7 +47,7 @@ module new_query_row_double_buffer_tb;
   // RAM Stuff
   logic ren;
   logic [`ADDRESS_WIDTH -1:0] radr;
-  logic [`RAM_WIDTH-1:0] ram_output;
+  logic signed [`RAM_WIDTH-1:0] ram_output;
   logic [1:0] read_latency_counter; 
   logic  [`FETCH_WIDTH * `DATA_WIDTH - 1 : 0] expected_ram_dout;
 

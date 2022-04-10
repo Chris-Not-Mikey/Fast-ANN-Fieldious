@@ -47,35 +47,37 @@ module internal_node_tb;
    
 
     #40 rst_n <= 1;
+    //Index 1, Median 2
     wdata <= 22'b0000000001000000000001;
     wen <= 1;
     #20
     wen <= 0; 
-    patch_in <= 55'b0000000001100000000011000000000110000000000100000000011; //This will give use left if indexed properly
+    patch_in <= 55'b0000000001100000000011000000000110000000000100000000011; //This will give use left if indexed properly (Value 1 at index 1)
     valid <=1;
     #20
     assert(valid_left == 1'b1);
     assert(valid_right == 1'b0);
-    patch_in <= 55'b0000000001100000000011000000000110000000001100000000011; //This will give us right
+    patch_in <= 55'b0000000001100000000011000000000110000000001100000000011; //This will give us right (Value 3 at index 1)
     #20
     assert(valid_left == 1'b0);
     assert(valid_right == 1'b1);
     valid <=0;
+    //Index 4, Median 2
     wdata <= 22'b0000000001000000000100;
     wen <= 1;
     #20
     wen <=0;
-    patch_in <= 55'b0000000000000000000011000000000110000000001100000000011; //This will give use left if indexed properly
+    patch_in <= 55'b0000000000000000000011000000000110000000001100000000011; //This will give use left if indexed properly (Value 0, at index 4)
     valid <=1;
     #20
     assert(valid_left == 1'b1);
     assert(valid_right == 1'b0);
-    patch_in <= 55'b0100000000000000000011000000000110000000001100000000011; //This will give use right if indexed properly
+    patch_in <= 55'b0100000000000000000011000000000110000000001100000000011; //This will give use right if indexed properly (Value 1024, at index 4)
     #20
     valid <=1;
     assert(valid_left == 1'b0);
     assert(valid_right == 1'b1);
-    patch_in <= 55'b1000000000000000000011000000000110000000001100000000011; //This will give use right if signed binary comparison is correct
+    patch_in <= 55'b1000000000000000000011000000000110000000001100000000011; //This will give use right if signed binary comparison is correct (Value -2048, at index 4)
     #20
     valid <=1;
     assert(valid_left == 1'b1);

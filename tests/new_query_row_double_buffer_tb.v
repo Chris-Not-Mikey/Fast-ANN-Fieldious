@@ -188,8 +188,8 @@ end
                 wdata <= captured_data;
             end
         end
-
     end
+  end
 
 
 //    if (even && (iseven == 2'b00)) begin
@@ -203,7 +203,7 @@ end
 //       wdata <= 0;
 //     end
 //    end
-  end
+ // end
 
 //   genvar i;
 //   generate
@@ -216,7 +216,7 @@ end
 //         end
 //       end
 //     end
-  endgenerate
+//  endgenerate
  
 //   always @ (negedge clk) begin
 //    if (receiver_enq && even) begin
@@ -226,7 +226,7 @@ end
 
 
   always @ (posedge clk) begin
-  if (receiver_enq && even) begin
+  if (receiver_enq) begin
       ren <= 1;
       read_latency_counter <= 0;
     end 

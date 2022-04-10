@@ -244,6 +244,7 @@ end
 
 
   always @ (posedge clk) begin
+  $display("%t: received = %d", $time, ram_output);
   if (receiver_enq) begin
       ren <= 1;
       read_latency_counter <= 0;

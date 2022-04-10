@@ -8,7 +8,7 @@
 `define NULL 0   
 
 
-module query_row_double_buffer_tb;
+module new_query_row_double_buffer_tb;
 
   reg clk;
   reg rst_n;
@@ -179,6 +179,7 @@ end
 
   always @ (posedge clk) begin
     scan_file = $fscanf(data_file, "%d\n", captured_data); 
+	  $display("%t: scanned = %d", $time, captured_data);
     if (!$feof(data_file)) begin
         //use captured_data as you would any other wire or reg value;
         if (wrst_n) begin

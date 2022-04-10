@@ -70,14 +70,19 @@ module internal_node_tb;
     #20
     assert(valid_left == 1'b1);
     assert(valid_right == 1'b0);
-    #20
     patch_in <= 55'b0100000000000000000011000000000110000000001100000000011; //This will give use right if indexed properly
     #20
     valid <=1;
     assert(valid_left == 1'b0);
     assert(valid_right == 1'b1);
+    patch_in <= 55'b0100000000000000000011000000000110000000001100000000011; //This will give use right if signed binary comparison is correct
+    #20
+    valid <=1;
+    assert(valid_left == 1'b1);
+    assert(valid_right == 1'b0);
     #20
     valid <=0;
+     
     
 
    end

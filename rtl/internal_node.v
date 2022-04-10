@@ -83,7 +83,7 @@ assign comparison = (sliced_patch < median);
 
 assign valid_left = comparison && valid;
 assign valid_right = (!comparison) && valid;
-assign patch_out = patch_in
+assign patch_out = patch_in;
 
 
 

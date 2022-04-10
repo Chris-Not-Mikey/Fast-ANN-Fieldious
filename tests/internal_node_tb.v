@@ -71,7 +71,12 @@ module internal_node_tb;
     assert(valid_left == 1'b1);
     assert(valid_right == 1'b0);
     #20
-    valid <= 0;
+    patch_in <= 55'b1000000000000000000011000000000110000000001100000000011; //This will give use right if indexed properly
+    valid <=1;
+    assert(valid_left == 1'b0);
+    assert(valid_right == 1'b1);
+    #20
+    
 
    end
 

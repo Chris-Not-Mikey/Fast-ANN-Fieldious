@@ -195,18 +195,19 @@ end
   end
 
   always @ (posedge clk) begin
-    scan_file = $fscanf(data_file, "%d\n", captured_data); 
-	  $display("%t: scanned = %d", $time, captured_data);
-    if (!$feof(data_file)) begin
-        //use captured_data as you would any other wire or reg value;
-        if (wrst_n) begin
-            stall <= $urandom % 2;
-            receiver_full_n <= 1;
-            if (fifo_enq) begin
-                wdata <= captured_data;
-            end
-        end
-    end
+ 
+	if (wrst_n) begin
+	    stall <= $urandom % 2;
+	    receiver_full_n <= 1;
+	    if (fifo_enq) begin
+	       scan_file = $fscanf(data_file, "%d\n", captured_data); 
+	       $display("%t: scanned = %d", $time, captured_data);
+	       if (!$feof(data_file)) begin
+		  //use captured_data as you would any other wire or reg value;
+		   wdata <= captured_data;
+		end
+	     end
+	  end
   end
 
 

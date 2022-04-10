@@ -53,12 +53,12 @@ module internal_node_tb;
     wen <= 1;
     #20
     wen <= 0; 
-    patch <= 55'b0000000001100000000011000000000110000000000100000000011; //This will give use left if indexed properly
+    patch_in <= 55'b0000000001100000000011000000000110000000000100000000011; //This will give use left if indexed properly
     valid <=1;
     #20
     assert(valid_left == 1'b1)
     assert(valid_right == 1'b0)
-    patch <= 55'b0000000001100000000011000000000110000000001100000000011; //This will give us right
+    patch_in <= 55'b0000000001100000000011000000000110000000001100000000011; //This will give us right
     #20
     assert(valid_left == 1'b0)
     assert(valid_right == 1'b1)
@@ -67,25 +67,23 @@ module internal_node_tb;
     wen <= 1;
     #20
     wen <=0;
-    patch <= 55'b0000000000000000000011000000000110000000001100000000011; //This will give use left if indexed properly
+    patch_in <= 55'b0000000000000000000011000000000110000000001100000000011; //This will give use left if indexed properly
     valid <=1;
     #20
     assert(valid_left == 1'b1)
     assert(valid_right == 1'b0)
-
-
+    #20
 
    end
 
 
 
     initial begin
-    $dumpfile("dump.vcd");
-    $dumpvars;
-//     $vcdplusmemon();
-//     $vcdpluson(0, aggregator_tb);
-    #2000;
-    $finish(2);
-  end
+      $dumpfile("dump.vcd");
+      $dumpvars;
+
+      #2000;
+      $finish(2);
+    end
      
 endmodule

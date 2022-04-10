@@ -235,7 +235,7 @@ end
 	     ren <= 0;
 	     radr <= radr + 1;
 	     expected_ram_dout <= expected_ram_dout + 1;
-	     #assert(ram_output == expected_ram_dout);
+	     //assert(ram_output == expected_ram_dout);
 	     $display("%t: received = %d", $time, ram_output);
         end
 	else begin

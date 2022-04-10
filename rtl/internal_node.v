@@ -27,8 +27,8 @@ module internal_node
 
 
 reg [2:0] idx;
-reg signed [10: 0] median; 
-reg signed [10: 0] sliced_patch;
+reg  [10: 0] median; 
+reg  [10: 0] sliced_patch;
 
 wire comparison;
 

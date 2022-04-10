@@ -30,7 +30,7 @@ reg [2:0] idx;
 reg signed [10: 0] median; 
 reg signed [10: 0] sliced_patch;
 
-wire median_comparison;
+wire comparison;
 
 //Wdata: 1st 11 bits is Index (which can slice to the  3 LSB bits) since we gave 5 indeces, and 5 < 2^3.
 // 2nd 11 bits are the Median, for which we must store the entire 11 bits

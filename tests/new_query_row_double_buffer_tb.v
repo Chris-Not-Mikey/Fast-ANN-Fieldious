@@ -257,7 +257,7 @@ end
             if (!$feof(data_file)) begin
 	     ren <= 0;
 	     radr <= radr + 1;
-	     assert(ram_output == expected_captured_data);
+	     //assert(ram_output == expected_captured_data);
              $display("%t: received = %d, expected = %d", $time, ram_output, expected_captured_data);
 		    
 	    end

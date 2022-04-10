@@ -1,10 +1,10 @@
 `define DATA_WIDTH 11
-`define FETCH_WIDTH 5
+`define FETCH_WIDTH 1
 `define DSIZE 11
 `define ASIZE 4
 `define ADDRESS_WIDTH 7
 `define DEPTH 128
-`define RAM_WIDTH 55
+`define RAM_WIDTH 11
 
 
 module query_row_double_buffer_tb;
@@ -40,10 +40,11 @@ module query_row_double_buffer_tb;
   logic ren;
   logic [`ADDRESS_WIDTH -1:0] radr;
   logic [`RAM_WIDTH-1:0] ram_output;
+  logic [1:0] read_latency_counter; 
+  logic  [`FETCH_WIDTH * `DATA_WIDTH - 1 : 0] expected_ram_dout;
   
-  
-  always #20 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
-  always #20 wclk =~wclk;
+  always #10 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
+  always #30 wclk =~wclk;
   
   aggregator
   #(
@@ -92,7 +93,7 @@ module query_row_double_buffer_tb;
   .ren(ren),
   .radr(radr),
   .sender_data(receiver_din),
-  .receiver_data(ram_output),  
+  .receiver_data(ram_output)  
 
 );
 
@@ -102,6 +103,8 @@ module query_row_double_buffer_tb;
     //RAM Stuff
     ren = 1'b0;
     radr = 0;
+    read_latency_counter = 2'b0;
+    expected_ram_dout = 0;
 
     winc = 1'b0;
     iseven = 2'b10;
@@ -158,7 +161,7 @@ module query_row_double_buffer_tb;
   end
 
   always @ (posedge clk) begin
-    if (1) begin
+   if (even && (iseven == 2'b00)) begin
     if (wrst_n) begin
       stall <= $urandom % 2;
       receiver_full_n <= 1;
@@ -174,8 +177,8 @@ module query_row_double_buffer_tb;
   genvar i;
   generate
     for (i = 0; i < `FETCH_WIDTH; i++) begin
-      always @ (posedge clk) begin
-        if (receiver_enq ) begin
+     always @ (negedge clk) begin
+      if (receiver_enq && even ) begin
           assert(receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH] == expected_dout + i);
           $display("%t: received = %d, expected = %d", $time, 
             receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH], expected_dout + i);
@@ -183,21 +186,33 @@ module query_row_double_buffer_tb;
       end
     end
   endgenerate
-
-  always @ (posedge clk) begin
-    if (receiver_enq) begin
+ 
+  always @ (negedge clk) begin
+   if (receiver_enq && even) begin
       expected_dout <= expected_dout + `FETCH_WIDTH;
     end 
   end
 
 
-  always @ (posedge clk) begin
-    if (receiver_enq) begin
+  always @ (negedge clk) begin
+  if (receiver_enq && even) begin
       ren <= 1;
+      read_latency_counter <= 0;
     end 
     if (ren) begin
-        ren <= 0;
-        $display("%t: received = %d", $time, ram_output);
+        if (read_latency_counter == 2'b01) begin
+	     ren <= 0;
+	     radr <= radr + 1;
+	     expected_ram_dout <= expected_ram_dout + 1;
+	     assert(ram_output == expected_ram_dout);
+	     $display("%t: received = %d,  expected = %d", $time, ram_output, expected_ram_dout);
+        end
+	else begin
+	    ren <= 1;
+      	    read_latency_counter <= read_latency_counter + 1;
+		
+	end
+      
 
     end
   end

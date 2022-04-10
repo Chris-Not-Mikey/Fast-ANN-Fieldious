@@ -27,7 +27,7 @@ module query_row_double_buffer
   input ren,
   input [ADDR_WIDTH -1 : 0] radr,
   input [DATA_WIDTH - 1 : 0] sender_data,
-  output [DATA_WIDTH - 1 : 0] receiver_data,
+  output [DATA_WIDTH - 1 : 0] receiver_data
 
 );
 
@@ -50,8 +50,8 @@ assign wen = fsm_enable && sender_enable;
     .wdata(sender_data),
     .ren(ren),
     .radr(radr),
-    .rdata(receiver_data), 
-  ]
+    .rdata(receiver_data)
+  );
 
   //Update internal wadr register.
   //If rst_n is low, we set wadr to 0.
@@ -71,3 +71,5 @@ assign wen = fsm_enable && sender_enable;
       end
 
   end
+
+endmodule

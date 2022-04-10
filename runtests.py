@@ -121,7 +121,6 @@ def test_new_async_fifo_tb():
     print("Running test_fifo_tb")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/new_async_fifo_tb.v', 'rtl/dual_clock_async_fifo_design.v'])
 
-
 def test_ram_sync_1r1w_tb_uvm():
     print("Running test_ram_sync_1r1w_tb_uvm")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/ram_sync_1r1w_tb_uvm.v', 'rtl/ram_sync_1r1w.v'])
@@ -129,6 +128,12 @@ def test_ram_sync_1r1w_tb_uvm():
 def test_aggregator_tb():
     print("Running test_aggregator_tb")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/aggregator_tb.v', 'rtl/aggregator.v', 'rtl/dual_clock_async_fifo_design.v'])
+
+
+def test_query_buffer_tb():
+    print("Running query_row_double_buffer_tb")
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/query_row_double_buffer_tb.v', 'rtl/query_row_double_buffer.v',  'rtl/aggregator.v', 'rtl/dual_clock_async_fifo_design.v', 'rtl/ram_sync_1r1w.v'])
+
 
 def test_adr_gen_sequential_tb():
     print("Running test_adr_gen_sequential_tb")

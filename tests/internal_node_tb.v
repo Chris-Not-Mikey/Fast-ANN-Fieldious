@@ -76,6 +76,7 @@ module internal_node_tb;
     assert(valid_left == 1'b0);
     assert(valid_right == 1'b1);
     #20
+    valid <=0;
     
 
    end

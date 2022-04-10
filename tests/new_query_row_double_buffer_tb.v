@@ -147,7 +147,7 @@ end
     iseven = 2'b10;
     wrst_n = 1'b0;
     rst_n = 1'b0;
-    repeat(5) @(posedge wclk);
+    repeat(8) @(posedge clk);
     //#5
     wrst_n = 1'b1;
     rst_n = 1'b1;

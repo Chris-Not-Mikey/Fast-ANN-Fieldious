@@ -127,6 +127,9 @@ initial begin
     $display("expected_data_file handle was NULL");
     $finish;
   end
+
+  scan_file = $fscanf(data_file, "%d\n", captured_data); 
+  wdata = captured_data; //11'b0; Let FILE handle provide data
 	
 	
 end
@@ -167,7 +170,7 @@ end
   initial begin
     clk <= 0;
     wclk <= 0;
-    //wdata <= 11'b0; Let FILE handle provide data
+
     
 
     fifo_valid <=0;

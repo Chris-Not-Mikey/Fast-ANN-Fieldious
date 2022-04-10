@@ -204,7 +204,7 @@ end
 	    receiver_full_n <= 1;
 	    if (fifo_enq) begin
 	       scan_file = $fscanf(data_file, "%d\n", captured_data); 
-	       $display("%t: scanned = %d", $time, captured_data);
+	      // $display("%t: scanned = %d", $time, captured_data);
 	       if (!$feof(data_file)) begin
 		  //use captured_data as you would any other wire or reg value;
 		   wdata <= captured_data;
@@ -248,7 +248,7 @@ end
 
 
   always @ (posedge clk) begin
-  $display("%t: received = %d", $time, ram_output);
+  //$display("%t: received = %d", $time, ram_output);
   if (receiver_enq) begin
       ren <= 1;
       read_latency_counter <= 0;
@@ -258,11 +258,11 @@ end
 	   
 	     //Read from cannonical data. Output of RAM should match
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", expected_captured_data); 
-	    $display("%t: scanned = %d", $time, expected_captured_data);
+	    //$display("%t: scanned = %d", $time, expected_captured_data);
             if (!$feof(data_file)) begin
 	     ren <= 0;
 	     radr <= radr + 1;
-	     //assert(ram_output == expected_captured_data);
+	     assert(ram_output == expected_captured_data);
              $display("%t: received = %d, expected = %d", $time, ram_output, expected_captured_data);
 		    
 	    end

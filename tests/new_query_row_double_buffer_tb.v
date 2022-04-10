@@ -255,7 +255,7 @@ end
 	   
 	     //Read from cannonical data. Output of RAM should match
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", expected_captured_data); 
-	    $display("%t: scanned = %d", $time, captured_data);
+	    $display("%t: scanned = %d", $time, expected_captured_data);
             if (!$feof(data_file)) begin
 	     ren <= 0;
 	     radr <= radr + 1;

@@ -107,7 +107,7 @@ module new_query_row_double_buffer_tb;
 );
 
 initial begin
-  data_file = $fopen("./IO_data/patches.txt", "r");
+   data_file = $fopen(".data/IO_data/patches.txt", "r");
   if (data_file == `NULL) begin
     $display("data_file handle was NULL");
     $finish;

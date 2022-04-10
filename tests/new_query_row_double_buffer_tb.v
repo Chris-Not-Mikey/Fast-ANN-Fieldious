@@ -167,7 +167,7 @@ end
   initial begin
     clk <= 0;
     wclk <= 0;
-    wdata <= 11'b0;
+    //wdata <= 11'b0; Let FILE handle provide data
     
 
     fifo_valid <=0;

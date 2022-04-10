@@ -61,7 +61,7 @@ module new_query_row_double_buffer_tb;
   logic   signed [10:0] expected_captured_data;
      
   
-  always #20 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
+  always #18 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
   always #20 wclk =~wclk;
   
   aggregator
@@ -73,7 +73,7 @@ module new_query_row_double_buffer_tb;
     .clk(clk),
     .rst_n(rst_n),
     .sender_data(rdata),
-    .sender_empty_n(rempty),
+    .sender_empty_n(!rempty),
     .sender_deq(fifo_deq),
     .receiver_data(receiver_din),
     .receiver_full_n(receiver_full_n),

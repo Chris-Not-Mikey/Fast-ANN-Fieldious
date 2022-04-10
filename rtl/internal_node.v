@@ -42,7 +42,7 @@ always @ (clk) begin
         idx <= 3'b111; //-1 is an invalid index, this by default we know this to be untrue
     end
     else if (wen) begin
-        idx <= idx[2:0]; //Get 3 LSB
+        idx <= wdata[2:0]; //Get 3 LSB
     end
     else begin
         idx <= idx; //No change / persist in memory 
@@ -83,6 +83,7 @@ assign comparison = (sliced_patch < median);
 
 assign valid_left = comparison && valid;
 assign valid_right = (!comparison) && valid;
+assign patch_out = patch_in
 
 
 

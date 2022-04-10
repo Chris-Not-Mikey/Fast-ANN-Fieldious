@@ -75,7 +75,7 @@ always @(*) begin
        3'b001 :   sliced_patch = patch_in[21:11];
        3'b010 :   sliced_patch = patch_in[32:22];
        3'b011 :   sliced_patch = patch_in[43:33];
-       3'b100 :   sliced_patch = patch_in[55:45];
+       3'b100 :   sliced_patch = patch_in[54:44];
        default :  sliced_patch = 11'b0;
     endcase 
 end

@@ -118,7 +118,7 @@ generate
             (
             .clk(clk),
             .rst_n(rst_n),
-            .wen(wen && one_hot_address_en[((i * (2**i)) + j)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
+             .wen(wen && one_hot_address_en[(((2**i)) + j-1)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
             .valid(level_valid[j][i]),
             .wdata(sender_data), //writing mechanics are NOT pipelined
             .patch_in(level_patches[i]),

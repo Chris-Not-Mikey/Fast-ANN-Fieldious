@@ -75,12 +75,13 @@ end
 
 
 reg [PATCH_WIDTH-1:0] level_patches [7:0]; //For storing patch
-reg level_valid [255:0][7:0]; //for storing valid signals
+wire level_valid [255:0][7:0]; //for storing valid signals
 reg empty_valid [255:0];
 
+assign level_valid[0][0] = 255'b1;
 
 always @(*) begin
-    level_valid[0][0] = 255'b1;
+    
     level_patches[0] = patch_in;
  
      //Fill empties

@@ -2,6 +2,7 @@
 `define STORAGE_WIDTH 22
 `define ADDRESS_WIDTH 8
 `define DSIZE 11
+`define ASIZE 4
 `define FETCH_WIDTH 2
 
 

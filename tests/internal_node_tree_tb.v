@@ -14,7 +14,7 @@ module internal_node_tree_tb;
 
 
   wire fifo_deq;
-  wire [`FETCH_WIDTH * `DATA_WIDTH - 1 : 0] receiver_din;
+  wire [`FETCH_WIDTH * `DSIZE - 1 : 0] receiver_din;
   reg receiver_full_n;
   wire receiver_enq;
 

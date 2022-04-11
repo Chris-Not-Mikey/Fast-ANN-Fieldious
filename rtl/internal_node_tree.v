@@ -75,7 +75,7 @@ end
 
 
 reg [PATCH_WIDTH-1:0] level_patches [7:0]; //For storing patch
-wire level_valid [255:0][7:0]; //for storing valid signals
+reg level_valid [255:0][7:0]; //for storing valid signals
 reg empty_valid [255:0];
 
 

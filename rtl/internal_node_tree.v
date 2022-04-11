@@ -98,6 +98,8 @@ generate
             wire vl;
             wire vr;
 
+         //((i * (2**i)) + j) i * (number of iterations of j)+ j
+         
             internal_node
             #(
             .DATA_WIDTH(PATCH_WIDTH),
@@ -107,7 +109,7 @@ generate
             (
             .clk(clk),
             .rst_n(rst_n),
-            .wen(wen && one_hot_address_en[c+1:c]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
+            .wen(wen && one_hot_address_en[((i * (2**i)) + j)+1:((i * (2**i)) + j)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
             .valid(level_valid[i][j+1:j]),
             .wdata(sender_data), //writing mechanics are NOT pipelined
             .patch_in(level_patches[i]),

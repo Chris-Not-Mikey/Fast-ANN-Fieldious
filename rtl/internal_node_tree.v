@@ -20,7 +20,7 @@ module internal_node_tree
   input sender_enable,
   input [INTERNAL_WIDTH - 1 : 0] sender_data,
   input [PATCH_WIDTH - 1 : 0] patch_in,
-  output [ADDRESS_WIDTH - 1 : 0] leaf_index
+  output logic [ADDRESS_WIDTH - 1 : 0] leaf_index
 );
 
 

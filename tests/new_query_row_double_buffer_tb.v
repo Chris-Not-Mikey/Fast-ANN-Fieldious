@@ -1,6 +1,6 @@
-`define DATA_WIDTH 22
-`define FETCH_WIDTH 1
-`define DSIZE 22
+`define DATA_WIDTH 11
+`define FETCH_WIDTH 2
+`define DSIZE 11
 `define ASIZE 4
 `define ADDRESS_WIDTH 7
 `define DEPTH 128
@@ -131,7 +131,7 @@ initial begin
   scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
   //wdata[10:0] = captured_data; //11'b0; Let FILE handle provide data
 	
-   scan_file = $fscanf(data_file, "%d\n", wdata[21:11]); 
+  // scan_file = $fscanf(data_file, "%d\n", wdata[21:11]); 
    //wdata[21:11] = captured_data; //11'b0; Let FILE handle provide data
 	
 	
@@ -211,13 +211,13 @@ end
 	scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
 	  //temp_capture[10:0] = captured_data; //11'b0; Let FILE handle provide data
 
-	   scan_file = $fscanf(data_file, "%d\n", temp_capture[21:11]); 
+	   //scan_file = $fscanf(data_file, "%d\n", temp_capture[21:11]); 
 	   //temp_capture[21:11] = captured_data; //11'b0; Let FILE handle provide data
 		    
 	      // $display("%t: scanned = %d", $time, captured_data);
 	       if (!$feof(data_file)) begin
 		  //use captured_data as you would any other wire or reg value;
-		   wdata <= temp_capture;
+		   wdata <= temp_capture[10:0];
 		end
 	     end
 	  end

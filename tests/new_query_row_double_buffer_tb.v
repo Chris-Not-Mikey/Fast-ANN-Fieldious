@@ -1,10 +1,10 @@
-`define DATA_WIDTH 11
-`define FETCH_WIDTH 1
-`define DSIZE 11
+`define DATA_WIDTH 22
+`define FETCH_WIDTH 2
+`define DSIZE 22
 `define ASIZE 4
 `define ADDRESS_WIDTH 7
 `define DEPTH 128
-`define RAM_WIDTH 11
+`define RAM_WIDTH 22
 `define NULL 0   
 
 

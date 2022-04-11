@@ -26,9 +26,9 @@ module internal_node_tree
 
 reg [6:0] wadr; //Internal state holding current address to be read (2^7 internal nodes)
 reg [127:0] one_hot_address_en;
-reg [127:0] one_hot_shifter;
+wire [127:0] one_hot_shifter;
 
-one_hot_shifter = 128'b1;
+assign one_hot_shifter = 128'b1;
 
 wire wen;
 

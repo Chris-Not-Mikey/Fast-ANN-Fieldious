@@ -141,6 +141,7 @@ end
     wrst_n <= 1'b1;
     rrst_n <= 1'b1;
     receiver_full_n <=1;
+    fsm_enable <= 1;
 
     // //Index 1, Median 2
     // wdata <= 22'b0000000001000000000001;
@@ -156,6 +157,8 @@ end
 
    end
 
+  assign fifo_enq = wrst_n && (!wfull) && (!stall);
+	
 
   always @ (posedge clk) begin
  

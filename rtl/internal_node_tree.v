@@ -81,7 +81,7 @@ always @(*) begin
 
 end
  
-genvar i, j, c, d;
+genvar i, j;
 
 generate 
     int c = 0;

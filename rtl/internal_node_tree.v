@@ -58,9 +58,9 @@ always @(*) begin
         if (q == wadr) begin
             one_hot_address_en[q] = 1'b1; //TODO: Does this synthesize well?
         end
-        else
+        else begin
              one_hot_address_en[q] = 1'b0;
-        begin
+        end
     end
 
 end

@@ -89,11 +89,10 @@ generate
 
         wire [2**(2**i)]valid_output;
         //Fan out like a tree (TODO: Check that 2**i doesn't cause synthesis problems)
-        genvar d;
+      
         for (j =0; j < (2**i); j = j +1 ) begin
          
-         for (d =j; d < j; d++) begin
-         end
+      
 
             wire vl;
             wire vr;
@@ -118,8 +117,8 @@ generate
             .valid_right(vr)
             );
 
-            assign valid_output[d+1:d] = vl;
-            assign valid_output[d+2:d+1] = vr;
+         assign valid_output[(j*2)+1:(j*2)] = vl;
+         assign valid_output[(j*2)+2:(j*2)+1] = vr;
          
         
             

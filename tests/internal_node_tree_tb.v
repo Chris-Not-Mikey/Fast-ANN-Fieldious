@@ -10,6 +10,7 @@
 module internal_node_tree_tb;
 
   reg clk;
+  reg wclk;
   reg rst_n;
 
 

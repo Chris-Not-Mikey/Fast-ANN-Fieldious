@@ -180,6 +180,7 @@ end
           if (!$feof(data_file)) begin
             //use captured_data as you would any other wire or reg value;
             invalid <= 1;
+	   
           end
 	     end
 	  end
@@ -192,9 +193,10 @@ end
   if (receiver_enq) begin
       fsm_enable <= 1;
   end
-  else begin
-      fsm_enable <= 1;
+  if (invalid) begin
+	  fsm_enable <= 0;
   end
+ 
 
     //   ren <= 1;
     //   read_latency_counter <= 0;

@@ -4,6 +4,7 @@
 `define DSIZE 11
 `define ASIZE 4
 `define FETCH_WIDTH 2
+`define NULL 0  
 
 
 module internal_node_tree_tb;
@@ -94,7 +95,7 @@ module internal_node_tree_tb;
    .INTERNAL_WIDTH(`STORAGE_WIDTH),
    .PATCH_WIDTH(`DATA_WIDTH),
    .ADDRESS_WIDTH(`ADDRESS_WIDTH)
-  ) dut (
+  ) tree_dut (
   .clk(clk),
   .rst_n(rst_n),
   .fsm_enable(fsm_enable), //based on whether we are at the proper I/O portion

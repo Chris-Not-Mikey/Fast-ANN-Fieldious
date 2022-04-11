@@ -26,7 +26,7 @@ module internal_node_tree_tb;
   #(
    .INTERNAL_WIDTH(`STORAGE_WIDTH),
    .PATCH_WIDTH(`DATA_WIDTH),
-   .ADDRESS_WIDTH(`ADDR_WIDTH)
+   .ADDRESS_WIDTH(`ADDRESS_WIDTH)
   ) dut (
   .clk(clk),
   .rst_n(rst_n),

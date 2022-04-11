@@ -148,6 +148,7 @@ end
 	   
     #5100
      fsm_enable <= 0; //Turn off to stop overwriting data
+    patch_in <= 55'b0000000001100000000011000000000110000000000100000000011;
 	   
 
     // //Index 1, Median 2

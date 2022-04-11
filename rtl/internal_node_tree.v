@@ -84,12 +84,12 @@ end
 genvar i, j;
 
 generate 
-    int c = 0;
+    integer c = 0;
     for (i = 0; i < 7; i = i +1) begin
 
         wire [2**(2**i)]valid_output;
         //Fan out like a tree (TODO: Check that 2**i doesn't cause synthesis problems)
-        int d = 0;
+        integer d = 0;
         for (j =0; j < (2**i); j = j +1 ) begin
 
             wire vl;

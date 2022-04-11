@@ -207,16 +207,17 @@ end
 	    if (fifo_enq) begin
 	       //scan_file = $fscanf(data_file, "%d\n", captured_data); 
 		    
+		reg [21:0] temp_capture;
 	scan_file = $fscanf(data_file, "%d\n", captured_data); 
-	  wdata[10:0] = captured_data; //11'b0; Let FILE handle provide data
+	  temp_capture[10:0] = captured_data; //11'b0; Let FILE handle provide data
 
 	   scan_file = $fscanf(data_file, "%d\n", captured_data); 
-	   wdata[21:11] = captured_data; //11'b0; Let FILE handle provide data
+	   temp_capture[21:11] = captured_data; //11'b0; Let FILE handle provide data
 		    
 	      // $display("%t: scanned = %d", $time, captured_data);
 	       if (!$feof(data_file)) begin
 		  //use captured_data as you would any other wire or reg value;
-		   wdata <= captured_data;
+		   wdata <= temp_capture;
 		end
 	     end
 	  end

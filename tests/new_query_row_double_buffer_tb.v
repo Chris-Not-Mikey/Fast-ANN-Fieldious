@@ -128,11 +128,11 @@ initial begin
     $finish;
   end
 
-  scan_file = $fscanf(data_file, "%d\n", captured_data); 
-  wdata[10:0] = captured_data; //11'b0; Let FILE handle provide data
+  scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
+  //wdata[10:0] = captured_data; //11'b0; Let FILE handle provide data
 	
-   scan_file = $fscanf(data_file, "%d\n", captured_data); 
-   wdata[21:11] = captured_data; //11'b0; Let FILE handle provide data
+   scan_file = $fscanf(data_file, "%d\n", wdata[21:11]); 
+   //wdata[21:11] = captured_data; //11'b0; Let FILE handle provide data
 	
 	
 end
@@ -208,11 +208,11 @@ end
 	       //scan_file = $fscanf(data_file, "%d\n", captured_data); 
 		    
 		reg [21:0] temp_capture;
-	scan_file = $fscanf(data_file, "%d\n", captured_data); 
-	  temp_capture[10:0] = captured_data; //11'b0; Let FILE handle provide data
+	scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
+	  //temp_capture[10:0] = captured_data; //11'b0; Let FILE handle provide data
 
-	   scan_file = $fscanf(data_file, "%d\n", captured_data); 
-	   temp_capture[21:11] = captured_data; //11'b0; Let FILE handle provide data
+	   scan_file = $fscanf(data_file, "%d\n", temp_capture[21:11]); 
+	   //temp_capture[21:11] = captured_data; //11'b0; Let FILE handle provide data
 		    
 	      // $display("%t: scanned = %d", $time, captured_data);
 	       if (!$feof(data_file)) begin
@@ -268,11 +268,11 @@ end
 	   
 	     //Read from cannonical data. Output of RAM should match
 	    reg [21:0] hold_expected;
-	    expected_scan_file = $fscanf(expected_data_file, "%d\n", expected_captured_data); 
-		hold_expected[10:0] = expected_captured_data;
+	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
+		//hold_expected[10:0] = expected_captured_data;
 		
-	   expected_scan_file = $fscanf(expected_data_file, "%d\n", expected_captured_data); 
-		hold_expected[21:11] = expected_captured_data;
+	   expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
+		//hold_expected[21:11] = expected_captured_data;
 		
 	    //$display("%t: scanned = %d", $time, expected_captured_data);
             if (!$feof(data_file)) begin

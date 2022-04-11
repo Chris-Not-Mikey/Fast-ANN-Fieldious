@@ -25,7 +25,7 @@ module internal_node_tree
 
 
 reg [6:0] wadr; //Internal state holding current address to be read (2^7 internal nodes)
-reg [127:0] one_hot_address_en;
+reg  one_hot_address_en [127:0];
 wire [127:0] one_hot_shifter;
 
 assign one_hot_shifter = 128'b1;
@@ -54,14 +54,15 @@ end
 //Result is a 1 hot signal, where the index that includes the 1 corresponds to the internal_node that will be written to.
 always @(*) begin 
 
-    if (wadr == 7'b0000000) begin
-        one_hot_address_en = 128'b0;
+    for (int q = 0; q < 128; i++) begin
+        if (q == wadr) begin
+            one_hot_address_en[q] = 1'b1; //TODO: Does this synthesize well?
+        end
+        else
+             one_hot_address_en[q] = 1'b0;
+        begin
     end
-        
-    else begin
-        one_hot_address_en = one_hot_shifter << wadr;//shift 0000...001 over by wadr (max 2^7) bits
-    end 
-    
+
 end
 
 
@@ -72,12 +73,14 @@ end
 
 
 reg [PATCH_WIDTH-1:0] level_patches [7:0]; //For storing patch
-reg [255:0] level_valid [7:0]; //for storing valid signals
+reg level_valid [255:0][7:0]; //for storing valid signals
+reg empty_valid [255:0];
 
 
 always @(*) begin
-    level_valid[0] = 255'b1;
+    level_valid[0][0] = 255'b1;
     level_patches[0] = patch_in;
+    empty_valid = 0;
 
 end
  
@@ -108,17 +111,17 @@ generate
             (
             .clk(clk),
             .rst_n(rst_n),
-            .wen(wen && one_hot_address_en[((i * (2**i)) + j)+1:((i * (2**i)) + j)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
-            .valid(level_valid[i][j+1:j]),
+            .wen(wen && one_hot_address_en[((i * (2**i)) + j)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
+            .valid(level_valid[j][i]),
             .wdata(sender_data), //writing mechanics are NOT pipelined
             .patch_in(level_patches[i]),
             .patch_out(patch_out), //TODO REMOVE this, we don't need to store this at the internal node level
-            .valid_left(vl),
-            .valid_right(vr)
+            .valid_left(level_valid[j*2][i]),
+            .valid_right(level_valid[(j*2)+1][i])
             );
 
-         assign valid_output[(j*2)+1:(j*2)] = vl;
-         assign valid_output[(j*2)+2:(j*2)+1] = vr;
+        //  assign valid_output[(j*2)+1:(j*2)] = vl;
+        //  assign valid_output[(j*2)+2:(j*2)+1] = vr;
          
         
             
@@ -133,11 +136,11 @@ generate
 
             if (rst_n == 0) begin
                 level_patches[i+1] <= 0;
-                level_valid[i+1] <= 255'b0;
+                level_valid[i+1] <= empty_valid;
             end
             else begin
                 level_patches[i+1] <= level_patches[i];
-                level_valid[i+1] <= valid_output;
+                level_valid[i+1] <= level_valid[i];
             end
 
         end

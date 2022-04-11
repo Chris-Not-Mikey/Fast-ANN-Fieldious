@@ -194,6 +194,7 @@ end
       fsm_enable <= 1;
   end
   if (invalid) begin
+	  #50
 	  fsm_enable <= 0;
   end
  

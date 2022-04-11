@@ -145,6 +145,10 @@ end
     rrst_n <= 1'b1;
     receiver_full_n <=1;
     fsm_enable <= 1;
+	   
+    #5100
+     fsm_enable <= 0; //Turn off to stop overwriting data
+	   
 
     // //Index 1, Median 2
     // wdata <= 22'b0000000001000000000001;

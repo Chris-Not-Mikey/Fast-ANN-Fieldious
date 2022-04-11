@@ -56,6 +56,10 @@ module internal_node_tree_tb;
     sender_enable <= 1;
 
     #20
+    wdata <= 22'b0000000001000000000011;
+    sender_enable <= 1;
+     
+    #20
     sender_enable <= 0;
 
 

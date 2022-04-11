@@ -1166,18 +1166,18 @@ if __name__ == "__main__":
     psize = 5 # Patch size of 5x5 (much better results than 8x8 for minimal memory penalty)
     dim_reduced = 5
         
-    image_a = cv2.imread("frame1ball_30.png")
+    image_a = cv2.imread("../data/gold_data/frame1ball_30.png")
     # image_a = cv2.cvtColor(image_a, cv2.COLOR_BGR2GRAY)
     # image_a = cv2.cvtColor(image_a,cv2.COLOR_GRAY2RGB)
     print(image_a[1][1][0])
     print(image_a[1][1][1])
     print(image_a[1][1][2])
 
-    image_b = cv2.imread("frame2ball_30.png")
+    image_b = cv2.imread("../data/gold_data/frame2ball_30.png")
     # image_b = cv2.cvtColor(image_b, cv2.COLOR_BGR2GRAY)
     # image_b = cv2.cvtColor(image_b,cv2.COLOR_GRAY2RGB)
 
-    reconstruct_file_name = "frame1ball_30_recontruct.png"
+    reconstruct_file_name = "../data/gold_results/frame1ball_30_recontruct.png"
 
 
     #Image Dimensions

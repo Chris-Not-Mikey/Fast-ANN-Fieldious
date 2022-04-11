@@ -56,6 +56,8 @@ module internal_node_tree_tb;
 
   always #10 clk =~clk;
   always #10 wclk =~wclk;
+	
+  reg invalid;
 
   aggregator
   #(
@@ -131,6 +133,7 @@ end
     fsm_enable <= 0;
     sender_enable <= 0;
     receiver_full_n <=0;
+    invalid <= 0;
 
  
     wrst_n <= 1'b0;
@@ -172,11 +175,11 @@ end
           reg [21:0] temp_capture;
           //Read Data from  I/O
           scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
-
+	  wdata <= temp_capture[10:0];
           //Prepare to send to FIFO
           if (!$feof(data_file)) begin
             //use captured_data as you would any other wire or reg value;
-            wdata <= temp_capture[10:0];
+            invalid <= 1;
           end
 	     end
 	  end

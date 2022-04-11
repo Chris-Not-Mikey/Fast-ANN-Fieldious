@@ -100,7 +100,7 @@ genvar i, j;
 
 generate 
     
-    for (i = 0; i < 7; i = i +1) begin
+   for (i = 0; i < 6; i = i +1) begin
 
         wire [2*(2**i)] valid_output;
         //Fan out like a tree (TODO: Check that 2**i doesn't cause synthesis problems)
@@ -179,7 +179,7 @@ always @(*) begin
 
     leaf_index = 0;
     for (int i = 0; i < 256; i++) begin
-        if (level_valid[i][7] == 1'b1) begin
+        if (level_valid[i][6] == 1'b1) begin
           leaf_index = i;
         end
     end

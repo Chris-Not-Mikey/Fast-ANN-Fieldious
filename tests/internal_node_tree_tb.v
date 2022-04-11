@@ -10,7 +10,6 @@
 module internal_node_tree_tb;
 
   reg clk;
-  reg wclk;
   reg rst_n;
 
 
@@ -124,7 +123,7 @@ end
 
    initial begin
     clk <= 0;
-    wclck <= 0;
+    wclk <= 0;
     stall <= 0;
     rst_n <= 0;
     wdata <= 0;

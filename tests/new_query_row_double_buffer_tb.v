@@ -4,7 +4,7 @@
 `define ASIZE 4
 `define ADDRESS_WIDTH 7
 `define DEPTH 128
-`define RAM_WIDTH 22
+`define RAM_WIDTH 11
 `define NULL 0   
 
 
@@ -47,18 +47,18 @@ module new_query_row_double_buffer_tb;
   // RAM Stuff
   logic ren;
   logic [`ADDRESS_WIDTH -1:0] radr;
-  logic signed [`RAM_WIDTH-1:0] ram_output;
+  logic signed [`FETCH_WIDTH *`RAM_WIDTH-1:0] ram_output;
   logic [1:0] read_latency_counter; 
   logic  [`FETCH_WIDTH * `DATA_WIDTH - 1 : 0] expected_ram_dout;
 
 
   integer               data_file    ; // file handler
   integer               scan_file    ; // file handler
-  logic   signed [10:0] captured_data;
+  logic   signed [`DSIZE-1:0] captured_data;
 	
   integer               expected_data_file    ; // file handler
   integer               expected_scan_file    ; // file handler
-  logic   signed [10:0] expected_captured_data;
+  logic   signed [`DSIZE-1:0] expected_captured_data;
      
   
   always #20 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
@@ -99,7 +99,7 @@ module new_query_row_double_buffer_tb;
 
  query_row_double_buffer
  #(
-  .DATA_WIDTH(`RAM_WIDTH), 
+  .DATA_WIDTH(`FETCH_WIDTH *`RAM_WIDTH), 
   .ADDR_WIDTH(`ADDRESS_WIDTH),
   .DEPTH(`DEPTH)
  )

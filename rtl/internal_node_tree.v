@@ -80,9 +80,16 @@ reg empty_valid [255:0];
 always @(*) begin
     level_valid[0][0] = 255'b1;
     level_patches[0] = patch_in;
-    empty_valid = 0;
+ 
+     //Fill empties
+    for (int r = 0; r < 255; r++) begin
+
+       empty_valid[r] = 1'b0;
+     end
 
 end
+ 
+ 
  
 genvar i, j;
 

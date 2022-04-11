@@ -26,7 +26,7 @@ module internal_node_tree_tb;
   #(
    .INTERNAL_WIDTH(`STORAGE_WIDTH),
    .PATCH_WIDTH(`DATA_WIDTH),
-   .ADDRESS_WIDTH(`ADDR_WIDTH)
+   .ADDRESS_WIDTH(`ADDRESS_WIDTH)
   ) dut (
   .clk(clk),
   .rst_n(rst_n),
@@ -34,7 +34,7 @@ module internal_node_tree_tb;
   .sender_enable(sender_enable),
   .sender_data(wdata),
   .patch_in(patch_in),
-  .leaf_index(leaf_index),
+  .leaf_index(leaf_index)
   );
 
 
@@ -55,6 +55,10 @@ module internal_node_tree_tb;
     fsm_enable <= 1;
     sender_enable <= 1;
 
+    #20
+    wdata <= 22'b0000000001000000000011;
+    sender_enable <= 1;
+     
     #20
     sender_enable <= 0;
 

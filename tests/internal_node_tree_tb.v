@@ -195,7 +195,7 @@ end
   always @ (posedge clk) begin
   
   if (receiver_enq) begin
-      fsm_enable <= 1;
+      invalid <= 1;
   end
 //   if (invalid) begin
 // 	  #50

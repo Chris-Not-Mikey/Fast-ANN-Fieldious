@@ -25,15 +25,10 @@ module internal_node_tree
 
 
 reg [5:0] wadr; //Internal state holding current address to be read (2^6 internal nodes)
-reg  one_hot_address_en [127:0]; //TODO: Fix width on these
-wire [127:0] one_hot_shifter;
+reg  one_hot_address_en [63:0]; //TODO: Fix width on these
 wire [PATCH_WIDTH - 1 : 0] patch_out;
 
-
-assign one_hot_shifter = 128'b1;
-
 wire wen;
-
 assign wen = fsm_enable && sender_enable;
 
 
@@ -71,8 +66,6 @@ end
 
 
 // Generate the internal kd tree
-
-
 
 reg [PATCH_WIDTH-1:0] level_patches [7:0]; //For storing patch
 reg level_valid [255:0][7:0]; //for storing valid signals
@@ -134,8 +127,7 @@ generate
 
         //  assign valid_output[(j*2)+1:(j*2)] = vl;
         //  assign valid_output[(j*2)+2:(j*2)+1] = vr;
-         
-        
+      
             
         end
 
@@ -165,7 +157,6 @@ generate
         end
 
         
-
     end
 
 

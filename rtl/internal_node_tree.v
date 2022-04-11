@@ -84,13 +84,16 @@ end
 genvar i, j;
 
 generate 
-    integer c = 0;
+    genvar c;
     for (i = 0; i < 7; i = i +1) begin
 
         wire [2**(2**i)]valid_output;
         //Fan out like a tree (TODO: Check that 2**i doesn't cause synthesis problems)
-        integer d = 0;
+        genvar d;
         for (j =0; j < (2**i); j = j +1 ) begin
+         
+         for (d =j; d < j; d++) begin
+         end
 
             wire vl;
             wire vr;
@@ -115,9 +118,8 @@ generate
 
             assign valid_output[d+1:d] = vl;
             assign valid_output[d+2:d+1] = vr;
-
-
-            d = d + 2;
+         
+         
 
             c = c + 1; //Keep track of one_hot_address_en
             

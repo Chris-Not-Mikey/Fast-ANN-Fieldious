@@ -69,7 +69,7 @@ end
 
 // Generate the internal kd tree
 
-genvar i, j, c, d;
+
 
 reg [PATCH_WIDTH-1:0] level_patches [7:0]; //For storing patch
 reg [255:0] level_valid [7:0]; //for storing valid signals
@@ -80,14 +80,16 @@ always @(*) begin
     level_patches[0] = patch_in;
 
 end
+ 
+genvar i, j, c, d;
 
 generate 
-    c = 0;
+    int c = 0;
     for (i = 0; i < 7; i = i +1) begin
 
         wire [2**(2**i)]valid_output;
         //Fan out like a tree (TODO: Check that 2**i doesn't cause synthesis problems)
-        d = 0;
+        int d = 0;
         for (j =0; j < (2**i); j = j +1 ) begin
 
             wire vl;

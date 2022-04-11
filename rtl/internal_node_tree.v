@@ -156,7 +156,7 @@ endgenerate
 
 always @(*) begin
 
-    out = 0;
+    leaf_index = 0;
     for (int i = 0; i < 256; i++) begin
         if (level_valid[7][i+1:i] == 1'b1) begin
           leaf_index = i;

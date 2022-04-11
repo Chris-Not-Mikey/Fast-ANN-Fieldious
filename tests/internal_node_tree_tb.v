@@ -232,7 +232,7 @@ end
       $dumpfile("dump.vcd");
       $dumpvars;
 
-      #2000;
+      #20000;
       $finish(2);
     end
      

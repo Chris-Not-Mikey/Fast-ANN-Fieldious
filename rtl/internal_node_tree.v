@@ -54,7 +54,7 @@ end
 //Result is a 1 hot signal, where the index that includes the 1 corresponds to the internal_node that will be written to.
 always @(*) begin 
 
-    for (int q = 0; q < 128; i++) begin
+ for (int q = 0; q < 128; q++) begin
         if (q == wadr) begin
             one_hot_address_en[q] = 1'b1; //TODO: Does this synthesize well?
         end

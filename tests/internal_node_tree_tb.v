@@ -34,7 +34,7 @@ module internal_node_tree_tb;
   .sender_enable(sender_enable),
   .sender_data(wdata),
   .patch_in(patch_in),
-  .leaf_index(leaf_index),
+  .leaf_index(leaf_index)
   );
 
 

@@ -280,6 +280,8 @@ end
 	     radr <= radr + 1;
 	     assert(ram_output == hold_expected);
              $display("%t: received = %d, expected = %d", $time, ram_output, hold_expected);
+		    $display("%t: received = %d, expected = %d", $time, ram_output[10:0], hold_expected[10:0]);
+		    $display("%t: received = %d, expected = %d", $time, ram_output[21:11], hold_expected[21:11]);
 		    
 	    end
 		

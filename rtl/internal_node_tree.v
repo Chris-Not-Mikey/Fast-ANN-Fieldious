@@ -84,7 +84,7 @@ end
 genvar i, j;
 
 generate 
-    genvar c;
+    
     for (i = 0; i < 7; i = i +1) begin
 
         wire [2**(2**i)]valid_output;
@@ -98,7 +98,7 @@ generate
             wire vl;
             wire vr;
 
-         //((i * (2**i)) + j) i * (number of iterations of j)+ j
+         //((i * (2**i)) + j) i * (number of iterations of j)+ j //Keep track of one_hot_address_en
          
             internal_node
             #(
@@ -121,9 +121,7 @@ generate
             assign valid_output[d+1:d] = vl;
             assign valid_output[d+2:d+1] = vr;
          
-         
-
-            c = c + 1; //Keep track of one_hot_address_en
+        
             
         end
 

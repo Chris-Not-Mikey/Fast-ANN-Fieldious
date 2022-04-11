@@ -82,10 +82,10 @@ always @(*) begin
     level_patches[0] = patch_in;
  
      //Fill empties
-    for (int r = 0; r < 255; r++) begin
+//     for (int r = 0; r < 255; r++) begin
 
-       empty_valid[r] = 1'b0;
-     end
+//        empty_valid[r] = 1'b0;
+//      end
 
 end
  
@@ -143,11 +143,18 @@ generate
 
             if (rst_n == 0) begin
                 level_patches[i+1] <= 0;
-                level_valid[i+1] <= empty_valid;
+                //level_valid[i+1] <= empty_valid;
+                 for (int r = 0; r < 255; r++) begin
+                    level_valid[r][i+1] = 1'b0;
+                 end
+             
             end
             else begin
                 level_patches[i+1] <= level_patches[i];
-                level_valid[i+1] <= level_valid[i];
+                //level_valid[i+1] <= level_valid[i];
+                 for (int r = 0; r < 255; r++) begin
+                    level_valid[r][i+1] = level_valid[r][i];
+                 end
             end
 
         end

@@ -190,7 +190,7 @@ end
       fsm_enable <= 1;
   end
   else begin
-      fsm_enable <= 0;
+      fsm_enable <= 1;
   end
 
     //   ren <= 1;

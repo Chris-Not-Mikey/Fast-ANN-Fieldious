@@ -189,74 +189,40 @@ end
     fifo_valid <=1;
   end
 
-    //comment
+    //NOTE: All the "even" code is deprecated and can be ignored.
+    //It was used for testing clock domains
   assign fifo_enq = wrst_n && (!wfull) && (!stall);
   assign even = (iseven == 2'b10) || (iseven == 2'b00);
 
-  always @ (posedge clk) begin
-       
-	#1 
-	iseven <= (iseven == 2'b10) ? 2'b00: iseven+2'b01; 
+  always @ (posedge clk) begin   
+    #1 
+    iseven <= (iseven == 2'b10) ? 2'b00: iseven+2'b01; 
   end
 
   always @ (posedge clk) begin
  
-	if (wrst_n) begin
+    //Into FIFO
+	  if (wrst_n) begin
 	    stall <= $urandom % 2;
 	    receiver_full_n <= 1;
 	    if (fifo_enq) begin
 	       //scan_file = $fscanf(data_file, "%d\n", captured_data); 
 		    
-		reg [21:0] temp_capture;
-	scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
-	  //temp_capture[10:0] = captured_data; //11'b0; Let FILE handle provide data
+          reg [21:0] temp_capture;
+          //Read Data from  I/O
+          scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
 
-	   //scan_file = $fscanf(data_file, "%d\n", temp_capture[21:11]); 
-	   //temp_capture[21:11] = captured_data; //11'b0; Let FILE handle provide data
-		    
-	      // $display("%t: scanned = %d", $time, captured_data);
-	       if (!$feof(data_file)) begin
-		  //use captured_data as you would any other wire or reg value;
-		   wdata <= temp_capture[10:0];
-		end
+          //Prepare to send to FIFO
+          if (!$feof(data_file)) begin
+            //use captured_data as you would any other wire or reg value;
+            wdata <= temp_capture[10:0];
+          end
 	     end
 	  end
   end
 
 
-//    if (even && (iseven == 2'b00)) begin
-//     if (wrst_n) begin
-//       stall <= $urandom % 2;
-//       receiver_full_n <= 1;
-//       if (fifo_enq) begin
-//         wdata <= wdata + 11'b1;
-//       end
-//     end else begin
-//       wdata <= 0;
-//     end
-//    end
- // end
-
-//   genvar i;
-//   generate
-//     for (i = 0; i < `FETCH_WIDTH; i++) begin
-//      always @ (negedge clk) begin
-//       if (receiver_enq && even ) begin
-//           assert(receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH] == expected_dout + i);
-//           $display("%t: received = %d, expected = %d", $time, 
-//             receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH], expected_dout + i);
-//         end
-//       end
-//     end
-//  endgenerate
- 
-//   always @ (negedge clk) begin
-//    if (receiver_enq && even) begin
-//       expected_dout <= expected_dout + `FETCH_WIDTH;
-//     end 
-//   end
-
-
+  //Out of RAM and check
   always @ (posedge clk) begin
   $display("%t: received = %d", $time, ram_output);
   if (receiver_enq) begin
@@ -264,34 +230,31 @@ end
       read_latency_counter <= 0;
     end 
     if (ren) begin
-        if (read_latency_counter == 2'b01) begin
+        //NOTE RAM read has a one cycle latency, so we make a counter to handle this difference
+      if (read_latency_counter == 2'b01) begin
 	   
 	     //Read from cannonical data. Output of RAM should match
+       //IMPORTANT: To test other than 2 11 bit values aggregated, one must MANUALLY CHANGE the below
 	    reg [21:0] hold_expected;
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
-		//hold_expected[10:0] = expected_captured_data;
+
 		
 	   expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
-		//hold_expected[21:11] = expected_captured_data;
-		
-	    //$display("%t: scanned = %d", $time, expected_captured_data);
-            if (!$feof(data_file)) begin
-	     ren <= 0;
-	     radr <= radr + 1;
-	     assert(ram_output == hold_expected);
-             $display("%t: received = %d, expected = %d", $time, ram_output, hold_expected);
-	    $display("%t: received = %d, expected = %d", $time, ram_output[10:0], hold_expected[10:0]);
-             $display("%t: received = %d, expected = %d", $time, ram_output[21:11], hold_expected[21:11]);
+
+      if (!$feof(data_file)) begin
+        ren <= 0;
+        radr <= radr + 1;
+        assert(ram_output == hold_expected);
+        $display("%t: received = %d, expected = %d", $time, ram_output, hold_expected);
+        $display("%t: received = %d, expected = %d", $time, ram_output[10:0], hold_expected[10:0]);
+        $display("%t: received = %d, expected = %d", $time, ram_output[21:11], hold_expected[21:11]);
 		    
 	    end
 		
-		
-	
-        end
-	else begin
-	    ren <= 1;
-      	    read_latency_counter <= read_latency_counter + 1;
-		
+  end
+	else begin 
+	    ren <= 1; //Handling one cycle latency
+      read_latency_counter <= read_latency_counter + 1;
 	end
       
 

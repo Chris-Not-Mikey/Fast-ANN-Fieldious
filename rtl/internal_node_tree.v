@@ -19,7 +19,7 @@ module internal_node_tree
   input fsm_enable, //based on whether we are at the proper I/O portion
   input sender_enable,
   input [INTERNAL_WIDTH - 1 : 0] sender_data,
-  input [PATCH_WIDTH - 1 : 0] patch_in
+  input [PATCH_WIDTH - 1 : 0] patch_in,
   output [ADDRESS_WIDTH - 1 : 0] leaf_index
 );
 

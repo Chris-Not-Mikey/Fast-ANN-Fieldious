@@ -10,11 +10,12 @@ module MainFSM #(
     input                                               rst_n,
     input                                               fsm_start,
 
-    output logic                                        leaf_mem_wen,
-    output logic [ADDR_WIDTH-1:0]                       leaf_mem_wadr,
-    output logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]      leaf_mem_wdata [LEAF_SIZE-1:0],
-    output logic                                        leaf_mem_ren,
-    output logic [ADDR_WIDTH-1:0]                       leaf_mem_radr,
+    output logic                                        leaf_mem_csb0,
+    output logic                                        leaf_mem_web0,
+    output logic [ADDR_WIDTH-1:0]                       leaf_mem_addr0,
+    output logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]      leaf_mem_wleaf0 [LEAF_SIZE-1:0],
+    output logic                                        leaf_mem_csb1,
+    output logic [ADDR_WIDTH-1:0]                       leaf_mem_addr1,
     output logic                                        k0_query_valid,
     output logic                                        rm_restart,
     output logic                                        s0_valid_in,
@@ -52,13 +53,14 @@ module MainFSM #(
     always_comb begin
         nextState = currState;
 
-        leaf_mem_wen = '0;
-        leaf_mem_wadr = '0;
+        leaf_mem_csb0 = 1'b1;
+        leaf_mem_web0 = 1'b1;
+        leaf_mem_addr0 = '0;
+        leaf_mem_csb1 = 1'b1;
+        leaf_mem_addr1 = '0;
         for (int i=0; i<LEAF_SIZE; i=i+1) begin
-            leaf_mem_wdata[i] = '0;
+            leaf_mem_wleaf0[i] = '0;
         end
-        leaf_mem_ren = '0;
-        leaf_mem_radr = '0;
         k0_query_valid = '0;
         rm_restart = '0;
         s0_valid_in = '0;
@@ -72,8 +74,9 @@ module MainFSM #(
                     nextState = ExactFstRow;
                     counter_en = 1'b1;
                     counter_in = NUM_LEAVES - 1;
-                    leaf_mem_ren = 1'b1;
-                    leaf_mem_radr = counter;
+                    leaf_mem_csb0 = 1'b0;
+                    leaf_mem_web0 = 1'b1;
+                    leaf_mem_addr0 = counter;
                 end
             end
 
@@ -86,8 +89,9 @@ module MainFSM #(
                     nextState = ExactFstRowWait;
                 end
                 else begin
-                    leaf_mem_ren = 1'b1;
-                    leaf_mem_radr = counter;
+                    leaf_mem_csb0 = 1'b0;
+                    leaf_mem_web0 = 1'b1;
+                    leaf_mem_addr0 = counter;
                 end
 
                 // latency of L2Kernel
@@ -103,6 +107,9 @@ module MainFSM #(
                     nextState = Idle;
                     s0_valid_in = 1'b1;
                 end
+            end
+
+            ProcessRows: begin
             end
         endcase
     end

@@ -17,12 +17,14 @@ module top
 );
 
 
-    logic                                       leaf_mem_wen;
-    logic [ADDR_WIDTH-1:0]                      leaf_mem_wadr;
-    logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     leaf_mem_wdata [LEAF_SIZE-1:0];
-    logic                                       leaf_mem_ren;
-    logic [ADDR_WIDTH-1:0]                      leaf_mem_radr;
-    logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     leaf_mem_rdata [LEAF_SIZE-1:0];
+    logic                                       leaf_mem_csb0;
+    logic                                       leaf_mem_web0;
+    logic [ADDR_WIDTH-1:0]                      leaf_mem_addr0;
+    logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     leaf_mem_wleaf0 [LEAF_SIZE-1:0];
+    logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     leaf_mem_rleaf0 [LEAF_SIZE-1:0];
+    logic                                       leaf_mem_csb1;
+    logic [ADDR_WIDTH-1:0]                      leaf_mem_addr1;
+    logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     leaf_mem_rleaf1 [LEAF_SIZE-1:0];
 
     logic [5:0]                                 k0_leaf_idx;
     logic                                       k0_query_valid;
@@ -126,11 +128,12 @@ module top
         .clk                (clk),
         .rst_n              (rst_n),
         .fsm_start          (fsm_start),
-        .leaf_mem_wen       (leaf_mem_wen),
-        .leaf_mem_wadr      (leaf_mem_wadr),
-        .leaf_mem_wdata     (leaf_mem_wdata),
-        .leaf_mem_ren       (leaf_mem_ren),
-        .leaf_mem_radr      (leaf_mem_radr),
+        .leaf_mem_csb0      (leaf_mem_csb0),
+        .leaf_mem_web0      (leaf_mem_web0),
+        .leaf_mem_addr0     (leaf_mem_addr0),
+        .leaf_mem_wleaf0    (leaf_mem_wleaf0),
+        .leaf_mem_csb1      (leaf_mem_csb1),
+        .leaf_mem_addr1     (leaf_mem_addr1),
         .k0_query_valid     (k0_query_valid),
         .rm_restart         (rm_restart),
         .s0_valid_in        (s0_valid_in),
@@ -144,12 +147,14 @@ module top
         .NUM_LEAVES         (NUM_LEAVES)
     ) leaf_mem_inst (
         .clk                (clk),
-        .wen                (leaf_mem_wen),
-        .wadr               (leaf_mem_wadr),
-        .wdata              (leaf_mem_wdata),
-        .ren                (leaf_mem_ren),
-        .radr               (leaf_mem_radr),
-        .rdata              (leaf_mem_rdata)
+        .csb0               (leaf_mem_csb0),
+        .web0               (leaf_mem_web0),
+        .addr0              (leaf_mem_addr0),
+        .wleaf0             (leaf_mem_wleaf0),
+        .rleaf0             (leaf_mem_rleaf0),
+        .csb1               (leaf_mem_csb1),
+        .addr1              (leaf_mem_addr1),
+        .rleaf1             (leaf_mem_rleaf1)
     );
 
     L2Kernel l2_k0_inst (
@@ -186,19 +191,19 @@ module top
     );
 
     assign k0_query_patch = '0;
-    assign k0_p0_candidate_leaf = leaf_mem_rdata[0];
-    assign k0_p1_candidate_leaf = leaf_mem_rdata[1];
-    assign k0_p2_candidate_leaf = leaf_mem_rdata[2];
-    assign k0_p3_candidate_leaf = leaf_mem_rdata[3];
-    assign k0_p4_candidate_leaf = leaf_mem_rdata[4];
-    assign k0_p5_candidate_leaf = leaf_mem_rdata[5];
-    assign k0_p6_candidate_leaf = leaf_mem_rdata[6];
-    assign k0_p7_candidate_leaf = leaf_mem_rdata[7];
+    assign k0_p0_candidate_leaf = leaf_mem_rleaf0[0];
+    assign k0_p1_candidate_leaf = leaf_mem_rleaf0[1];
+    assign k0_p2_candidate_leaf = leaf_mem_rleaf0[2];
+    assign k0_p3_candidate_leaf = leaf_mem_rleaf0[3];
+    assign k0_p4_candidate_leaf = leaf_mem_rleaf0[4];
+    assign k0_p5_candidate_leaf = leaf_mem_rleaf0[5];
+    assign k0_p6_candidate_leaf = leaf_mem_rleaf0[6];
+    assign k0_p7_candidate_leaf = leaf_mem_rleaf0[7];
 
     always_ff @(posedge clk, negedge rst_n) begin
         if (~rst_n) k0_leaf_idx <= '0;
-        else if (leaf_mem_ren) begin
-            k0_leaf_idx <= leaf_mem_radr;
+        else if ((~leaf_mem_csb0) & leaf_mem_web0) begin
+            k0_leaf_idx <= leaf_mem_addr0;
         end
     end
 

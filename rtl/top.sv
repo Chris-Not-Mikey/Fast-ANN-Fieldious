@@ -3,6 +3,8 @@ module top
     parameter DATA_WIDTH = 11,
     parameter LEAF_SIZE = 8,
     parameter PATCH_SIZE = 5,
+    parameter ROW_SIZE = 26,
+    parameter K = 4,
     parameter NUM_LEAVES = 64,
     parameter ADDR_WIDTH = $clog2(NUM_LEAVES)
 )
@@ -25,6 +27,18 @@ module top
     logic                                       leaf_mem_csb1;
     logic [ADDR_WIDTH-1:0]                      leaf_mem_addr1;
     logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     leaf_mem_rleaf1 [LEAF_SIZE-1:0];
+
+    logic                                       best_arr_csb0;
+    logic                                       best_arr_web0;
+    logic [7:0]                                 best_arr_addr0;
+    logic [DATA_WIDTH-1:0]                      best_arr_wdist_0 [K-1:0];
+    logic [8:0]                                 best_arr_windices_0 [K-1:0];
+    logic [DATA_WIDTH-1:0]                      best_arr_rdist_0 [K-1:0];
+    logic [8:0]                                 best_arr_rindices_0 [K-1:0];
+    logic                                       best_arr_csb1;
+    logic [7:0]                                 best_arr_addr1;
+    logic [DATA_WIDTH-1:0]                      best_arr_rdist_1 [K-1:0];
+    logic [8:0]                                 best_arr_rindices_1 [K-1:0];
 
     logic [5:0]                                 k0_leaf_idx;
     logic                                       k0_query_valid;
@@ -123,6 +137,7 @@ module top
         .DATA_WIDTH         (DATA_WIDTH),
         .LEAF_SIZE          (LEAF_SIZE),
         .PATCH_SIZE         (PATCH_SIZE),
+        .ROW_SIZE           (ROW_SIZE),
         .NUM_LEAVES         (NUM_LEAVES)
     ) main_fsm_inst (
         .clk                (clk),
@@ -134,12 +149,19 @@ module top
         .leaf_mem_wleaf0    (leaf_mem_wleaf0),
         .leaf_mem_csb1      (leaf_mem_csb1),
         .leaf_mem_addr1     (leaf_mem_addr1),
+        // .best_arr_csb0      (best_arr_csb0),
+        // .best_arr_web0      (best_arr_web0),
+        .best_arr_addr0     (best_arr_addr0),
+        .best_arr_csb1      (best_arr_csb1),
+        .best_arr_addr1     (best_arr_addr1),
         .k0_query_valid     (k0_query_valid),
         .rm_restart         (rm_restart),
         .s0_valid_in        (s0_valid_in),
         .s0_valid_out       (s0_valid_out)
     );
 
+
+    // Memories 
     LeavesMem #(
         .DATA_WIDTH         (DATA_WIDTH),
         .LEAF_SIZE          (LEAF_SIZE),
@@ -157,6 +179,37 @@ module top
         .rleaf1             (leaf_mem_rleaf1)
     );
 
+    kBestArrays #(
+        .DATA_WIDTH         (DATA_WIDTH),
+        .K                  (K)
+    ) k_best_array_inst (
+        .clk                (clk),
+        .csb0               (best_arr_csb0),
+        .web0               (best_arr_web0),
+        .addr0              (best_arr_addr0),
+        .wdist_0            (best_arr_wdist_0),
+        .windices_0         (best_arr_windices_0),
+        .rdist_0            (best_arr_rdist_0),
+        .rindices_0         (best_arr_rindices_0),
+        .csb1               (best_arr_csb1),
+        .addr1              (best_arr_addr1),
+        .rdist_1            (best_arr_rdist_1),
+        .rindices_1         (best_arr_rindices_1)
+    );
+
+    assign best_arr_csb0 = ~s0_valid_out;
+    assign best_arr_web0 = 1'b0;
+    assign best_arr_wdist_0 = { s0_data_out_0,
+                                s0_data_out_1,
+                                s0_data_out_2,
+                                s0_data_out_3 };
+    assign best_arr_windices_0 = {  s0_indices_out_0,
+                                    s0_indices_out_1,
+                                    s0_indices_out_2,
+                                    s0_indices_out_3 };
+
+
+    // Computes
     L2Kernel l2_k0_inst (
         .clk                (clk),
         .rst_n              (rst_n),
@@ -190,7 +243,7 @@ module top
         .p7_indices         (k0_p7_indices)
     );
 
-    assign k0_query_patch = '0;
+    assign k0_query_patch = {best_arr_addr0, best_arr_addr0, best_arr_addr0, best_arr_addr0, best_arr_addr0}; // testing only
     assign k0_p0_candidate_leaf = leaf_mem_rleaf0[0];
     assign k0_p1_candidate_leaf = leaf_mem_rleaf0[1];
     assign k0_p2_candidate_leaf = leaf_mem_rleaf0[2];

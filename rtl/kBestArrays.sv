@@ -1,38 +1,44 @@
 module kBestArrays #(
     parameter DATA_WIDTH = 11,
-    parameter K = 4,
+    parameter K = 4
 )
 (
     input                                               clk,
-    input                                               rst_n,
-    input                                               wen,
-    input [7:0]                                         waddr, // idx of the row, matches the ram addr width
-    input [DATA_WIDTH-1:0]                              l2_dist_in [K-1:0],
-    input [8:0]                                         indices_in [K-1:0],
-    input                                               ren,
-    input [7:0]                                         raddr,
-    output [DATA_WIDTH-1:0]                             l2_dist_out [K-1:0],
-    output [8:0]                                        indices_out
+    input logic                                         csb0,
+    input logic                                         web0,
+    input logic [7:0]                                   addr0,
+    input logic [DATA_WIDTH-1:0]                        wdist_0 [K-1:0],
+    input logic [8:0]                                   windices_0 [K-1:0],
+    output logic [DATA_WIDTH-1:0]                       rdist_0 [K-1:0],
+    output logic [8:0]                                  rindices_0 [K-1:0],
+    input logic                                         csb1,
+    input logic [7:0]                                   addr1,
+    output logic [DATA_WIDTH-1:0]                       rdist_1 [K-1:0],
+    output logic [8:0]                                  rindices_1 [K-1:0]
 );
 
-    logic [31:0] rdata [K-1:0];
+    logic [31:0] dout0 [K-1:0];
+    logic [31:0] dout1 [K-1:0];
     genvar i;
     generate
     for (i=0; i<K; i=i+1) begin : loop_best_array_gen
-        sram_1kbyte_1rw1r best_dist_array_inst (
+        sky130_sram_1kbyte_1rw1r_32x256_8 best_dist_array_inst (
             .clk0(clk),
-            .csb0(~best_wen),
-            .web0(1'b0),
-            .addr0(query_idx),
-            .din0({'0, best_indices_in[i], best_l2_dist_in[i]}),
-            .dout0(),
+            .csb0(csb0),
+            .web0(web0),
+            .wmask0(4'hF),
+            .addr0(addr0),
+            .din0({12'b0, windices_0[i], wdist_0[i]}),
+            .dout0(dout0[i]),
             .clk1(clk),
-            .csb1(~best_ren),
-            .addr1(raddr),
-            .dout1(rdata[i])
+            .csb1(csb1),
+            .addr1(addr1),
+            .dout1(dout1[i])
         );
-        l2_dist_out[i] = rdata[i][DATA_WIDTH-1:0];
-        l2_indices_out[i] = rdata[i][DATA_WIDTH+8:DATA_WIDTH];
+        assign rdist_0[i] = dout0[i][DATA_WIDTH-1:0];
+        assign rindices_0[i] = dout0[i][DATA_WIDTH+8:DATA_WIDTH];
+        assign rdist_1[i] = dout1[i][DATA_WIDTH-1:0];
+        assign rindices_1[i] = dout1[i][DATA_WIDTH+8:DATA_WIDTH];
     end
     endgenerate
 

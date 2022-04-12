@@ -2,6 +2,7 @@ module MainFSM #(
     parameter DATA_WIDTH = 11,
     parameter LEAF_SIZE = 8,
     parameter PATCH_SIZE = 5,
+    parameter ROW_SIZE = 26,
     parameter NUM_LEAVES = 64,
     parameter ADDR_WIDTH = $clog2(NUM_LEAVES)
 )
@@ -16,6 +17,11 @@ module MainFSM #(
     output logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]      leaf_mem_wleaf0 [LEAF_SIZE-1:0],
     output logic                                        leaf_mem_csb1,
     output logic [ADDR_WIDTH-1:0]                       leaf_mem_addr1,
+
+    output logic [7:0]                                  best_arr_addr0,
+    output logic                                        best_arr_csb1,
+    output logic [7:0]                                  best_arr_addr1,
+
     output logic                                        k0_query_valid,
     output logic                                        rm_restart,
     output logic                                        s0_valid_in,
@@ -24,10 +30,10 @@ module MainFSM #(
 
 
     typedef enum {  Idle,
-            ExactFstRow,
-            ExactFstRowWait,
-            SearchLeaf,
-            ProcessRows
+                    ExactFstRow,
+                    ExactFstRowWait,
+                    SearchLeaf,
+                    ProcessRows
     } stateCoding_t;
 
     (* fsm_encoding = "one_hot" *) stateCoding_t currState;
@@ -38,6 +44,9 @@ module MainFSM #(
     logic counter_done;
     logic [15:0] counter_in;
     logic [15:0] counter;
+    logic [7:0] query_cnt;
+    logic donefirstquery;
+    logic donefirstquery_next;
 
 
     // CONTROLLER
@@ -61,12 +70,15 @@ module MainFSM #(
         for (int i=0; i<LEAF_SIZE; i=i+1) begin
             leaf_mem_wleaf0[i] = '0;
         end
+        best_arr_csb1 = 1'b1;
+        best_arr_addr1 = '0;
         k0_query_valid = '0;
         rm_restart = '0;
         s0_valid_in = '0;
         
         counter_en = '0;
         counter_in = '0;
+        donefirstquery_next = '0;
 
         unique case (currState)
             Idle: begin
@@ -83,33 +95,41 @@ module MainFSM #(
             // per 1 query
             ExactFstRow: begin
                 counter_en = 1'b1;
-                counter_in = NUM_LEAVES;
+                counter_in = NUM_LEAVES - 1;
                 k0_query_valid = 1'b1;
-                if (counter_done) begin
+                leaf_mem_csb0 = 1'b0;
+                leaf_mem_web0 = 1'b1;
+                leaf_mem_addr0 = counter;
+
+                if ((query_cnt == ROW_SIZE - 2) && (counter_done)) begin
                     nextState = ExactFstRowWait;
                 end
-                else begin
-                    leaf_mem_csb0 = 1'b0;
-                    leaf_mem_web0 = 1'b1;
-                    leaf_mem_addr0 = counter;
+
+                if (counter == counter_in) begin
+                    donefirstquery_next = 1'b1;
                 end
 
-                // latency of L2Kernel
                 if (counter == 6) begin
                     rm_restart = 1'b1;
+                end
+
+                if ((counter == 6) && donefirstquery) begin
+                    s0_valid_in = 1'b1;
                 end
             end
 
             ExactFstRowWait: begin
                 counter_en = 1'b1;
-                counter_in = 5; // latency of L2Kernel + RunningMin
+                counter_in = 6; // latency of L2Kernel + RunningMin
+                if (counter == 0) k0_query_valid = 1'b1;
                 if (counter_done) begin
-                    nextState = Idle;
+                    nextState = ProcessRows;
                     s0_valid_in = 1'b1;
                 end
             end
 
             ProcessRows: begin
+                nextState = Idle;
             end
         endcase
     end
@@ -128,5 +148,23 @@ module MainFSM #(
         end
     end
     assign counter_done = counter == counter_in;
+
+    always_ff @(posedge clk, negedge rst_n) begin
+        if (~rst_n) query_cnt <= '0;
+        else if (s0_valid_out) begin
+            if (query_cnt == ROW_SIZE - 1)
+                query_cnt <= '0;
+            else
+                query_cnt <= query_cnt + 1'b1;
+        end
+    end
+    assign best_arr_addr0 = query_cnt;
+    
+    always_ff @(posedge clk, negedge rst_n) begin
+        if (~rst_n) donefirstquery <= '0;
+        else if (donefirstquery_next) begin
+            donefirstquery <= 1'b1;
+        end
+    end
 
 endmodule

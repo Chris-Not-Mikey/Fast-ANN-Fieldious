@@ -151,11 +151,11 @@ end
     patch_in <= 55'b0000000001100000000011000000000110000000000100000000011;
 	   
 	   
-    #300
+    #120
     // Expected Index: 59
     // Patch: [251. -26.  -1. -88.  79.]
     patch_in <= 55'b0001111101111111100110111111111111111010100000001001111;
-    #300
+    #120
     assert(7'd59 == leaf_index);
     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd59);
     fsm_enable <= 0; //Turn off to stop overwriting data
@@ -163,7 +163,7 @@ end
     //60
     //[279. -18. -55. -22.  18.]
     patch_in <= 55'b0010001011111111101110111110010011111110101000000010010;
-    #300
+    #120
     assert(7'd60 == leaf_index);
     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd60);
 	   
@@ -171,7 +171,7 @@ end
      // 22
      // [ -72. -213.  201.   45.  235.]
     patch_in <= 55'b1111011100011100101011000110010010000010110100011101011;
-    #300
+    #120
     assert(7'd22 == leaf_index);
     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd22);
 	   
@@ -179,7 +179,7 @@ end
      // 5
      // [-245. -199.   45.   58.  177.]
     patch_in <= 55'b1110000101111100111001000001011010000011101000010110001;
-    #400
+    #120
     assert(7'd5 == leaf_index);
     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd5);
 	   
@@ -187,7 +187,7 @@ end
 	// 24
 	// [ -50.  -64. -298.  245. -141.]
      patch_in <= 55'b1111100111011111000000110110101100001111010111101110011;  
-     #400
+     #120
      assert(7'd24 == leaf_index);
      $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd24);
      fsm_enable <= 0; //Turn off to stop overwriting data

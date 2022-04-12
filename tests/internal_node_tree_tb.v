@@ -175,6 +175,14 @@ end
     assert(7'd5 == leaf_index);
     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd5);
 	   
+	   
+     // 5
+     // [-245. -199.   45.   58.  177.]
+    patch_in <= 55'b1110000101111100111001000001011010000011101000010110001;
+    #300
+    assert(7'd5 == leaf_index);
+    $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd5);
+	   
    
 	   
 

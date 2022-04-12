@@ -68,16 +68,19 @@ end
 // Generate the internal kd tree
 
 reg [PATCH_WIDTH-1:0] level_patches [7:0]; //For storing patch
+ wire [PATCH_WIDTH-1:0] level_patches_storage [7:0]; //For storing patch
 reg level_valid [255:0][7:0]; //for storing valid signals
 wire level_valid_storage [255:0][7:0]; //for storing valid signals
 reg empty_valid [255:0];
 
-//assign 
+ assign level_patches_storage[0] = patch_in;
+ 
+
 
 always @(*) begin
     
     level_valid[0][0] = 255'b1;
-    level_patches[0] = patch_in;
+    //level_patches[0] = patch_in;
  
      //Fill empties
 //     for (int r = 0; r < 255; r++) begin
@@ -119,7 +122,7 @@ generate
              .wen(wen && one_hot_address_en[(((2**i)) + j-1)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
             .valid(level_valid[j][i]),
             .wdata(sender_data), //writing mechanics are NOT pipelined
-            .patch_in(level_patches[i]),
+            .patch_in(level_patches_storage[i]),
             .patch_out(patch_out), //TODO REMOVE this, we don't need to store this at the internal node level
             .valid_left(level_valid_storage[j*2][i]),
             .valid_right(level_valid_storage[(j*2)+1][i])
@@ -147,7 +150,7 @@ generate
              
             end
             else begin
-                level_patches[i+1] <= level_patches[i];
+                level_patches[i+1] <= level_patches_storage[i];
                 //level_valid[i+1] <= level_valid[i];
                  for (int r = 0; r < 255; r++) begin
                     level_valid[r][i+1] = level_valid_storage[r][i];

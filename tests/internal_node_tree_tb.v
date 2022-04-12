@@ -206,11 +206,11 @@ end
     assert(7'd22 == leaf_index);
     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd22);
     
-    #10
+    #20
     assert(7'd5 == leaf_index);
     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd5);
 	   
-     #10
+     #20
      assert(7'd24 == leaf_index);
      $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd24);
      fsm_enable <= 0; //Turn off to stop overwriting data

@@ -202,7 +202,7 @@ end
     #10
     patch_in <= 55'b1111100111011111000000110110101100001111010111101110011;  
 	   	     
-    #100
+    #80
     assert(7'd22 == leaf_index);
     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd22);
     

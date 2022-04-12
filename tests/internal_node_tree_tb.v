@@ -160,6 +160,12 @@ end
     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd63);
     fsm_enable <= 0; //Turn off to stop overwriting data
 	   
+    //63
+    //[279. -18. -55. -22.  18.]
+    patch_in <= 55'b0010001011111111101110111110010011111110101000000010010;
+    assert(7'd63 == leaf_index);
+    $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd63);
+	   
 
     // //Index 1, Median 2
     // wdata <= 22'b0000000001000000000001;

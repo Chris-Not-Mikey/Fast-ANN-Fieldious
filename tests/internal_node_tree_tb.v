@@ -45,8 +45,11 @@ module internal_node_tree_tb;
 
   //Tree specific things
   wire [`ADDRESS_WIDTH-1:0] leaf_index;
+  wire leaf_en;
+  reg patch_en;
   reg fsm_enable;
   reg sender_enable;
+  
 
   //File I/O Stuff
   integer               data_file    ; // file handler
@@ -103,8 +106,11 @@ module internal_node_tree_tb;
   .fsm_enable(fsm_enable), //based on whether we are at the proper I/O portion
   .sender_enable(receiver_enq),
   .sender_data(receiver_din),
+  .patch_en(patch_en),
   .patch_in(patch_in),
-  .leaf_index(leaf_index)
+  .leaf_index(leaf_index),
+  .receiver_en(leaf_en)
+	  
   );
 
 
@@ -134,6 +140,7 @@ end
     sender_enable <= 0;
     receiver_full_n <=0;
     invalid <= 0;
+    patch_en <=0;
 
  
     wrst_n <= 1'b0;
@@ -148,6 +155,7 @@ end
 	   
     #5100
      fsm_enable <= 0; //Turn off to stop overwriting data
+    patch_en <= 1;
     patch_in <= 55'b0000000001100000000011000000000110000000000100000000011;
 	   
 	   

@@ -191,6 +191,30 @@ end
      assert(7'd24 == leaf_index);
      $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd24);
      fsm_enable <= 0; //Turn off to stop overwriting data
+	   
+	   
+     //Last 3 tests except pipelined
+	   
+	   
+    patch_in <= 55'b1111011100011100101011000110010010000010110100011101011
+    #10
+    patch_in <= 55'b1110000101111100111001000001011010000011101000010110001;
+    #10
+    patch_in <= 55'b1111100111011111000000110110101100001111010111101110011;  
+	   	     
+    #100
+    assert(7'd22 == leaf_index);
+    $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd22);
+    
+    #10
+    assert(7'd5 == leaf_index);
+    $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd5);
+	   
+     
+     #10
+     assert(7'd24 == leaf_index);
+     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd24);
+     fsm_enable <= 0; //Turn off to stop overwriting data
      
 	   
    

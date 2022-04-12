@@ -80,7 +80,7 @@ reg empty_valid [255:0];
 always @(*) begin
     
     level_valid[0][0] = 255'b1;
-    //level_patches[0] = patch_in;
+    level_patches[0] = patch_in;
  
      //Fill empties
 //     for (int r = 0; r < 255; r++) begin

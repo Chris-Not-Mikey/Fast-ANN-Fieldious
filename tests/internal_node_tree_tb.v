@@ -157,6 +157,8 @@ end
     patch_in <= 55'b0001111101111111100110111111111111111010100000001001111;
     #5300
     assert(7'd63 == leaf_index);
+    $display("%t: received = %d, expected = %d", $time, 7'd63, leaf_index);
+     fsm_enable <= 0; //Turn off to stop overwriting data
 	   
 
     // //Index 1, Median 2

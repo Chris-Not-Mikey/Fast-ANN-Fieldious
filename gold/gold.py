@@ -37,15 +37,23 @@ def top_to_bottom(tree, patch):
         dim_index = subtree.data.idx
     
 
-        if patch[dim_index] < tree.data.median[dim_index]:
+        if patch[dim_index] < subtree.data.median[dim_index]:
             subtree = subtree.left
+            # print("Left")
+            # print(dim_index)
+            # print(patch[dim_index])
+            # print(subtree.data.median[dim_index])
 
         else:
-             subtree = subtree.right
+            subtree = subtree.right
+            # print("Right")
+            # print(dim_index)
+            # print(subtree.data.median[dim_index])
 
 
     # Once at the leaf, find best index
 
+    leaf_index = subtree.data.leaf_count
     smallest_dist = inf
     index = 0
 
@@ -87,7 +95,7 @@ def top_to_bottom(tree, patch):
 
 
         # We are looking for the 5 best candidates
-        if len(best_dists) < psize:
+        if len(best_dists) < 4:  #UPDATE: Changed to 4
             best_dists.append([dist, candidate[5], subtree])
             #best_dists = sorted(best_dists)
             best_dists.sort(key=lambda x: x[0])
@@ -112,7 +120,7 @@ def top_to_bottom(tree, patch):
 
 
     #print(index)
-    return int(index), best_dists
+    return int(index), best_dists, leaf_index
 
 
 
@@ -654,7 +662,7 @@ def compute_all_distances_find_best_new(candidate, point, _pca_model):
         #best_five = sorted(best_five)
         best_five.sort(key=lambda x: x[0])
 
-        if len(best_five) < 5:
+        if len(best_five) < 4: #change to 4
         
             best_five.append([current_dist, idx, cand[2]])
             #best_five = sorted(best_five)
@@ -685,6 +693,7 @@ def compute_all_distances_find_best_new(candidate, point, _pca_model):
 # Function to print a BFS of graph
 def BFS(tree):
 
+    leaf_counter = 0 #Corresponds to Leaf index in memory
   
     #Open Two Files
     f_int = open("internalNodes.txt", "w")
@@ -717,6 +726,10 @@ def BFS(tree):
         if is_leaf:
             patch_str = "#Starting Leaf \n"
             f_leaf.write(patch_str)
+            s.data.leaf_count = leaf_counter
+            # print("Here Leaf Counter")
+            # print(leaf_counter)
+            leaf_counter = leaf_counter + 1
             for data in s.data.patches:
 
                 patch_str = "#Starting Patch \n"
@@ -1022,6 +1035,8 @@ class BetterItem(object):
         self.axis = idx
 
         self.visited = False
+
+        self.leaf_count = 0
  
 
 
@@ -1283,14 +1298,33 @@ if __name__ == "__main__":
     nn_best_dists = []
     nn_row_storage = []
 
+    BFS(tree)
+ 
+
     # Top to Bottom Traversal
     # TODO: Make query from scratch
+    count = 0
     for patchA in patches_a_reduced:
 
         nn_best_dists = []
 
         # TODO: Report best 5 (k) results
-        index, nn_best_dists  = top_to_bottom(tree, patchA)
+        index, nn_best_dists, leaf_index  = top_to_bottom(tree, patchA)
+
+        print("Leaf Index!")
+        print(leaf_index)
+        print(patchA)
+
+        # asf()
+
+        if count == 20:
+            asf()
+
+        count = count +1
+
+       
+      
+     
 
         #result = search_knn_custom(patchA, 5, tree, dist=compute_distance_non_median)
         
@@ -1351,6 +1385,7 @@ if __name__ == "__main__":
     print("Look here!")
     BFS(tree)
 
+
     row_idx_counter = 0
 
     nn_full_indices = []
@@ -1371,8 +1406,8 @@ if __name__ == "__main__":
         best_leaves = []
 
         #TODO: Add in to bring in top to bottom results
-        # for j in range(psize):
-        #     best_dists.append(nn_row_storage[row_idx_counter][j])
+        for j in range(4): #Changed to 4
+            best_dists.append(nn_row_storage[row_idx_counter][j])
             #print(nn_row_storage[row_idx_counter][j])
         
 
@@ -1384,7 +1419,7 @@ if __name__ == "__main__":
          
 
             # We are looking for the 5 best candidates
-            if len(best_dists) < psize:
+            if len(best_dists) < 4: #Update 4
                 best_dists.append([dist, idx, nodeB])
                 #best_dists = sorted(best_dists)
                 best_dists.sort(key=lambda x: x[0])
@@ -1473,8 +1508,8 @@ if __name__ == "__main__":
 
         # Add candidates from top to bottom traversal  on current row/index
         # TODO: Add back in
-        # for t in range(psize):
-        #     better.append(nn_row_storage[row_idx_counter][t])
+        for t in range(4):  #Change to 4
+            candidates.append(nn_row_storage[row_idx_counter][t])
             
         #     print(nn_row_storage[row_idx_counter][t])
 
@@ -1537,6 +1572,14 @@ if __name__ == "__main__":
 
 
     
+
+
+
+    
+
+
+  
+
 
 
 

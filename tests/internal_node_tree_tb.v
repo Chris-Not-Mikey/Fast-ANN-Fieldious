@@ -179,7 +179,7 @@ end
      // 5
      // [-245. -199.   45.   58.  177.]
     patch_in <= 55'b1110000101111100111001000001011010000011101000010110001;
-    #300
+    #400
     assert(7'd5 == leaf_index);
     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd5);
 	   
@@ -187,9 +187,10 @@ end
 	// 4
 	// [ -50.  -64. -298.  245. -141.]
      patch_in <= 1111100111011111000000110110101100001111010111101110011;  
-     #300
+     #400
      assert(7'd4 == leaf_index);
      $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd4);
+     fsm_enable <= 0; //Turn off to stop overwriting data
      
 	   
    

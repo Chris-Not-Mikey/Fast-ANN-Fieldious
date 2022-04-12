@@ -19,9 +19,13 @@ module internal_node_tree
   input fsm_enable, //based on whether we are at the proper I/O portion
   input sender_enable,
   input [INTERNAL_WIDTH - 1 : 0] sender_data,
+  input patch_en,
   input [PATCH_WIDTH - 1 : 0] patch_in,
-  output logic [ADDRESS_WIDTH - 1 : 0] leaf_index
+  output logic [ADDRESS_WIDTH - 1 : 0] leaf_index,
+  output receiver_en
 );
+ 
+
 
 
 reg [5:0] wadr; //Internal state holding current address to be read (2^6 internal nodes)
@@ -30,6 +34,33 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
 
 wire wen;
 assign wen = fsm_enable && sender_enable;
+ 
+
+ //Register for keeping track of whether output is valid (keeps track of pipelined inputs as well.
+ // This handles the 6 cycle latency of this setup
+ reg latency_track_reciever_en [5:0];
+ 
+ always @ (posedge clk) begin
+     if (rst_n == 0) begin
+      latency_track_reciever_en[0] <= 0;
+      latency_track_reciever_en[1] <= 0;
+      latency_track_reciever_en[2] <= 0;
+      latency_track_reciever_en[3] <= 0;
+      latency_track_reciever_en[4] <= 0;
+      latency_track_reciever_en[5] <= 0;
+    end
+    else begin
+      latency_track_reciever_en[0] <= patch_en;
+      latency_track_reciever_en[1] <= latency_track_reciever_en[0];
+      latency_track_reciever_en[2] <= latency_track_reciever_en[1];
+      latency_track_reciever_en[3] <= latency_track_reciever_en[2];
+      latency_track_reciever_en[4] <= latency_track_reciever_en[3];
+      latency_track_reciever_en[5] <= latency_track_reciever_en[4];
+    end
+  
+ end
+ 
+ assign receiver_en = latency_track_reciever_en[5];
 
 
 //Register for storing and updating address

@@ -196,7 +196,7 @@ end
      //Last 3 tests except pipelined
 	   
 	   
-    patch_in <= 55'b1111011100011100101011000110010010000010110100011101011
+    patch_in <= 55'b1111011100011100101011000110010010000010110100011101011;
     #10
     patch_in <= 55'b1110000101111100111001000001011010000011101000010110001;
     #10
@@ -210,7 +210,6 @@ end
     assert(7'd5 == leaf_index);
     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd5);
 	   
-     
      #10
      assert(7'd24 == leaf_index);
      $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd24);

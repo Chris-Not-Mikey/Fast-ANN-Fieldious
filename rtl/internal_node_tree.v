@@ -172,9 +172,9 @@ endgenerate
 always @(*) begin
 
     leaf_index = 0;
- for (int i = 63; i >= 0; i--) begin
+ for (int i = 0; i < 64; i++) begin
         if (level_valid[i][6] == 1'b1) begin
-          leaf_index = 63 - i;
+          leaf_index = i;
         end
     end
 

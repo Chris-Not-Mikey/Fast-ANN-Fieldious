@@ -94,7 +94,7 @@ module aggregator_tb;
     //iseven = 1'b0; 
     change_fetch_width = 1'b1;
     local_fetch_width = 3'd4;
-    #200
+    #700
     local_fetch_width = 3'd1;
     
 

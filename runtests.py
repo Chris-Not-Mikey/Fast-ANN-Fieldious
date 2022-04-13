@@ -142,7 +142,7 @@ def test_ram_sync_1r1w_tb_uvm():
 
 def test_aggregator_tb():
     print("Running test_aggregator_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/aggregator_tb.v', 'rtl/aggregator.v', 'rtl/dual_clock_async_fifo_design.v'])
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/aggregator_tb.v', 'rtl/aggregator.v', 'rtl/SyncFIFO.v'])
 
 
 def test_query_buffer_tb():

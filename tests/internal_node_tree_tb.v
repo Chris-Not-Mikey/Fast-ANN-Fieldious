@@ -41,6 +41,10 @@ module internal_node_tree_tb;
   logic [`DSIZE-1:0] wdata;
   logic winc, wclk, wrst_n;
   logic rinc, rrst_n;
+	
+  //Aggregator Stuff
+  reg change_fetch_width;
+  reg [2:0] input_fetch_width;
 
 
   //Tree specific things
@@ -76,8 +80,8 @@ module internal_node_tree_tb;
     .receiver_data(receiver_din),
     .receiver_full_n(receiver_full_n),
     .receiver_enq(receiver_enq),
-    .change_fetch_width(1'b0),
-    .input_fetch_width(3'd2)
+    .change_fetch_width(change_fetch_width),
+    .input_fetch_width(input_fetch_width)
   );
 
   
@@ -143,6 +147,8 @@ end
     receiver_full_n <=0;
     invalid <= 0;
     patch_en <=0;
+    change_fetch_width <= 0;
+   input_fetch_width <= 3'd2;
 
  
     wrst_n <= 1'b0;

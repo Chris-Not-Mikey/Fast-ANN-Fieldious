@@ -106,6 +106,8 @@ module aggregator_tb;
 	  
 	  
   end
+	
+  reg [1:0] state;
 
   initial begin
     rinc = 1'b0;
@@ -192,7 +194,7 @@ always @ (posedge clk) begin
     end 
   end
 	
-reg [1:0] state;
+
 always @ (posedge clk) begin
     if (rst_n) begin
       state <= 0;

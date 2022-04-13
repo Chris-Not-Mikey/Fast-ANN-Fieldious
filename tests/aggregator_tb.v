@@ -129,16 +129,9 @@ module aggregator_tb;
 
     //comment
   assign fifo_enq = wrst_n && (wfull_n) && (!stall);
-  assign even = (iseven == 2'b10) || (iseven == 2'b00);
+
 
   always @ (posedge clk) begin
-       
-	#1 
-	iseven <= (iseven == 2'b10) ? 2'b00: iseven+2'b01; 
-  end
-
-  always @ (posedge clk) begin
-  if (1) begin
     if (wrst_n) begin
       stall <= $urandom % 2;
       receiver_full_n <= 1;
@@ -148,7 +141,6 @@ module aggregator_tb;
     end else begin
       wdata <= 0;
     end
-   end
   end
 
   genvar i;

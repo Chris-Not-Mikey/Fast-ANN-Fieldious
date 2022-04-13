@@ -19,7 +19,20 @@ module async_fifo1_tb;
 
 
   // Instantiate the FIFO
-  async_fifo1 #(DSIZE, ASIZE) dut (.*);
+  SyncFIFO #(DSIZE, 4, 4)
+  dut (
+   
+    .sCLK(wclk),
+    .sRST(wrst_n),
+    .dCLK(rclk),
+    .sENQ(winc),
+    .sD_IN(wdata),
+    .sFULL_N(wfull),
+    .dDEQ(rinc),
+    .dD_OUT(rdata),
+    .dEMPTY_N(rempty)
+  
+  );
 
   initial begin
     wclk = 1'b0;
@@ -27,7 +40,7 @@ module async_fifo1_tb;
 
     fork
       forever #20ns wclk = ~wclk;
-      forever #6.66ns rclk = ~rclk;
+      forever #20ns rclk = ~rclk; //change to 6.66 for real test
     join
   end
 

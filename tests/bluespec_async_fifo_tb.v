@@ -19,7 +19,7 @@ module bluespec_syncfifo_tb;
 
 
   // Instantiate the FIFO
-  SyncFIFO #(DSIZE, 4, 4)
+  SyncFIFO #(DSIZE, 4, 2)
   dut (
    
     .sCLK(wclk),

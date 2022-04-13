@@ -70,7 +70,7 @@ module internal_node_tree_tb;
   aggregator
   #(
     .DATA_WIDTH(`DSIZE),
-    .FETCH_WIDTH(2)
+    .FETCH_WIDTH(`FETCH_WIDTH)
   ) aggregator_inst
   (
     .clk(clk),
@@ -127,7 +127,7 @@ module internal_node_tree_tb;
   .rst_n(rst_n),
   .fsm_enable(fsm_enable), //based on whether we are at the proper I/O portion
   .sender_enable(receiver_enq),
-  .sender_data(receiver_din[21:0]),
+  .sender_data(receiver_din),
   .patch_en(patch_en),
   .patch_in(patch_in),
   .leaf_index(leaf_index),

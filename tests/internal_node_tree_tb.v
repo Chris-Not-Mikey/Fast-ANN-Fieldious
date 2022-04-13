@@ -63,7 +63,7 @@ module internal_node_tree_tb;
 
 
   always #10 clk =~clk;
-  always #10 wclk =~wclk;
+  always #20 wclk =~wclk;
 	
   reg invalid;
 

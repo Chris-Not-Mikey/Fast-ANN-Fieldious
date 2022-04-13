@@ -40,7 +40,7 @@ module bluespec_syncfifo_tb;
 
     fork
       forever #20ns wclk = ~wclk;
-      forever #10ns rclk = ~rclk; //change to 6.66 for real test
+      forever #6.6666666667ns rclk = ~rclk; //change to 6.66 for real test
     join
   end
 

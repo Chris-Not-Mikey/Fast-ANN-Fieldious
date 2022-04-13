@@ -1,7 +1,7 @@
 //
 // Testbench
 //
-module async_fifo1_tb;
+module bluespec_syncfifo_tb;
 
   parameter DSIZE = 11;
   parameter ASIZE = 4;

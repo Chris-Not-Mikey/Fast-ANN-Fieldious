@@ -93,7 +93,7 @@ module aggregator_tb;
     #20
     //iseven = 1'b0; 
     change_fetch_width = 1'b1;
-    local_fetch_width = 3'd6;
+    local_fetch_width = 3'd4;
 
 
     
@@ -154,7 +154,7 @@ module aggregator_tb;
 
   genvar i;
   generate
-	  for (i = 0; i < 6; i++) begin
+    for (i = 0; i < 4; i++) begin
       always @ (posedge clk) begin
         if (receiver_enq  ) begin
           assert(receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH] == expected_dout + i);
@@ -167,7 +167,7 @@ module aggregator_tb;
 
 always @ (posedge clk) begin
     if (receiver_enq ) begin
-      expected_dout <= expected_dout + `FETCH_WIDTH;
+      expected_dout <= expected_dout + 4;
     end 
   end
 

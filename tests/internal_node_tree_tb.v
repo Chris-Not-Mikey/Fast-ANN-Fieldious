@@ -62,7 +62,7 @@ module internal_node_tree_tb;
   logic   signed [`DSIZE-1:0] captured_data;
 
 
-  always #10 clk =~clk;
+  always #20 clk =~clk;
   always #20 wclk =~wclk;
 	
   reg invalid;
@@ -76,7 +76,7 @@ module internal_node_tree_tb;
     .clk(clk),
     .rst_n(rst_n),
     .sender_data(rdata),
-    .sender_empty_n(rempty_n),
+    .sender_empty_n(!rempty_n),
     .sender_deq(fifo_deq),
     .receiver_data(receiver_din),
     .receiver_full_n(receiver_full_n),
@@ -86,35 +86,35 @@ module internal_node_tree_tb;
   );
 
   
-//   async_fifo1 #(
-//     .DSIZE(`DSIZE),
-//     .ASIZE(`ASIZE)
-//   )
-//   dut (
-    
-//     .winc(fifo_enq), .wclk(wclk), .wrst_n(wrst_n),
-//     .rinc(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
-//     .wdata(wdata),
-//     .rdata(rdata),
-//     .wfull(wfull),
-//     .rempty(rempty)
-    
-//   );
-	
- SyncFIFO #(`DSIZE, 4, 2)
+  async_fifo1 #(
+    .DSIZE(`DSIZE),
+    .ASIZE(`ASIZE)
+  )
   dut (
-   
-    .sCLK(wclk),
-    .sRST(wrst_n),
-    .dCLK(clk),
-    .sENQ(fifo_enq),
-    .sD_IN(wdata),
-    .sFULL_N(wfull_n),
-    .dDEQ(fifo_deq),
-    .dD_OUT(rdata),
-    .dEMPTY_N(rempty_n)
-  
+    
+    .winc(fifo_enq), .wclk(wclk), .wrst_n(wrst_n),
+    .rinc(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
+    .wdata(wdata),
+    .rdata(rdata),
+    .wfull(wfull_n),
+    .rempty(rempty_n)
+    
   );
+	
+//  SyncFIFO #(`DSIZE, 4, 2)
+//   dut (
+   
+//     .sCLK(wclk),
+//     .sRST(wrst_n),
+//     .dCLK(clk),
+//     .sENQ(fifo_enq),
+//     .sD_IN(wdata),
+//     .sFULL_N(wfull_n),
+//     .dDEQ(fifo_deq),
+//     .dD_OUT(rdata),
+//     .dEMPTY_N(rempty_n)
+  
+//   );
 
 
   internal_node_tree
@@ -296,7 +296,7 @@ end
 
    end
 
-  assign fifo_enq = wrst_n && (wfull_n) && (!stall);
+   assign fifo_enq = wrst_n && (!wfull_n) && (!stall);
 	
 
   always @ (posedge wclk) begin

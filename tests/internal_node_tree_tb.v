@@ -62,7 +62,7 @@ module internal_node_tree_tb;
 
 
   always #10 clk =~clk;
-  always #10 wclk =~wclk;
+  always #20 wclk =~wclk;
 	
   reg invalid;
 
@@ -292,7 +292,7 @@ end
   assign fifo_enq = wrst_n && (wfull) && (!stall);
 	
 
-  always @ (posedge clk) begin
+  always @ (posedge wclk) begin
  
     //Into FIFO
 	  if (wrst_n) begin

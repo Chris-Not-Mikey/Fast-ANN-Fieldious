@@ -22,6 +22,11 @@ module aggregator_tb;
 
   reg [1:0] iseven;
   wire even;
+	
+  reg [2:0] local_fetch_width;
+  reg change_fetch_width;
+	
+	
 
 
   logic [`DSIZE-1:0] rdata;
@@ -30,6 +35,8 @@ module aggregator_tb;
   logic [`DSIZE-1:0] wdata;
   logic winc, wclk, wrst_n;
   logic rinc, rrst_n;
+	
+  
   
   
   always #6.66666667 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
@@ -48,7 +55,9 @@ module aggregator_tb;
     .sender_deq(fifo_deq),
     .receiver_data(receiver_din),
     .receiver_full_n(receiver_full_n),
-    .receiver_enq(receiver_enq)
+    .receiver_enq(receiver_enq),
+    .change_fetch_width(),
+    .input_fetch_width()
   );
 
  
@@ -74,6 +83,9 @@ module aggregator_tb;
     wdata = '0;
     wrst_n = 1'b0;
     rst_n = 1'b0;
+    local_fetch_width = 2;
+    change_fetch_width = 0;
+	  
     repeat(5) @(posedge wclk);
     //#5
     wrst_n = 1'b1;

@@ -3,7 +3,7 @@
 `define ADDRESS_WIDTH 8
 `define DSIZE 11
 `define ASIZE 4
-`define FETCH_WIDTH 2
+`define FETCH_WIDTH 6
 `define NULL 0  
 
 
@@ -111,7 +111,7 @@ module internal_node_tree_tb;
   .rst_n(rst_n),
   .fsm_enable(fsm_enable), //based on whether we are at the proper I/O portion
   .sender_enable(receiver_enq),
-  .sender_data(receiver_din),
+  .sender_data(receiver_din[21:0]),
   .patch_en(patch_en),
   .patch_in(patch_in),
   .leaf_index(leaf_index),
@@ -156,6 +156,7 @@ end
    
 
     #40 rst_n <= 1;
+    change_fetch_width <= 1'b1;
     wrst_n <= 1'b1;
     rrst_n <= 1'b1;
     receiver_full_n <=1;

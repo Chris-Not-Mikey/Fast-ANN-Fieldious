@@ -75,7 +75,9 @@ module internal_node_tree_tb;
     .sender_deq(fifo_deq),
     .receiver_data(receiver_din),
     .receiver_full_n(receiver_full_n),
-    .receiver_enq(receiver_enq)
+    .receiver_enq(receiver_enq),
+    .change_fetch_width(1'b0),
+    .input_fetch_width(3'd2)
   );
 
   

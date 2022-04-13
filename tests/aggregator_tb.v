@@ -90,7 +90,14 @@ module aggregator_tb;
     //#5
     wrst_n = 1'b1;
     rst_n = 1'b1;
-    //iseven = 1'b0;
+    //iseven = 1'b0; 
+    change_fetch_width = 1'b1;
+    local_fetch_width = 4;
+    #20
+    change_fetch_width = 1'b0;
+	 
+	  
+	  
   end
 
   initial begin
@@ -99,11 +106,7 @@ module aggregator_tb;
     rrst_n = 1'b0;
     repeat(8) @(posedge clk);
     rrst_n = 1'b1;
-    change_fetch_width = 1'b1;
-    local_fetch_width = 4;
-    #6.666
-    change_fetch_width = 1'b0;
-	 
+ 
     
 
   end

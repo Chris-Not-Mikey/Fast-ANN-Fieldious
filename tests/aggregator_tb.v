@@ -56,8 +56,8 @@ module aggregator_tb;
     .receiver_data(receiver_din),
     .receiver_full_n(receiver_full_n),
     .receiver_enq(receiver_enq),
-    .change_fetch_width(),
-    .input_fetch_width()
+    .change_fetch_width(change_fetch_width),
+    .input_fetch_width(local_fetch_width)
   );
 
  

@@ -61,7 +61,7 @@ module internal_node_tree_tb;
   logic   signed [`DSIZE-1:0] captured_data;
 
 
-  always #10 clk =~clk;
+  always #6.666667 clk =~clk;
   always #20 wclk =~wclk;
 	
   reg invalid;

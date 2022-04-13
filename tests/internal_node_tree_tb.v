@@ -170,6 +170,13 @@ end
  
     wrst_n <= 1'b0;
     rrst_n <= 1'b0;
+	   
+	
+   #20
+   change_fetch_width <=1;
+   local_fetch_width <= 2;
+   #20
+   change_fetch_width <= 0;
    
 
     #40 rst_n <= 1;
@@ -177,8 +184,7 @@ end
     rrst_n <= 1'b1;
     receiver_full_n <=1;
     fsm_enable <= 1;
-    change_fetch_width <=1;
-    local_fetch_width <= 2;
+
 	   
 	   
     #5100

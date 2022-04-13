@@ -3,7 +3,7 @@
 `define ADDRESS_WIDTH 8
 `define DSIZE 11
 `define ASIZE 4
-`define FETCH_WIDTH 6 //This is fixed now by contraint of combining 3 fetch widths into 1 agg
+`define FETCH_WIDTH 2 //This is fixed now by contraint of combining 3 fetch widths into 1 agg
 `define NULL 0  
 
 

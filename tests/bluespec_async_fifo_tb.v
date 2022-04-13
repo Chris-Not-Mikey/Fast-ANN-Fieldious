@@ -7,8 +7,8 @@ module bluespec_syncfifo_tb;
   parameter ASIZE = 4;
 
   logic [DSIZE-1:0] rdata;
-  logic wfull;
-  logic rempty;
+  logic wfull_n;
+  logic rempty_n;
   logic [DSIZE-1:0] wdata;
   logic winc, wclk, wrst_n;
   logic rinc, rclk, rrst_n;

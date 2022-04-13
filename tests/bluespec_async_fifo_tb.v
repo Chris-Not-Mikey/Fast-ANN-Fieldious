@@ -78,7 +78,7 @@ module bluespec_syncfifo_tb;
         if (rinc) begin
           verif_wdata = verif_data_q.pop_back();
           // Check the rdata against modeled wdata
-          $display("Checking rdata: expected wdata = %h, rdata = %h", verif_wdata, rdata);
+         // $display("Checking rdata: expected wdata = %h, rdata = %h", verif_wdata, rdata);
           assert(rdata === verif_wdata) else $error("Checking failed: expected wdata = %h, rdata = %h", verif_wdata, rdata);
         end
       end
@@ -93,7 +93,7 @@ module bluespec_syncfifo_tb;
     $dumpvars;
 //     $vcdplusmemon();
 //     $vcdpluson(0, aggregator_tb);
-    #2000;
+    #20000;
     $finish(2);
   end
 

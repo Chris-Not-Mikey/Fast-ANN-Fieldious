@@ -96,7 +96,7 @@ module aggregator_tb;
     local_fetch_width = 3'd4;
     #1000
     change_fetch_width = 1'b1;
-    local_fetch_width = 3'd1;
+    //local_fetch_width = 3'd1;
     
 
 
@@ -160,7 +160,7 @@ module aggregator_tb;
   generate
     for (i = 0; i < 4; i++) begin
       always @ (posedge clk) begin
-	      if (receiver_enq && !change_fetch_width   ) begin
+	if (receiver_enq && !change_fetch_width   ) begin
           assert(receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH] == expected_dout + i);
           $display("%t: received = %d, expected = %d", $time, 
             receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH], expected_dout + i);

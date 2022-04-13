@@ -3,7 +3,7 @@
 `define ADDRESS_WIDTH 8
 `define DSIZE 11
 `define ASIZE 4
-`define FETCH_WIDTH 2
+`define FETCH_WIDTH 6 //This is fixed now by contraint of combining 3 fetch widths into 1 agg
 `define NULL 0  
 
 
@@ -36,11 +36,16 @@ module internal_node_tree_tb;
 
   // Async Fifo Stuff
   logic [`DSIZE-1:0] rdata;
-  logic wfull;
-  logic rempty;
+  logic wfull_n;
+  logic rempty_n;
   logic [`DSIZE-1:0] wdata;
   logic winc, wclk, wrst_n;
   logic rinc, rrst_n;
+	
+	
+ //Aggregator stuff
+  reg [2:0] local_fetch_width;
+  reg change_fetch_width;
 
 
   //Tree specific things
@@ -71,27 +76,44 @@ module internal_node_tree_tb;
     .clk(clk),
     .rst_n(rst_n),
     .sender_data(rdata),
-    .sender_empty_n(!rempty),
+    .sender_empty_n(rempty_n),
     .sender_deq(fifo_deq),
     .receiver_data(receiver_din),
     .receiver_full_n(receiver_full_n),
-    .receiver_enq(receiver_enq)
+    .receiver_enq(receiver_enq),
+    .change_fetch_width(change_fetch_width),
+    .input_fetch_width(local_fetch_width)
   );
 
   
-  async_fifo1 #(
-    .DSIZE(`DSIZE),
-    .ASIZE(`ASIZE)
-  )
+//   async_fifo1 #(
+//     .DSIZE(`DSIZE),
+//     .ASIZE(`ASIZE)
+//   )
+//   dut (
+    
+//     .winc(fifo_enq), .wclk(wclk), .wrst_n(wrst_n),
+//     .rinc(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
+//     .wdata(wdata),
+//     .rdata(rdata),
+//     .wfull(wfull),
+//     .rempty(rempty)
+    
+//   );
+	
+ SyncFIFO #(`DSIZE, 4, 2)
   dut (
-    
-    .winc(fifo_enq), .wclk(wclk), .wrst_n(wrst_n),
-    .rinc(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
-    .wdata(wdata),
-    .rdata(rdata),
-    .wfull(wfull),
-    .rempty(rempty)
-    
+   
+    .sCLK(wclk),
+    .sRST(wrst_n),
+    .dCLK(clk),
+    .sENQ(fifo_enq),
+    .sD_IN(wdata),
+    .sFULL_N(wfull_n),
+    .dDEQ(fifo_deq),
+    .dD_OUT(rdata),
+    .dEMPTY_N(rempty_n)
+  
   );
 
 
@@ -105,7 +127,7 @@ module internal_node_tree_tb;
   .rst_n(rst_n),
   .fsm_enable(fsm_enable), //based on whether we are at the proper I/O portion
   .sender_enable(receiver_enq),
-  .sender_data(receiver_din),
+  .sender_data(receiver_din[21:0]),
   .patch_en(patch_en),
   .patch_in(patch_in),
   .leaf_index(leaf_index),
@@ -141,6 +163,9 @@ end
     receiver_full_n <=0;
     invalid <= 0;
     patch_en <=0;
+	   
+    local_fetch_width <= 2;
+    change_fetch_width <= 0;
 
  
     wrst_n <= 1'b0;
@@ -152,6 +177,9 @@ end
     rrst_n <= 1'b1;
     receiver_full_n <=1;
     fsm_enable <= 1;
+    change_fetch_width <=1;
+    local_fetch_width <= 2;
+	   
 	   
     #5100
      fsm_enable <= 0; //Turn off to stop overwriting data
@@ -262,7 +290,7 @@ end
 
    end
 
-  assign fifo_enq = wrst_n && (!wfull) && (!stall);
+  assign fifo_enq = wrst_n && (wfull_n) && (!stall);
 	
 
   always @ (posedge clk) begin

@@ -158,7 +158,7 @@ module aggregator_tb;
 
   genvar i;
   generate
-  for (i = 0; i < 4; i++) begin
+	  for (i = 0; i < 1; i++) begin
       always @ (posedge clk) begin
 	      if (receiver_enq && !change_fetch_width   ) begin
           assert(receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH] == expected_dout + i);
@@ -170,18 +170,18 @@ module aggregator_tb;
   endgenerate
 	
 	
-  genvar i;
-  generate
-    for (i = 0; i < 1; i++) begin
-      always @ (posedge clk) begin
-	if (receiver_enq && change_fetch_width   ) begin
-          assert(receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH] == expected_dout + i);
-          $display("%t: received = %d, expected = %d", $time, 
-            receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH], expected_dout + i);
-        end
-      end
-    end
-  endgenerate
+//   genvar i;
+//   generate
+//     for (i = 0; i < 1; i++) begin
+//       always @ (posedge clk) begin
+// 	if (receiver_enq && change_fetch_width   ) begin
+//           assert(receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH] == expected_dout + i);
+//           $display("%t: received = %d, expected = %d", $time, 
+//             receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH], expected_dout + i);
+//         end
+//       end
+//     end
+//   endgenerate
 	
 	
 

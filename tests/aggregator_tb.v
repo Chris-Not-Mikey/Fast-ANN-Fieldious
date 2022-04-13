@@ -51,21 +51,7 @@ module aggregator_tb;
     .receiver_enq(receiver_enq)
   );
 
-  
-//   async_fifo1 #(
-//     .DSIZE(`DSIZE),
-//     .ASIZE(`ASIZE)
-//   )
-//   dut (
-    
-//     .winc(fifo_enq), .wclk(wclk), .wrst_n(wrst_n),
-//     .rinc(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
-//     .wdata(wdata),
-//     .rdata(rdata),
-//     .wfull(wfull),
-//     .rempty(rempty)
-    
-//   );
+ 
 	
  SyncFIFO #(`DATA_WIDTH, 4, 2)
   dut (

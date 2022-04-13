@@ -52,10 +52,10 @@ module aggregator_tb;
   );
 
   
-  async_fifo1 #(
-    .DSIZE(`DSIZE),
-    .ASIZE(`ASIZE)
-  )
+//   async_fifo1 #(
+//     .DSIZE(`DSIZE),
+//     .ASIZE(`ASIZE)
+//   )
 //   dut (
     
 //     .winc(fifo_enq), .wclk(wclk), .wrst_n(wrst_n),

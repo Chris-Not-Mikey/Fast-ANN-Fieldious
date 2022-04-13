@@ -32,8 +32,8 @@ module aggregator_tb;
   logic rinc, rrst_n;
   
   
-  always #10 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
-  always #30 wclk =~wclk;
+  always #6.66666667 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
+  always #20 wclk =~wclk;
   
   aggregator
   #(

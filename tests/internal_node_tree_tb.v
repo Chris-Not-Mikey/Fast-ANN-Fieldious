@@ -299,7 +299,7 @@ end
   assign fifo_enq = wrst_n && (wfull_n) && (!stall);
 	
 
-  always @ (posedge clk) begin
+  always @ (posedge wclk) begin
  
     //Into FIFO
 	  if (wrst_n) begin

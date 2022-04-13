@@ -36,7 +36,7 @@ module aggregator
   
   reg [2:0] LOCAL_FETCH_WIDTH;
   always @ (posedge clk) begin
-    if (rst_n) begin
+    if (!rst_n) begin
        LOCAL_FETCH_WIDTH <= FETCH_WIDTH;
     end
     

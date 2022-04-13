@@ -70,7 +70,7 @@ module internal_node_tree_tb;
   aggregator
   #(
     .DATA_WIDTH(`DSIZE),
-    .FETCH_WIDTH(`FETCH_WIDTH)
+    .FETCH_WIDTH(2)
   ) aggregator_inst
   (
     .clk(clk),
@@ -164,7 +164,7 @@ end
     invalid <= 0;
     patch_en <=0;
 	   
-    local_fetch_width <= 2;
+    local_fetch_width <= 4;
     change_fetch_width <= 0;
 
  
@@ -172,11 +172,11 @@ end
     rrst_n <= 1'b0;
 	   
 	
-   #20
-   change_fetch_width <=1;
-   local_fetch_width <= 2;
-   #20
-   change_fetch_width <= 0;
+//    #20
+//    change_fetch_width <=1;
+//    local_fetch_width <= 2;
+//    #20
+//    change_fetch_width <= 0;
    
 
     #40 rst_n <= 1;
@@ -188,7 +188,7 @@ end
 	   
 	   
     #5100
-     fsm_enable <= 0; //Turn off to stop overwriting data
+    fsm_enable <= 0; //Turn off to stop overwriting data
     patch_en <= 1;
     patch_in <= 55'b0000000001100000000011000000000110000000000100000000011;
     #20
@@ -274,8 +274,8 @@ end
     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd5);
 	   
      #20
-     assert(7'd61 == leaf_index);
-     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd61);
+    assert(7'd60 == leaf_index);
+     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd60);
      fsm_enable <= 0; //Turn off to stop overwriting data
      
 	   

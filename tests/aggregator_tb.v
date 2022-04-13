@@ -129,7 +129,7 @@ module aggregator_tb;
   assign fifo_enq = wrst_n && (wfull_n) && (!stall);
 
 
-  always @ (posedge clk) begin
+  always @ (posedge wclk) begin
     if (wrst_n) begin
       stall <= $urandom % 2;
       receiver_full_n <= 1;

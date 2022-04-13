@@ -27,10 +27,10 @@ module bluespec_syncfifo_tb;
     .dCLK(rclk),
     .sENQ(winc),
     .sD_IN(wdata),
-    .sFULL_N(wfull),
+    .sFULL_N(wfull_n),
     .dDEQ(rinc),
     .dD_OUT(rdata),
-    .dEMPTY_N(rempty)
+    .dEMPTY_N(rempty_n)
   
   );
 
@@ -53,7 +53,7 @@ module bluespec_syncfifo_tb;
 
     for (int iter=0; iter<2; iter++) begin
       for (int i=0; i<32; i++) begin
-        @(posedge wclk iff wfull);
+        @(posedge wclk iff wfull_n);
         winc = (i%2 == 0)? 1'b1 : 1'b0;
         if (winc) begin
           wdata = $urandom;
@@ -73,7 +73,7 @@ module bluespec_syncfifo_tb;
 
     for (int iter=0; iter<2; iter++) begin
       for (int i=0; i<32; i++) begin
-        @(posedge rclk iff rempty)
+        @(posedge rclk iff rempty_n)
         rinc = (i%2 == 0)? 1'b1 : 1'b0;
         if (rinc) begin
           verif_wdata = verif_data_q.pop_back();

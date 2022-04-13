@@ -25,8 +25,8 @@ module aggregator_tb;
 
 
   logic [`DSIZE-1:0] rdata;
-  logic wfull;
-  logic rempty;
+  logic wfull_n;
+  logic rempty_n;
   logic [`DSIZE-1:0] wdata;
   logic winc, wclk, wrst_n;
   logic rinc, rrst_n;
@@ -56,15 +56,30 @@ module aggregator_tb;
     .DSIZE(`DSIZE),
     .ASIZE(`ASIZE)
   )
+//   dut (
+    
+//     .winc(fifo_enq), .wclk(wclk), .wrst_n(wrst_n),
+//     .rinc(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
+//     .wdata(wdata),
+//     .rdata(rdata),
+//     .wfull(wfull),
+//     .rempty(rempty)
+    
+//   );
+	
+  SyncFIFO #(DSIZE, 4, 2)
   dut (
-    
-    .winc(fifo_enq), .wclk(wclk), .wrst_n(wrst_n),
-    .rinc(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
-    .wdata(wdata),
-    .rdata(rdata),
-    .wfull(wfull),
-    .rempty(rempty)
-    
+   
+    .sCLK(wclk),
+    .sRST(wrst_n),
+    .dCLK(clk),
+    .sENQ(fifo_enq),
+    .sD_IN(wdata),
+    .sFULL_N(wfull_n),
+    .dDEQ(fifo_deq),
+    .dD_OUT(rdata),
+    .dEMPTY_N(rempty_n)
+  
   );
 
   initial begin
@@ -113,7 +128,7 @@ module aggregator_tb;
   end
 
     //comment
-  assign fifo_enq = wrst_n && (!wfull) && (!stall);
+  assign fifo_enq = wrst_n && (wfull_n) && (!stall);
   assign even = (iseven == 2'b10) || (iseven == 2'b00);
 
   always @ (posedge clk) begin
@@ -123,7 +138,7 @@ module aggregator_tb;
   end
 
   always @ (posedge clk) begin
-    if (even && (iseven == 2'b00)) begin
+  if (1) begin
     if (wrst_n) begin
       stall <= $urandom % 2;
       receiver_full_n <= 1;
@@ -139,8 +154,8 @@ module aggregator_tb;
   genvar i;
   generate
     for (i = 0; i < `FETCH_WIDTH; i++) begin
-      always @ (negedge clk) begin
-        if (receiver_enq && even ) begin
+      always @ (posedge clk) begin
+        if (receiver_enq  ) begin
           assert(receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH] == expected_dout + i);
           $display("%t: received = %d, expected = %d", $time, 
             receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH], expected_dout + i);
@@ -149,8 +164,8 @@ module aggregator_tb;
     end
   endgenerate
 
-  always @ (negedge clk) begin
-    if (receiver_enq && even ) begin
+always @ (posedge clk) begin
+    if (receiver_enq ) begin
       expected_dout <= expected_dout + `FETCH_WIDTH;
     end 
   end

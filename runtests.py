@@ -130,6 +130,12 @@ def test_new_async_fifo_tb():
     print("Running test_fifo_tb")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/new_async_fifo_tb.v', 'rtl/dual_clock_async_fifo_design.v'])
 
+def test_bluespec_async_fifo_tb():
+    print("Running bluespec_fifo_tb")
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/bluespec_async_fifo_tb.v', 'rtl/SyncFIFO.v'])
+
+
+
 def test_ram_sync_1r1w_tb_uvm():
     print("Running test_ram_sync_1r1w_tb_uvm")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/ram_sync_1r1w_tb_uvm.v', 'rtl/ram_sync_1r1w.v'])

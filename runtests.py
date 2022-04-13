@@ -123,7 +123,7 @@ def test_internal_node_tb():
 
 def test_internal_node_tree_tb():
     print("Running test_internal_node_tree_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/internal_node_tree_tb.v', 'rtl/internal_node.v','rtl/aggregator.v', 'rtl/dual_clock_async_fifo_design.v', 'rtl/internal_node_tree.v'])
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/internal_node_tree_tb.v', 'rtl/internal_node.v','rtl/aggregator.v', 'rtl/SyncFIFO.v', 'rtl/internal_node_tree.v'])
 
 
 def test_new_async_fifo_tb():

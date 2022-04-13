@@ -170,7 +170,7 @@ module aggregator_tb;
 
 always @ (posedge clk) begin
     if (receiver_enq ) begin
-      expected_dout <= expected_dout + 4;
+      expected_dout <= expected_dout + local_fetch_width;
     end 
   end
 

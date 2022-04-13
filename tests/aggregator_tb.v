@@ -196,7 +196,7 @@ always @ (posedge clk) begin
 	
 
 always @ (posedge clk) begin
-    if (rst_n) begin
+    if (!rst_n) begin
       state <= 0;
     end
 	

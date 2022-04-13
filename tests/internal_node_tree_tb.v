@@ -3,7 +3,7 @@
 `define ADDRESS_WIDTH 8
 `define DSIZE 11
 `define ASIZE 4
-`define FETCH_WIDTH 2 //This is fixed now by contraint of combining 3 fetch widths into 1 agg
+`define FETCH_WIDTH 2
 `define NULL 0  
 
 
@@ -36,16 +36,11 @@ module internal_node_tree_tb;
 
   // Async Fifo Stuff
   logic [`DSIZE-1:0] rdata;
-  logic wfull_n;
-  logic rempty_n;
+  logic wfull;
+  logic rempty;
   logic [`DSIZE-1:0] wdata;
   logic winc, wclk, wrst_n;
   logic rinc, rrst_n;
-	
-	
- //Aggregator stuff
-  reg [2:0] local_fetch_width;
-  reg change_fetch_width;
 
 
   //Tree specific things
@@ -62,8 +57,8 @@ module internal_node_tree_tb;
   logic   signed [`DSIZE-1:0] captured_data;
 
 
-  always #20 clk =~clk;
-  always #20 wclk =~wclk;
+  always #10 clk =~clk;
+  always #10 wclk =~wclk;
 	
   reg invalid;
 
@@ -76,13 +71,11 @@ module internal_node_tree_tb;
     .clk(clk),
     .rst_n(rst_n),
     .sender_data(rdata),
-    .sender_empty_n(!rempty_n),
+    .sender_empty_n(!rempty),
     .sender_deq(fifo_deq),
     .receiver_data(receiver_din),
     .receiver_full_n(receiver_full_n),
-    .receiver_enq(receiver_enq),
-    .change_fetch_width(change_fetch_width),
-    .input_fetch_width(local_fetch_width)
+    .receiver_enq(receiver_enq)
   );
 
   
@@ -96,25 +89,10 @@ module internal_node_tree_tb;
     .rinc(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
     .wdata(wdata),
     .rdata(rdata),
-    .wfull(wfull_n),
-    .rempty(rempty_n)
+    .wfull(wfull),
+    .rempty(rempty)
     
   );
-	
-//  SyncFIFO #(`DSIZE, 4, 2)
-//   dut (
-   
-//     .sCLK(wclk),
-//     .sRST(wrst_n),
-//     .dCLK(clk),
-//     .sENQ(fifo_enq),
-//     .sD_IN(wdata),
-//     .sFULL_N(wfull_n),
-//     .dDEQ(fifo_deq),
-//     .dD_OUT(rdata),
-//     .dEMPTY_N(rempty_n)
-  
-//   );
 
 
   internal_node_tree
@@ -163,20 +141,10 @@ end
     receiver_full_n <=0;
     invalid <= 0;
     patch_en <=0;
-	   
-    local_fetch_width <= 4;
-    change_fetch_width <= 0;
 
  
     wrst_n <= 1'b0;
     rrst_n <= 1'b0;
-	   
-	
-//    #20
-//    change_fetch_width <=1;
-//    local_fetch_width <= 2;
-//    #20
-//    change_fetch_width <= 0;
    
 
     #40 rst_n <= 1;
@@ -184,11 +152,9 @@ end
     rrst_n <= 1'b1;
     receiver_full_n <=1;
     fsm_enable <= 1;
-
-	   
 	   
     #5100
-    fsm_enable <= 0; //Turn off to stop overwriting data
+     fsm_enable <= 0; //Turn off to stop overwriting data
     patch_en <= 1;
     patch_in <= 55'b0000000001100000000011000000000110000000000100000000011;
     #20
@@ -261,7 +227,7 @@ end
     #20
     patch_in <= 55'b1110000101111100111001000001011010000011101000010110001;
     #20
-    patch_in <= 55'b0010001011111111101110111110010011111110101000000010010;
+    patch_in <= 55'b1111100111011111000000110110101100001111010111101110011; 
     #20
     patch_en <= 0;
 	   	     
@@ -274,8 +240,8 @@ end
     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd5);
 	   
      #20
-    assert(7'd60 == leaf_index);
-     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd60);
+     assert(7'd24 == leaf_index);
+     $display("%t: received = %d, expected = %d", $time, leaf_index, 7'd24);
      fsm_enable <= 0; //Turn off to stop overwriting data
      
 	   
@@ -296,10 +262,10 @@ end
 
    end
 
-   assign fifo_enq = wrst_n && (!wfull_n) && (!stall);
+  assign fifo_enq = wrst_n && (!wfull) && (!stall);
 	
 
-  always @ (posedge wclk) begin
+  always @ (posedge clk) begin
  
     //Into FIFO
 	  if (wrst_n) begin
@@ -311,7 +277,7 @@ end
           reg [21:0] temp_capture;
           //Read Data from  I/O
           scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
-	  wdata <= temp_capture[10:0];
+	      wdata <= temp_capture[10:0];
           //Prepare to send to FIFO
           if (!$feof(data_file)) begin
             //use captured_data as you would any other wire or reg value;

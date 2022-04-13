@@ -1,7 +1,7 @@
 module aggregator
 #(
   parameter DATA_WIDTH = 16,
-  parameter FETCH_WIDTH = 4
+  parameter FETCH_WIDTH = 6 //6 is the most we will use, so we will use this by default
 )
 (
   input clk,
@@ -9,9 +9,12 @@ module aggregator
   input [DATA_WIDTH - 1 : 0] sender_data,
   input sender_empty_n,
   output sender_deq,
-  output [FETCH_WIDTH*DATA_WIDTH - 1 : 0] receiver_data,
+  output [FETCH_WIDTH*DATA_WIDTH - 1 : 0] receiver_data, //For Internal Nodes and Query patches this is too large by defualy
   input receiver_full_n,
-  output reg receiver_enq
+  output reg receiver_enq,
+  input change_fetch_width,
+  input [2:0] input_fetch_width
+  
 );
 
   localparam COUNTER_WIDTH = $clog2(FETCH_WIDTH);
@@ -29,13 +32,30 @@ module aggregator
       assign receiver_data[(i + 1)*DATA_WIDTH - 1 : i*DATA_WIDTH] = receiver_data_unpacked[i];
     end
   endgenerate
+  
+  
+  reg [2:0] LOCAL_FETCH_WIDTH;
+  always @ (posedge clk) begin
+    if (rst_n) begin
+       LOCAL_FETCH_WIDTH <= FETCH_WIDTH;
+    end
+    
+    else if (change_fetch_width) begin
+       LOCAL_FETCH_WIDTH <= input_fetch_width;
+    end
+    
+    else begin
+      LOCAL_FETCH_WIDTH <= LOCAL_FETCH_WIDTH;
+    end
+    
+  end
 
   always @ (posedge clk) begin
     if (rst_n) begin
       if (sender_deq_w) begin
         receiver_data_unpacked[count_r] <= sender_data;
-        count_r <= (count_r == FETCH_WIDTH - 1) ? 0 : count_r + 1;
-        receiver_enq <= (count_r == FETCH_WIDTH - 1); 
+        count_r <= (count_r == LOCAL_FETCH_WIDTH - 1) ? 0 : count_r + 1;
+        receiver_enq <= (count_r == LOCAL_FETCH_WIDTH - 1); 
       end else begin
         receiver_enq <= 0;
       end

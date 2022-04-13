@@ -67,7 +67,7 @@ module aggregator_tb;
     
 //   );
 	
-  SyncFIFO #(DSIZE, 4, 2)
+  SyncFIFO #(DATA_WIDTH, 4, 2)
   dut (
    
     .sCLK(wclk),

@@ -257,14 +257,15 @@ end
       csb0 <= 0; //Must activate to write as well
       wen <= 1;
       write_latency_counter <= 0;
-      receiver_din_storage <= receiver_din;
+      
     end 
 	  
    if (wen && !write_disable) begin
 	   
 	   write_latency_counter <= write_latency_counter + 1;
 	   if (write_latency_counter == 3'b01) begin
-		     web0 <= 1'b0; 
+		    web0 <= 1'b0; 
+		    receiver_din_storage <= receiver_din;
 		    wen <= 1;
 		    addr0 <= addr0 + 1;
 	   end

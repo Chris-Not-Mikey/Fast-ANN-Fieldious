@@ -269,8 +269,9 @@ end
 
 	 if (ren && (read_latency_counter == 3'b11)) begin 
 	  read_latency_counter <= 3'b0;
-	  ren <= 0;
+	  ren <= 1;
 	  addr0 <= addr0 + 1;
+          read_latency_counter <= 0;
 	  
 	    
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 

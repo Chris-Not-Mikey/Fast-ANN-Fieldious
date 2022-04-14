@@ -113,7 +113,7 @@ module QueryPatchMem
         .clk1(clk), // Port 1: R
         .csb1(csb1 || macro_select_0),
         .addr1(addr1[7:0]),
-        .dout1(temp_a)
+        .dout1(rpatch0_1[31:0])
     );
   
     
@@ -133,7 +133,7 @@ module QueryPatchMem
         .clk1(clk), // Port 1: R
         .csb1(csb1 || macro_select_0),
         .addr1(addr1[7:0]),
-        .dout1(temp_b)
+        .dout1(rpatch0_1[63:32])
     );
   
   

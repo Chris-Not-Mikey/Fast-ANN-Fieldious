@@ -1,6 +1,7 @@
 `define DATA_WIDTH 11
 `define FETCH_WIDTH 2
 `define DSIZE 11
+`define PATCH_SIZE 5
 `define ASIZE 4
 `define ADDRESS_WIDTH 9
 `define DEPTH 512
@@ -52,12 +53,12 @@ module new_query_row_double_buffer_tb;
   // RAM Stuff
   logic                                       csb0; //Write
   logic                                       web0;
-  logic [ADDR_WIDTH-1:0]                      addr0;
-  logic [(DATA_WIDTH*PATCH_SIZE)-1:0]         wpatch0;
-  logic  [(DATA_WIDTH*PATCH_SIZE)-1:0]       rpatch0;
+  logic [`ADDRESS_WIDTH-1:0]                      addr0;
+  logic [(`DATA_WIDTH*`PATCH_SIZE)-1:0]         wpatch0;
+  logic  [(`DATA_WIDTH*`PATCH_SIZE)-1:0]       rpatch0;
   logic                                       csb1; //Read
-  logic [ADDR_WIDTH-1:0]                      addr1;
-  logic  [(DATA_WIDTH*PATCH_SIZE)-1:0]       rpatch1;
+  logic [`ADDRESS_WIDTH-1:0]                      addr1;
+  logic  [(`DATA_WIDTH*`PATCH_SIZE)-1:0]       rpatch1;
 
 
   //File I/O Stuff

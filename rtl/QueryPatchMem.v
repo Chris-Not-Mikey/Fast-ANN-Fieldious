@@ -39,11 +39,6 @@ module QueryPatchMem
   wire [64-1:0]       rpatch1_0;
   wire [64-1:0]       rpatch1_1;
   
-  
-  wire [31:0] temp_a;
-  wire [31:0] temp_b;
-  wire [31:0] temp_c;
-  wire [31:0] temp_d;
         
   
 //   reg macro_select_2;
@@ -61,8 +56,8 @@ module QueryPatchMem
        end
        
       1'b1 :   begin
-         macro_select_0 = 0;
-         macro_select_1 = 1;
+         macro_select_0 = 1;
+         macro_select_1 = 0;
 //          macro_select_2 = 0;
 //          macro_select_3 = 0;
        end
@@ -79,9 +74,17 @@ module QueryPatchMem
     endcase 
     
     
+
+    
+    
+  end
+  
+  
+  always @ (posedge clk) begin
+    
     if (!macro_select_0) begin
-      rpatch0 = {rpatch0_0[10:0], rpatch0_0[54:11]};
-      rpatch1 = {rpatch1_0[10:0], rpatch1_0[54:11]};
+      rpatch0 <= {rpatch0_0[10:0], rpatch0_0[54:11]};
+      rpatch1 <= {rpatch1_0[10:0], rpatch1_0[54:11]};
       
     end
     
@@ -89,10 +92,9 @@ module QueryPatchMem
 //       rpatch0 = rpatch0_1[54:0];
 //       rpatch1 = rpatch1_1[54:0];
       
-      rpatch0 = {rpatch0_1[10:0], rpatch0_1[54:11]};
-      rpatch1 = {rpatch1_1[10:0], rpatch1_1[54:11]};
+      rpatch0 <= {rpatch0_1[10:0], rpatch0_1[54:11]};
+      rpatch1 <= {rpatch1_1[10:0], rpatch1_1[54:11]};
     end
-    
     
   end
   
@@ -182,130 +184,6 @@ module QueryPatchMem
     );
   
   
-  
-//     sky130_sram_1kbyte_1rw1r_32x256_8
-//     #(
-//       .DATA_WIDTH(DATA_WIDTH), // round(PATCH_SIZE * DATA_WIDTH)
-//       .ADDR_WIDTH(7),
-//       .RAM_DEPTH(128) // NUM_LEAVES
-//     ) ram_patch_inst_2_1 (
-//         .clk0(clk),
-//         .csb0(csb0),
-//         .web0(web0 && macro_select_2),
-//         .addr0(addr0),
-//         .din0(wpatch0),
-//         .dout0(rpatch0),
-//         .clk1(clk),
-//         .csb1(csb1 && macro_select_2),
-//         .addr1(addr1),
-//         .dout1(rpatch1)
-//     );
-  
-//     sky130_sram_1kbyte_1rw1r_32x256_8
-//     #(
-//       .DATA_WIDTH(DATA_WIDTH), // round(PATCH_SIZE * DATA_WIDTH)
-//       .ADDR_WIDTH(7),
-//       .RAM_DEPTH(128) // NUM_LEAVES
-//     ) ram_patch_inst_2_1 (
-//         .clk0(clk),
-//         .csb0(csb0),
-//         .web0(web0 && macro_select_2),
-//         .addr0(addr0),
-//         .din0(wpatch0),
-//         .dout0(rpatch0),
-//         .clk1(clk),
-//         .csb1(csb1 && macro_select_2),
-//         .addr1(addr1),
-//         .dout1(rpatch1)
-//     );
-  
-  
-//     sky130_sram_1kbyte_1rw1r_32x256_8
-//     #(
-//       .DATA_WIDTH(DATA_WIDTH), // round(PATCH_SIZE * DATA_WIDTH)
-//       .ADDR_WIDTH(7),
-//       .RAM_DEPTH(128) // NUM_LEAVES
-//     ) ram_patch_inst_3_0 (
-//         .clk0(clk),
-//         .csb0(csb0),
-//         .web0(web0 && macro_select_3),
-//         .addr0(addr0),
-//         .din0(wpatch0),
-//         .dout0(rpatch0),
-//         .clk1(clk),
-//         .csb1(csb1 && macro_select_3),
-//         .addr1(addr1),
-//         .dout1(rpatch1)
-//     );
-  
-  
-//     sky130_sram_1kbyte_1rw1r_32x256_8
-//     #(
-//       .DATA_WIDTH(DATA_WIDTH), // round(PATCH_SIZE * DATA_WIDTH)
-//       .ADDR_WIDTH(7),
-//       .RAM_DEPTH(128) // NUM_LEAVES
-//     ) ram_patch_inst_3_1 (
-//         .clk0(clk),
-//         .csb0(csb0),
-//         .web0(web0 && macro_select_3),
-//         .addr0(addr0),
-//         .din0(wpatch0),
-//         .dout0(rpatch0),
-//         .clk1(clk),
-//         .csb1(csb1 && macro_select_3),
-//         .addr1(addr1),
-//         .dout1(rpatch1)
-//     );
-  
-  
-  
-  
-  
-  
-//     genvar i;
-//     generate
-//      for (i=0; i<4; i=i+1) begin : loop_ram_patch_gen  //We need 4 1kilobyte RAMS
-//         sram_1kbyte_1rw1r
-//         #(
-//           .DATA_WIDTH(DATA_WIDTH), // round(PATCH_SIZE * DATA_WIDTH)
-//           .ADDR_WIDTH(7),
-//           .RAM_DEPTH(128) // NUM_LEAVES
-//         ) ram_patch_inst (
-//             .clk0(clk),
-//             .csb0(csb0),
-//             .web0(web0),
-//             .addr0({2'b0, addr0}),
-//             .din0(wdata0[i]),
-//             .dout0(rdata0[i]),
-//             .clk1(clk),
-//             .csb1(csb1),
-//             .addr1({2'b0, addr1}),
-//             .dout1(rdata1[i])
-//         );
-
-//         assign wdata0[i] = {'0, wleaf0[i]};
-//         assign rleaf0[i] = rdata0[i][PATCH_SIZE*DATA_WIDTH-1:0];
-//         assign rleaf1[i] = rdata1[i][PATCH_SIZE*DATA_WIDTH-1:0];
-//     end
-//     endgenerate
-  
-  
-  
- //  Ideal but CANT synthesize
-//   ram_sync_1r1w
-//   #(
-//     .DATA_WIDTH(DATA_WIDTH),
-//     .ADDR_WIDTH(ADDR_WIDTH),
-//     .DEPTH(DEPTH)
-//   ) ram_query_inst (
-//     .clk(clk),
-//     .wen(wen),
-//     .wadr(wadr),
-//     .wdata(sender_data),
-//     .ren(ren),
-//     .radr(radr),
-//     .rdata(receiver_data)
-//   );
   
   
   

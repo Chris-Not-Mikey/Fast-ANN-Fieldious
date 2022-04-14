@@ -277,7 +277,7 @@ end
 	    end
 		
       end
-      else if (read_latency_counter == 2'b01) begin
+	    else if (read_latency_counter == 3'b01) begin
 	csb0 <= 0;
 	read_latency_counter <= read_latency_counter + 1;
     end

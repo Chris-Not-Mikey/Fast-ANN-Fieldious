@@ -235,7 +235,7 @@ end
       web0 <= 1'b0; //active low
 
       ren <= 1;
-      csb0 <= 1;
+      csb0 <= 0; //Must activate to write as well
       read_latency_counter <= 0;
     end 
 

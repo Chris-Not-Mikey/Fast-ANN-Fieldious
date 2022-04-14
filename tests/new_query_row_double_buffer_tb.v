@@ -120,7 +120,7 @@ module new_query_row_double_buffer_tb;
     .PATCH_SIZE(`PATCH_SIZE),
     .ADDR_WIDTH(9),
     .DEPTH(512)
-  )
+  ) query_mem_inst
   (
       .clk(clk),
       .csb0(csb0),
@@ -242,12 +242,12 @@ end
 	   
 	     //Read from cannonical data. Output of RAM should match
        //IMPORTANT: To test other than 2 11 bit values aggregated, one must MANUALLY CHANGE the below
-	    reg [21:0] hold_expected;
+	      reg [54:0] hold_expected;
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
-      expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
+            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[43:33]); 
-      expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
+            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
 	 
 
       if (!$feof(data_file)) begin

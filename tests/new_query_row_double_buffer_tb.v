@@ -234,8 +234,6 @@ end
   if (receiver_enq) begin //If aggregated 5, write to RAM
       web0 <= 1'b1;
 
-     
-
       ren <= 1;
       csb1 <= 0;
       read_latency_counter <= 0;
@@ -288,7 +286,7 @@ end
     $dumpvars;
 //     $vcdplusmemon();
 //     $vcdpluson(0, aggregator_tb);
-    #2000;
+    #20000;
     $finish(2);
   end
 

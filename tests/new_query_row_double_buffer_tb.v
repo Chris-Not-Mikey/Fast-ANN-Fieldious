@@ -126,7 +126,7 @@ module new_query_row_double_buffer_tb;
       .csb0(csb0),
       .web0(web0),
       .addr0(addr0),
-      .wpatch0(wpatch0),
+      .wpatch0(receiver_din),
       .rpatch0(rpatch0),
       .csb1(csb1),
       .addr1(addr1),
@@ -172,6 +172,10 @@ end
     read_latency_counter = 2'b0;
     expected_ram_dout = 0;
     ren = 0;
+	  
+    //Agg
+    change_fetch_width = 0;
+    input_fetch_width = 3'd5;
 
 
     csb0 = 0; //Write
@@ -187,7 +191,9 @@ end
     receiver_full_n <= 1;
     wrst_n = 1'b1;
     rst_n = 1'b1;
+    change_fetch_width = 1;
     #20
+    change_fetch_width = 0;
 
  
     fifo_valid <=1;

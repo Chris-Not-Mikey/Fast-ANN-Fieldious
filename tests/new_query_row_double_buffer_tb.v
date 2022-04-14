@@ -299,7 +299,7 @@ end
     $dumpvars;
 //     $vcdplusmemon();
 //     $vcdpluson(0, aggregator_tb);
-    #20000;
+    #2000;
     $finish(2);
   end
 

@@ -110,14 +110,14 @@ module QueryPatchMem
       .RAM_DEPTH(256) // NUM_LEAVES
     ) ram_patch_inst_0_0 (
         .clk0(clk),  // Port 0: W
-      .csb0(csb0 || 0),
-      .web0(web0 || 0),
+      .csb0(csb0 || macro_select_0),
+      .web0(web0 || macro_select_0),
         .wmask0(4'hF), //TODO: investigate what mask exactly does?
         .addr0(addr0[7:0]),
         .din0(wpatch0[31:0]),
         .dout0(rpatch0_0[31:0]),
         .clk1(clk), // Port 1: R
-      .csb1(csb1 || 0),
+      .csb1(csb1 || macro_select_0),
         .addr1(addr1[7:0]),
         .dout1(rpatch0_1[31:0])
     );
@@ -130,14 +130,14 @@ module QueryPatchMem
       .RAM_DEPTH(256) // NUM_LEAVES
     ) ram_patch_inst_0_1 (
         .clk0(clk),  // Port 0: W
-      .csb0(csb0 || 0),
-      .web0(web0 || 0),
+      .csb0(csb0 || macro_select_0),
+      .web0(web0 || macro_select_0),
         .wmask0(4'hF),
         .addr0(addr0[7:0]),
         .din0({9'b0, wpatch0[54:32]}),
         .dout0(rpatch0_0[63:32]),
         .clk1(clk), // Port 1: R
-      .csb1(csb1 || 0),
+      .csb1(csb1 || macro_select_0),
         .addr1(addr1[7:0]),
         .dout1(rpatch0_1[63:32])
     );

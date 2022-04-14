@@ -173,6 +173,7 @@ end
     expected_dout <= 11'b0;
     receiver_full_n <= 0;
     read_latency_counter = 3'b0;
+	  write_latency_counter = 3'b0;
     expected_ram_dout = 0;
     ren = 0;
     wen = 0;
@@ -256,14 +257,16 @@ end
     end 
 	  
    if (wen && !write_disable) begin
-	   if (write_latency_counter == 3'b01) begin
+	   
+	   write_latency_counter <= write_latency_counter + 1;
+	   if (write_latency_counter == 3'b0) begin
 		     web0 <= 1'b0; 
 		    wen <= 1;
 		    addr0 <= addr0 + 1;
 	   end
 	   
 	   
-	   if (write_latency_counter == 3'b10) begin
+	   if (write_latency_counter == 3'b01) begin
 		     web0 <= 1'b1; 
 		    wen <= 0;
 		    addr0 <= addr0 + 1;

@@ -40,9 +40,11 @@ module QueryPatchMem
   wire [64-1:0]       rpatch1_1;
   
   
-  
-  
-  
+  wire [31:0] temp_a;
+  wire [31:0] temp_b;
+  wire [31:0] temp_c;
+  wire [31:0] temp_d;
+        
   
 //   reg macro_select_2;
 //   reg macro_select_3;
@@ -77,7 +79,7 @@ module QueryPatchMem
     endcase 
     
     
-    if (macro_select_0) begin
+    if (!macro_select_0) begin
       rpatch0 = rpatch0_0[54:0];
       rpatch1 = rpatch1_0[54:0];
       
@@ -111,7 +113,7 @@ module QueryPatchMem
         .clk1(clk), // Port 1: R
         .csb1(csb1 || macro_select_0),
         .addr1(addr1[7:0]),
-        .dout1(rpatch1_0[31:0])
+        .dout1(temp_a)
     );
   
     
@@ -131,7 +133,7 @@ module QueryPatchMem
         .clk1(clk), // Port 1: R
         .csb1(csb1 || macro_select_0),
         .addr1(addr1[7:0]),
-        .dout1(rpatch1_0[63:32])
+        .dout1(temp_b)
     );
   
   

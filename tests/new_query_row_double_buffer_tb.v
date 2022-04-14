@@ -286,7 +286,7 @@ end
       else begin 
           web0 <= 1'b1;
           ren <= 1; //Handling one cycle latency
-          csb0 <= 1;
+          csb0 <= 0;
           read_latency_counter <= read_latency_counter + 1;
       end
       

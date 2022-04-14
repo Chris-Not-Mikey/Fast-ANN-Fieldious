@@ -165,14 +165,14 @@ module QueryPatchMem
       .RAM_DEPTH(256) // NUM_LEAVES
     ) ram_patch_inst_1_1 (
         .clk0(clk),
-        .csb0(csb0),
-        .web0(web0 && macro_select_1),
+        .csb0(csb0 || macro_select_1),
+        .web0(web0 || macro_select_1),
          .wmask0(4'hF),
         .addr0(addr0[7:0]),
         .din0({9'b0, wpatch0[54:32]}),
         .dout0(rpatch0_1[63:32]),
         .clk1(clk),
-        .csb1(csb1 && macro_select_1),
+        .csb1(csb1 || macro_select_1),
         .addr1(addr1[7:0]),
         .dout1(rpatch1_1[63:32])
     );

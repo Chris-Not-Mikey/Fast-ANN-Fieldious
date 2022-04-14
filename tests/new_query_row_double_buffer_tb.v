@@ -1,5 +1,5 @@
 `define DATA_WIDTH 11
-`define FETCH_WIDTH 2
+`define FETCH_WIDTH 5
 `define DSIZE 11
 `define PATCH_SIZE 5
 `define ASIZE 4

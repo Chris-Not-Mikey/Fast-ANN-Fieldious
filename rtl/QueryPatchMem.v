@@ -32,8 +32,8 @@ module QueryPatchMem
   
   reg macro_select_0;
   reg macro_select_1;
-  reg macro_select_2;
-  reg macro_select_3;
+//   reg macro_select_2;
+//   reg macro_select_3;
   
   
   always @(*) begin
@@ -41,38 +41,38 @@ module QueryPatchMem
        2'b00 :   begin
          macro_select_0 = 1;
          macro_select_1 = 0;
-         macro_select_2 = 0;
-         macro_select_3 = 0;
+//          macro_select_2 = 0;
+//          macro_select_3 = 0;
        end
        
       2'b01 :   begin
-         macro_select_0 = 0;
-         macro_select_1 = 1;
-         macro_select_2 = 0;
-         macro_select_3 = 0;
+         macro_select_0 = 1;
+         macro_select_1 = 0;
+//          macro_select_2 = 0;
+//          macro_select_3 = 0;
        end
       
       2'b10 :   begin
          macro_select_0 = 0;
-         macro_select_1 = 0;
-         macro_select_2 = 1;
-         macro_select_3 = 0;
+         macro_select_1 = 1;
+//          macro_select_2 = 1;
+//          macro_select_3 = 0;
        end
       
       
        2'b11 :   begin
          macro_select_0 = 0;
-         macro_select_1 = 0;
-         macro_select_2 = 0;
-         macro_select_3 = 1;
+         macro_select_1 = 1;
+//          macro_select_2 = 0;
+//          macro_select_3 = 0;
        end
       
       
       default :   begin
          macro_select_0 = 1;
          macro_select_1 = 0;
-         macro_select_2 = 0;
-         macro_select_3 = 0;
+//          macro_select_2 = 0;
+//          macro_select_3 = 0;
        end
          
     endcase 
@@ -81,83 +81,162 @@ module QueryPatchMem
   
 
 
-  //Ram instantiaion 
+  //Ram instantiaion (8 1k blocks
   
-     sram_1kbyte_1rw1r
+    sky130_sram_1kbyte_1rw1r_32x256_8
     #(
-      .DATA_WIDTH(DATA_WIDTH), // round(PATCH_SIZE * DATA_WIDTH)
-      .ADDR_WIDTH(7),
-      .RAM_DEPTH(128) // NUM_LEAVES
-    ) ram_patch_inst_0 (
+      .DATA_WIDTH(32), // round(PATCH_SIZE * DATA_WIDTH)
+      .ADDR_WIDTH(8),
+      .RAM_DEPTH(256) // NUM_LEAVES
+    ) ram_patch_inst_0_0 (
         .clk0(clk),  // Port 0: W
         .csb0(csb0),
         .web0(web0 && macro_select_0),
         .addr0(addr0[6:0]),
-        .din0(wpatch0),
-        .dout0(rpatch0),
+        .din0(wpatch0[31:0]),
+        .dout0(rpatch0[31:0]),
         .clk1(clk), // Port 1: R
         .csb1(csb1 && macro_select_0),
         .addr1(addr1[6:0]),
-        .dout1(rpatch1)
+        .dout1(rpatch1[31:0])
+    );
+  
+    
+    sky130_sram_1kbyte_1rw1r_32x256_8
+    #(
+      .DATA_WIDTH(32), // round(PATCH_SIZE * DATA_WIDTH)
+      .ADDR_WIDTH(8),
+      .RAM_DEPTH(256) // NUM_LEAVES
+    ) ram_patch_inst_0_1 (
+        .clk0(clk),  // Port 0: W
+        .csb0(csb0),
+        .web0(web0 && macro_select_0),
+        .addr0(addr0[6:0]),
+        .din0(wpatch0[54:32]),
+        .dout0(rpatch0[54:32]),
+        .clk1(clk), // Port 1: R
+        .csb1(csb1 && macro_select_0),
+        .addr1(addr1[6:0]),
+        .dout1(rpatch1[54:32])
     );
   
   
-    sram_1kbyte_1rw1r
+  
+  
+  
+    sky130_sram_1kbyte_1rw1r_32x256_8
     #(
-      .DATA_WIDTH(DATA_WIDTH), // round(PATCH_SIZE * DATA_WIDTH)
-      .ADDR_WIDTH(7),
-      .RAM_DEPTH(128) // NUM_LEAVES
-    ) ram_patch_inst_1 (
+      .DATA_WIDTH(32), // round(PATCH_SIZE * DATA_WIDTH)
+      .ADDR_WIDTH(8),
+      .RAM_DEPTH(256) // NUM_LEAVES
+    ) ram_patch_inst_1_0 (
         .clk0(clk),
         .csb0(csb0),
         .web0(web0 && macro_select_1),
         .addr0(addr0),
-        .din0(wpatch0),
-        .dout0(rpatch0),
+        .din0(wpatch0[31:0]),
+        .dout0(rpatch0[31:0]),
         .clk1(clk),
         .csb1(csb1 && macro_select_1),
         .addr1(addr1),
-        .dout1(rpatch1)
+        .dout1(rpatch1[31:0])
     );
   
   
-  
-    sram_1kbyte_1rw1r
+    sky130_sram_1kbyte_1rw1r_32x256_8
     #(
-      .DATA_WIDTH(DATA_WIDTH), // round(PATCH_SIZE * DATA_WIDTH)
-      .ADDR_WIDTH(7),
-      .RAM_DEPTH(128) // NUM_LEAVES
-    ) ram_patch_inst_2 (
+      .DATA_WIDTH(32), // round(PATCH_SIZE * DATA_WIDTH)
+      .ADDR_WIDTH(8),
+      .RAM_DEPTH(256) // NUM_LEAVES
+    ) ram_patch_inst_1_1 (
         .clk0(clk),
         .csb0(csb0),
-        .web0(web0 && macro_select_2),
+        .web0(web0 && macro_select_1),
         .addr0(addr0),
-        .din0(wpatch0),
-        .dout0(rpatch0),
+        .din0(wpatch0[54:32]),
+        .dout0(rpatch0[54:32]),
         .clk1(clk),
-        .csb1(csb1 && macro_select_2),
+        .csb1(csb1 && macro_select_1),
         .addr1(addr1),
-        .dout1(rpatch1)
+        .dout1(rpatch1[54:32])
     );
   
   
-    sram_1kbyte_1rw1r
-    #(
-      .DATA_WIDTH(DATA_WIDTH), // round(PATCH_SIZE * DATA_WIDTH)
-      .ADDR_WIDTH(7),
-      .RAM_DEPTH(128) // NUM_LEAVES
-    ) ram_patch_inst_3 (
-        .clk0(clk),
-        .csb0(csb0),
-        .web0(web0 && macro_select_3),
-        .addr0(addr0),
-        .din0(wpatch0),
-        .dout0(rpatch0),
-        .clk1(clk),
-        .csb1(csb1 && macro_select_3),
-        .addr1(addr1),
-        .dout1(rpatch1)
-    );
+  
+//     sky130_sram_1kbyte_1rw1r_32x256_8
+//     #(
+//       .DATA_WIDTH(DATA_WIDTH), // round(PATCH_SIZE * DATA_WIDTH)
+//       .ADDR_WIDTH(7),
+//       .RAM_DEPTH(128) // NUM_LEAVES
+//     ) ram_patch_inst_2_1 (
+//         .clk0(clk),
+//         .csb0(csb0),
+//         .web0(web0 && macro_select_2),
+//         .addr0(addr0),
+//         .din0(wpatch0),
+//         .dout0(rpatch0),
+//         .clk1(clk),
+//         .csb1(csb1 && macro_select_2),
+//         .addr1(addr1),
+//         .dout1(rpatch1)
+//     );
+  
+//     sky130_sram_1kbyte_1rw1r_32x256_8
+//     #(
+//       .DATA_WIDTH(DATA_WIDTH), // round(PATCH_SIZE * DATA_WIDTH)
+//       .ADDR_WIDTH(7),
+//       .RAM_DEPTH(128) // NUM_LEAVES
+//     ) ram_patch_inst_2_1 (
+//         .clk0(clk),
+//         .csb0(csb0),
+//         .web0(web0 && macro_select_2),
+//         .addr0(addr0),
+//         .din0(wpatch0),
+//         .dout0(rpatch0),
+//         .clk1(clk),
+//         .csb1(csb1 && macro_select_2),
+//         .addr1(addr1),
+//         .dout1(rpatch1)
+//     );
+  
+  
+//     sky130_sram_1kbyte_1rw1r_32x256_8
+//     #(
+//       .DATA_WIDTH(DATA_WIDTH), // round(PATCH_SIZE * DATA_WIDTH)
+//       .ADDR_WIDTH(7),
+//       .RAM_DEPTH(128) // NUM_LEAVES
+//     ) ram_patch_inst_3_0 (
+//         .clk0(clk),
+//         .csb0(csb0),
+//         .web0(web0 && macro_select_3),
+//         .addr0(addr0),
+//         .din0(wpatch0),
+//         .dout0(rpatch0),
+//         .clk1(clk),
+//         .csb1(csb1 && macro_select_3),
+//         .addr1(addr1),
+//         .dout1(rpatch1)
+//     );
+  
+  
+//     sky130_sram_1kbyte_1rw1r_32x256_8
+//     #(
+//       .DATA_WIDTH(DATA_WIDTH), // round(PATCH_SIZE * DATA_WIDTH)
+//       .ADDR_WIDTH(7),
+//       .RAM_DEPTH(128) // NUM_LEAVES
+//     ) ram_patch_inst_3_1 (
+//         .clk0(clk),
+//         .csb0(csb0),
+//         .web0(web0 && macro_select_3),
+//         .addr0(addr0),
+//         .din0(wpatch0),
+//         .dout0(rpatch0),
+//         .clk1(clk),
+//         .csb1(csb1 && macro_select_3),
+//         .addr1(addr1),
+//         .dout1(rpatch1)
+//     );
+  
   
   
   

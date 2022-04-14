@@ -282,7 +282,7 @@ end
 	 
 
 	      if (!$feof(data_file)) begin
-		ren <= 0;
+		//ren <= 0;
 
 		csb0 <= 0; //active low
 

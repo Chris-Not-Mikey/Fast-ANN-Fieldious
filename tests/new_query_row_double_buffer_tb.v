@@ -35,6 +35,9 @@ module new_query_row_double_buffer_tb;
   wire even;
 
 
+  reg [1:0] read_latency_counter;
+  reg [`FETCH_WIDTH * `DATA_WIDTH - 1 : 0] expected_ram_dout;
+  reg ren;
 
 
   //Aggregator Stuff
@@ -73,6 +76,9 @@ module new_query_row_double_buffer_tb;
   
   always #20 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
   always #20 wclk =~wclk;
+	
+	
+	
   
   aggregator
   #(
@@ -165,6 +171,7 @@ end
     receiver_full_n <= 0;
     read_latency_counter = 2'b0;
     expected_ram_dout = 0;
+    ren = 0;
 
 
     csb0 = 0; //Write

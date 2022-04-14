@@ -265,7 +265,7 @@ end
         addr0 <= addr0 + 1;
         addr1 <= addr1 + 1;
 
-        assert(rpatch1 == hold_expected);
+	assert(rpatch0 == hold_expected);
 	$display("%t: received = %d, expected = %d", $time, rpatch0, hold_expected);
         $display("%t: received = %d, expected = %d", $time, rpatch0[10:0], hold_expected[10:0]);
         $display("%t: received = %d, expected = %d", $time, rpatch0[21:11], hold_expected[21:11]);

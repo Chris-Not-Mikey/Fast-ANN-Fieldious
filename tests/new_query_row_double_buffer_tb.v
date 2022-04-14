@@ -178,11 +178,11 @@ end
     input_fetch_width = 3'd5;
 
 
-    csb0 = 0; //Write
-    web0 = 0;
+    csb0 = 1; //Write
+    web0 = 1;
     addr0 = 0;
     wpatch0 = 0;
-    csb1 = 0; //Read
+    csb1 = 1; //Read
     addr1 = 0;
 
 
@@ -232,10 +232,10 @@ end
   always @ (posedge clk) begin
   $display("%t: received = %d", $time, rpatch1);
   if (receiver_enq) begin //If aggregated 5, write to RAM
-      web0 <= 1'b1;
+      web0 <= 1'b0; //active low
 
       ren <= 1;
-      csb1 <= 0;
+      csb1 <= 1;
       read_latency_counter <= 0;
     end 
 
@@ -257,7 +257,7 @@ end
       if (!$feof(data_file)) begin
         ren <= 0;
 
-        csb1 <= 0;
+        csb1 <= 1; //active low
       
         addr0 <= addr0 + 1;
         addr1 <= addr1 + 1;
@@ -271,9 +271,9 @@ end
 		
       end
       else begin 
-          web0 <= 1'b0;
+          web0 <= 1'b1;
           ren <= 1; //Handling one cycle latency
-          csb1 <= 1;
+          csb1 <= 0;
           read_latency_counter <= read_latency_counter + 1;
       end
       

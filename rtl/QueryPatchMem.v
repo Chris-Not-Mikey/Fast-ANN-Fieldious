@@ -34,10 +34,10 @@ module QueryPatchMem
   reg macro_select_1;
   
   
-  reg [64-1:0]       rpatch0_0;
-  reg [64-1:0]       rpatch0_1;
-  reg [64-1:0]       rpatch1_0;
-  reg [64-1:0]       rpatch1_1;
+  wire [64-1:0]       rpatch0_0;
+  wire [64-1:0]       rpatch0_1;
+  wire [64-1:0]       rpatch1_0;
+  wire [64-1:0]       rpatch1_1;
   
   
   

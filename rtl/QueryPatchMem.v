@@ -46,7 +46,7 @@ module QueryPatchMem
   
   
   //ACTIVE LOW!!!
-  always @(*) begin
+  always @(posedge clk) begin
     case(addr0[8])
        1'b0 :   begin
          macro_select_0 = 0;
@@ -184,14 +184,6 @@ module QueryPatchMem
     );
   
   
-  
-  
-  
-  
-  
-  
-
-
 
 endmodule
 

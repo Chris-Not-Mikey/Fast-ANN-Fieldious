@@ -279,12 +279,13 @@ end
       end
 	    else if (read_latency_counter == 3'b01) begin
 	csb0 <= 0;
+        web0 <= 1'b1;
 	read_latency_counter <= read_latency_counter + 1;
     end
 	    
 	    
       else begin 
-          web0 <= 1'b1;
+          web0 <= 1'b0;
           ren <= 1; //Handling one cycle latency
           csb0 <= 0;
           read_latency_counter <= read_latency_counter + 1;

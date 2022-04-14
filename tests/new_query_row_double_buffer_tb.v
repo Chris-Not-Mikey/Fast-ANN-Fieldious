@@ -35,7 +35,7 @@ module new_query_row_double_buffer_tb;
   wire even;
 
 
-  reg [1:0] read_latency_counter;
+  reg [2:0] read_latency_counter;
   reg [`FETCH_WIDTH * `DATA_WIDTH - 1 : 0] expected_ram_dout;
   reg ren;
 
@@ -169,7 +169,7 @@ end
     stall <= 0; 
     expected_dout <= 11'b0;
     receiver_full_n <= 0;
-    read_latency_counter = 2'b0;
+    read_latency_counter = 3'b0;
     expected_ram_dout = 0;
     ren = 0;
 	  
@@ -245,7 +245,7 @@ end
 	    
 	    
 	    
-	if (read_latency_counter == 2'b11) begin
+	if (read_latency_counter == 3'b100) begin
 	   
 	     //Read from cannonical data. Output of RAM should match
        //IMPORTANT: To test other than 2 11 bit values aggregated, one must MANUALLY CHANGE the below

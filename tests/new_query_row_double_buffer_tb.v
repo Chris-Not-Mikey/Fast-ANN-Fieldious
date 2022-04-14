@@ -202,12 +202,13 @@ end
     wrst_n = 1'b1;
     rst_n = 1'b1;
     change_fetch_width = 1;
+    wdata <= 11'd251;
     #20
     change_fetch_width = 0;
 
  
     fifo_valid <=1;
-    wdata <= 11'd251;
+   
 	  
 	  
     #7000

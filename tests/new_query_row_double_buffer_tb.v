@@ -203,7 +203,7 @@ end
     fifo_valid <=1;
 	  
 	  
-    #3000
+    #5000
     addr0 <= 0;
     write_disable <= 1;
     #100
@@ -264,7 +264,7 @@ end
 	    read_latency_counter <= read_latency_counter + 1;
 	    csb0 <= 0;
 	    web0 <= 1'b1;
-	    $display("%t: received = %d", $time, rpatch0);
+	   // $display("%t: received = %d", $time, rpatch0);
     end
 
 	 if (ren && (read_latency_counter == 3'b11)) begin 

@@ -235,7 +235,7 @@ end
       web0 <= 1'b0; //active low
 
       ren <= 1;
-      csb1 <= 1;
+      csb0 <= 1;
       read_latency_counter <= 0;
     end 
 
@@ -260,7 +260,7 @@ end
       if (!$feof(data_file)) begin
         ren <= 0;
 
-        csb1 <= 1; //active low
+        csb0 <= 1; //active low
       
         addr0 <= addr0 + 1;
         addr1 <= addr1 + 1;
@@ -274,7 +274,7 @@ end
 		
       end
     else if (read_latency_counter == 2'b10) begin
-	csb1 <= 0;
+	csb0 <= 0;
 	read_latency_counter <= read_latency_counter + 1;
     end
 	    
@@ -282,7 +282,7 @@ end
       else begin 
           web0 <= 1'b1;
           ren <= 1; //Handling one cycle latency
-          csb1 <= 1;
+          csb0 <= 1;
           read_latency_counter <= read_latency_counter + 1;
       end
       

@@ -261,7 +261,7 @@ end
 	    web0 <= 1'b1;
     end
 
-    if (ren && (read_latency_counter == 3'b10)) begin 
+	 if (ren && (read_latency_counter == 3'b11)) begin 
 	  read_latency_counter <= 3'b0;
 	  ren <= 0;
 	  addr0 <= addr0 + 1;

@@ -38,15 +38,17 @@ module QueryPatchMem
   wire [64-1:0]       rpatch0_1;
   wire [64-1:0]       rpatch1_0;
   wire [64-1:0]       rpatch1_1;
+  wire [10:0] debug;
   
         
   
 //   reg macro_select_2;
 //   reg macro_select_3;
   
+
   
   //ACTIVE LOW!!!
-  always @(posedge clk) begin
+  always @(*) begin
     case(addr0[8])
        1'b0 :   begin
          macro_select_0 = 0;
@@ -73,12 +75,9 @@ module QueryPatchMem
          
     endcase 
     
-    
-
-    
-    
   end
   
+  assign debug = rpatch0_0[10:0];
   
   always @ (posedge clk) begin
     

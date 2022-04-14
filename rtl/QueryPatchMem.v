@@ -92,6 +92,7 @@ module QueryPatchMem
         .clk0(clk),  // Port 0: W
         .csb0(csb0),
         .web0(web0 && macro_select_0),
+        .wmask0(4'hF), //TODO: investigate what mask exactly does?
         .addr0(addr0[6:0]),
         .din0(wpatch0[31:0]),
         .dout0(rpatch0[31:0]),
@@ -111,6 +112,7 @@ module QueryPatchMem
         .clk0(clk),  // Port 0: W
         .csb0(csb0),
         .web0(web0 && macro_select_0),
+        .wmask0(4'hF),
         .addr0(addr0[6:0]),
         .din0(wpatch0[54:32]),
         .dout0(rpatch0[54:32]),
@@ -133,6 +135,7 @@ module QueryPatchMem
         .clk0(clk),
         .csb0(csb0),
         .web0(web0 && macro_select_1),
+        .wmask0(4'hF),
         .addr0(addr0),
         .din0(wpatch0[31:0]),
         .dout0(rpatch0[31:0]),
@@ -152,6 +155,7 @@ module QueryPatchMem
         .clk0(clk),
         .csb0(csb0),
         .web0(web0 && macro_select_1),
+         .wmask0(4'hF),
         .addr0(addr0),
         .din0(wpatch0[54:32]),
         .dout0(rpatch0[54:32]),

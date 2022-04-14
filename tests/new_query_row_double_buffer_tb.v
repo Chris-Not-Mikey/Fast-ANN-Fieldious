@@ -65,6 +65,8 @@ module new_query_row_double_buffer_tb;
   logic                                       csb1; //Read
   logic [`ADDRESS_WIDTH-1:0]                      addr1;
   logic  [(`DATA_WIDTH*`PATCH_SIZE)-1:0]       rpatch1;
+	
+  reg [`FETCH_WIDTH * `DATA_WIDTH - 1 : 0] receiver_din_storage;
 
 
   //File I/O Stuff
@@ -129,7 +131,7 @@ module new_query_row_double_buffer_tb;
       .csb0(csb0),
       .web0(web0),
       .addr0(addr0),
-      .wpatch0(receiver_din),
+      .wpatch0(receiver_din_storage),
       .rpatch0(rpatch0),
       .csb1(csb1),
       .addr1(addr1),
@@ -178,6 +180,7 @@ end
     ren = 0;
     wen = 0;
 	  write_disable = 0;
+	  receiver_din_storage = 0;
 	  
     //Agg
     change_fetch_width = 0;
@@ -254,6 +257,7 @@ end
       csb0 <= 0; //Must activate to write as well
       wen <= 1;
       write_latency_counter <= 0;
+      receiver_din_storage <= receiver_din;
     end 
 	  
    if (wen && !write_disable) begin

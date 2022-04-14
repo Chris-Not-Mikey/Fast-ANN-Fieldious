@@ -39,6 +39,7 @@ module new_query_row_double_buffer_tb;
   reg [`FETCH_WIDTH * `DATA_WIDTH - 1 : 0] expected_ram_dout;
   reg ren;
   reg wen;
+  reg write_disable;
 
 
   //Aggregator Stuff
@@ -174,6 +175,7 @@ end
     expected_ram_dout = 0;
     ren = 0;
     wen = 0;
+	  write_disable = 0;
 	  
     //Agg
     change_fetch_width = 0;
@@ -204,6 +206,7 @@ end
     #5000
     ren <= 1;
     addr0 <= 0;
+	  write_disable <= 1;
    read_latency_counter <= 0;
 	  
   end
@@ -242,7 +245,7 @@ end
   //RAM and check
   always @ (posedge clk) begin
   //$display("%t: received = %d", $time, rpatch1);
-  if (receiver_enq && !ren) begin //If aggregated 5, write to RAM
+  if (receiver_enq && !write_disable) begin //If aggregated 5, write to RAM
       web0 <= 1'b0; //active low
       csb0 <= 0; //Must activate to write as well
       wen <= 1;

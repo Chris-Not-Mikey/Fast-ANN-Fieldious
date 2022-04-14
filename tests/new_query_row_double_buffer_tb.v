@@ -110,8 +110,8 @@ module new_query_row_double_buffer_tb;
 
   QueryPatchMem
   #(
-    .DATA_WIDTH(`DATA_WIDTH) = 11,
-    .PATCH_SIZE(`PATCH_SIZE) = 5,
+    .DATA_WIDTH(`DATA_WIDTH),
+    .PATCH_SIZE(`PATCH_SIZE),
     .ADDR_WIDTH(9),
     .DEPTH(512)
   )

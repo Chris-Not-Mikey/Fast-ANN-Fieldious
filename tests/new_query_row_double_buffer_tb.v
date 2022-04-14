@@ -50,14 +50,14 @@ module new_query_row_double_buffer_tb;
   logic rinc, rrst_n;
 
   // RAM Stuff
-  logic                                       csb0, //Write
-  logic                                       web0,
-  logic [ADDR_WIDTH-1:0]                      addr0,
-  logic [(DATA_WIDTH*PATCH_SIZE)-1:0]         wpatch0,
-  logic  [(DATA_WIDTH*PATCH_SIZE)-1:0]       rpatch0,
-  logic                                       csb1, //Read
-  logic [ADDR_WIDTH-1:0]                      addr1,
-  logic  [(DATA_WIDTH*PATCH_SIZE)-1:0]       rpatch1
+  logic                                       csb0; //Write
+  logic                                       web0;
+  logic [ADDR_WIDTH-1:0]                      addr0;
+  logic [(DATA_WIDTH*PATCH_SIZE)-1:0]         wpatch0;
+  logic  [(DATA_WIDTH*PATCH_SIZE)-1:0]       rpatch0;
+  logic                                       csb1; //Read
+  logic [ADDR_WIDTH-1:0]                      addr1;
+  logic  [(DATA_WIDTH*PATCH_SIZE)-1:0]       rpatch1;
 
 
   //File I/O Stuff

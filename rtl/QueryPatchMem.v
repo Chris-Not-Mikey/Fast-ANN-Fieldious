@@ -48,18 +48,19 @@ module QueryPatchMem
 //   reg macro_select_3;
   
   
+  //ACTIVE LOW!!!
   always @(*) begin
     case(addr0[8])
        1'b0 :   begin
-         macro_select_0 = 1;
-         macro_select_1 = 0;
+         macro_select_0 = 0;
+         macro_select_1 = 1;
 //          macro_select_2 = 0;
 //          macro_select_3 = 0;
        end
        
       1'b1 :   begin
-         macro_select_0 = 1;
-         macro_select_1 = 0;
+         macro_select_0 = 0;
+         macro_select_1 = 1;
 //          macro_select_2 = 0;
 //          macro_select_3 = 0;
        end
@@ -67,8 +68,8 @@ module QueryPatchMem
       
       
       default :   begin
-         macro_select_0 = 1;
-         macro_select_1 = 0;
+         macro_select_0 = 0;
+         macro_select_1 = 1;
 //          macro_select_2 = 0;
 //          macro_select_3 = 0;
        end
@@ -101,14 +102,14 @@ module QueryPatchMem
       .RAM_DEPTH(256) // NUM_LEAVES
     ) ram_patch_inst_0_0 (
         .clk0(clk),  // Port 0: W
-        .csb0(csb0),
-        .web0(web0 && macro_select_0),
+        .csb0(csb0 || macro_select_0),
+        .web0(web0 || macro_select_0),
         .wmask0(4'hF), //TODO: investigate what mask exactly does?
         .addr0(addr0[7:0]),
         .din0(wpatch0[31:0]),
         .dout0(rpatch0_0[31:0]),
         .clk1(clk), // Port 1: R
-        .csb1(csb1 && macro_select_0),
+        .csb1(csb1 || macro_select_0),
         .addr1(addr1[7:0]),
         .dout1(rpatch1_0[31:0])
     );
@@ -121,14 +122,14 @@ module QueryPatchMem
       .RAM_DEPTH(256) // NUM_LEAVES
     ) ram_patch_inst_0_1 (
         .clk0(clk),  // Port 0: W
-        .csb0(csb0),
-        .web0(web0 && macro_select_0),
+        .csb0(csb0 || macro_select_0),
+        .web0(web0 || macro_select_0),
         .wmask0(4'hF),
         .addr0(addr0[7:0]),
         .din0({9'b0, wpatch0[54:32]}),
         .dout0(rpatch0_0[63:32]),
         .clk1(clk), // Port 1: R
-        .csb1(csb1 && macro_select_0),
+        .csb1(csb1 || macro_select_0),
         .addr1(addr1[7:0]),
         .dout1(rpatch1_0[63:32])
     );
@@ -144,14 +145,14 @@ module QueryPatchMem
       .RAM_DEPTH(256) // NUM_LEAVES
     ) ram_patch_inst_1_0 (
         .clk0(clk),
-        .csb0(csb0),
-        .web0(web0 && macro_select_1),
+        .csb0(csb0 || macro_select_1),
+        .web0(web0 || macro_select_1),
         .wmask0(4'hF),
         .addr0(addr0[7:0]),
         .din0(wpatch0[31:0]),
         .dout0(rpatch0_1[31:0]),
         .clk1(clk),
-        .csb1(csb1 && macro_select_1),
+        .csb1(csb1 || macro_select_1),
         .addr1(addr1[7:0]),
         .dout1(rpatch1_1[31:0])
     );

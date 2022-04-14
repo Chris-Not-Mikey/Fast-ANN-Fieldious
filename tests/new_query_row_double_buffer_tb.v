@@ -204,6 +204,7 @@ end
     #5000
     ren <= 1;
     addr0 <= 0;
+   read_latency_counter <= 0;
 	  
   end
 
@@ -255,12 +256,12 @@ end
 	 
 
     if (ren) begin
-	    read_latency_counter <= 3'b1;
+	    read_latency_counter <= read_latency_counter + 1;
 	    csb0 <= 0;
 	    web0 <= 1'b1;
     end
 
-   if (ren && (read_latency_counter == 3'b1)) begin 
+    if (ren && (read_latency_counter == 3'b10)) begin 
 	  read_latency_counter <= 3'b0;
 	  ren <= 0;
 	  addr0 <= addr0 + 1;
@@ -276,7 +277,7 @@ end
 	      if (!$feof(data_file)) begin
 		ren <= 0;
 
-		csb0 <= 1; //active low
+		csb0 <= 0; //active low
 
 		
 

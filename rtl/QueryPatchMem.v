@@ -77,14 +77,14 @@ module QueryPatchMem
     
     
     if (macro_select_0) begin
-      rpatch0 = rpatch0_0;
-      rpatch1 = rpatch1_0;
+      rpatch0 = rpatch0_0[54:0];
+      rpatch1 = rpatch1_0[54:0];
       
     end
     
     else begin
-      rpatch0 = rpatch0_1;
-      rpatch1 = rpatch1_1;
+      rpatch0 = rpatch0_1[54:0];
+      rpatch1 = rpatch1_1[54:0];
     end
     
     
@@ -125,12 +125,12 @@ module QueryPatchMem
         .web0(web0 && macro_select_0),
         .wmask0(4'hF),
         .addr0(addr0[7:0]),
-        .din0(wpatch0[54:32]),
-        .dout0(rpatch0_0[54:32]),
+        .din0({9'b0, wpatch0[54:32]}),
+        .dout0(rpatch0_0[63:32]),
         .clk1(clk), // Port 1: R
         .csb1(csb1 && macro_select_0),
         .addr1(addr1[7:0]),
-        .dout1(rpatch1_0[54:32])
+        .dout1(rpatch1_0[63:32])
     );
   
   
@@ -168,12 +168,12 @@ module QueryPatchMem
         .web0(web0 && macro_select_1),
          .wmask0(4'hF),
         .addr0(addr0[7:0]),
-        .din0(wpatch0[54:32]),
-        .dout0(rpatch0_1[54:32]),
+        .din0({9'b0, wpatch0[54:32]}),
+        .dout0(rpatch0_1[63:32]),
         .clk1(clk),
         .csb1(csb1 && macro_select_1),
         .addr1(addr1[7:0]),
-        .dout1(rpatch1_1[54:32])
+        .dout1(rpatch1_1[63:32])
     );
   
   

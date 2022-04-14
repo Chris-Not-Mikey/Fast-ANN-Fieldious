@@ -146,7 +146,7 @@ initial begin
     $finish;
   end
 
-  scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
+  //scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
   //wdata[10:0] = captured_data; //11'b0; Let FILE handle provide data
 	
   // scan_file = $fscanf(data_file, "%d\n", wdata[21:11]); 

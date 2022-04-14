@@ -145,7 +145,7 @@ initial begin
     $finish;
   end
   
-  expected_data_file = $fopen("./data/IO_data/patches.txt", "r");
+  expected_data_file = $fopen("./data/IO_data/expected_patches.txt", "r");
   if (expected_data_file == `NULL) begin
     $display("expected_data_file handle was NULL");
     $finish;

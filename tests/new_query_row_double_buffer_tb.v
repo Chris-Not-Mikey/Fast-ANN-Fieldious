@@ -203,7 +203,7 @@ end
     fifo_valid <=1;
 	  
 	  
-    #5000
+    #6000
     addr0 <= 0;
     write_disable <= 1;
     #100

@@ -181,6 +181,7 @@ end
     wen = 0;
 	  write_disable = 0;
 	  receiver_din_storage = 0;
+    wdata = 0;
 	  
     //Agg
     change_fetch_width = 0;

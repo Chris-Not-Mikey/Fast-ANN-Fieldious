@@ -79,7 +79,7 @@ module QueryPatchMem
   end
   
   assign debug_write = wpatch0[10:0];
-  assign debug = rpatch0_0[10:0];
+  assign debug = rpatch0_1[10:0];
   
   always @ (posedge clk) begin
     
@@ -179,7 +179,7 @@ module QueryPatchMem
         .din0({9'b0, wpatch0[54:32]}),
         .dout0(rpatch0_1[63:32]),
         .clk1(clk),
-        .csb1(csb1 || macro_select_1),
+      .csb1(csb1 || macro_select_1),
         .addr1(addr1[7:0]),
         .dout1(rpatch1_1[63:32])
     );

@@ -259,14 +259,14 @@ end
    if (wen && !write_disable) begin
 	   
 	   write_latency_counter <= write_latency_counter + 1;
-	   if (write_latency_counter == 3'b0) begin
+	   if (write_latency_counter == 3'b01) begin
 		     web0 <= 1'b0; 
 		    wen <= 1;
 		    addr0 <= addr0 + 1;
 	   end
 	   
 	   
-	   if (write_latency_counter == 3'b01) begin
+	   if (write_latency_counter == 3'b10) begin
 		     web0 <= 1'b1; 
 		    wen <= 0;
 		    addr0 <= addr0 + 1;

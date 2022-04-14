@@ -255,6 +255,7 @@ end
 	  
    if (wen && !write_disable) begin
      wen <= 0;
+     web0 <= 1'b1;
      addr0 <= addr0 + 1;
    end
 	  

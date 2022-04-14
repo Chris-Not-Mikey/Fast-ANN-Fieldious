@@ -267,7 +267,7 @@ end
 		    web0 <= 1'b0; 
 		    receiver_din_storage <= receiver_din;
 		    wen <= 1;
-		    addr0 <= addr0 + 1;
+		    //addr0 <= addr0 + 1;
 	   end
 	   
 	   

@@ -211,7 +211,7 @@ end
    
 	  
 	  
-    #40000
+    #80000
     addr0 <= 0;
     write_disable <= 1;
     #100
@@ -338,7 +338,7 @@ end
     $dumpvars;
 //     $vcdplusmemon();
 //     $vcdpluson(0, aggregator_tb);
-    #73400;
+    #143400;
     $finish(2);
   end
 

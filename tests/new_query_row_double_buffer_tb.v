@@ -2,8 +2,8 @@
 `define FETCH_WIDTH 2
 `define DSIZE 11
 `define ASIZE 4
-`define ADDRESS_WIDTH 7
-`define DEPTH 128
+`define ADDRESS_WIDTH 9
+`define DEPTH 512
 `define RAM_WIDTH 11
 `define NULL 0   
 
@@ -36,6 +36,11 @@ module new_query_row_double_buffer_tb;
 
 
 
+  //Aggregator Stuff
+  reg change_fetch_width;
+  reg [2:0] input_fetch_width;
+
+
   // Async Fifo Stuff
   logic [`DSIZE-1:0] rdata;
   logic wfull;
@@ -45,13 +50,17 @@ module new_query_row_double_buffer_tb;
   logic rinc, rrst_n;
 
   // RAM Stuff
-  logic ren;
-  logic [`ADDRESS_WIDTH -1:0] radr;
-  logic signed [`FETCH_WIDTH *`RAM_WIDTH-1:0] ram_output;
-  logic [1:0] read_latency_counter; 
-  logic  [`FETCH_WIDTH * `DATA_WIDTH - 1 : 0] expected_ram_dout;
+  logic                                       csb0, //Write
+  logic                                       web0,
+  logic [ADDR_WIDTH-1:0]                      addr0,
+  logic [(DATA_WIDTH*PATCH_SIZE)-1:0]         wpatch0,
+  logic  [(DATA_WIDTH*PATCH_SIZE)-1:0]       rpatch0,
+  logic                                       csb1, //Read
+  logic [ADDR_WIDTH-1:0]                      addr1,
+  logic  [(DATA_WIDTH*PATCH_SIZE)-1:0]       rpatch1
 
 
+  //File I/O Stuff
   integer               data_file    ; // file handler
   integer               scan_file    ; // file handler
   logic   signed [`DSIZE-1:0] captured_data;
@@ -73,47 +82,49 @@ module new_query_row_double_buffer_tb;
     .clk(clk),
     .rst_n(rst_n),
     .sender_data(rdata),
-    .sender_empty_n(!rempty),
+    .sender_empty_n(rempty),
     .sender_deq(fifo_deq),
     .receiver_data(receiver_din),
     .receiver_full_n(receiver_full_n),
-    .receiver_enq(receiver_enq)
+    .receiver_enq(receiver_enq),
+    .change_fetch_width(change_fetch_width),
+    .input_fetch_width(input_fetch_width)
   );
 
   
-  async_fifo1 #(
-    .DSIZE(`DSIZE),
-    .ASIZE(`ASIZE)
+  SyncFIFO #(`DATA_WIDTH, 16, 4)
+    dut (
+      .sCLK(wclk),
+      .sRST(wrst_n),
+      .dCLK(clk),
+      .sENQ(fifo_enq),
+      .sD_IN(wdata),
+      .sFULL_N(wfull),
+      .dDEQ(fifo_deq),
+      .dD_OUT(rdata),
+      .dEMPTY_N(rempty)
+    );
+	
+
+
+  QueryPatchMem
+  #(
+    .DATA_WIDTH(`DATA_WIDTH) = 11,
+    .PATCH_SIZE(`PATCH_SIZE) = 5,
+    .ADDR_WIDTH(9),
+    .DEPTH(512)
   )
-  dut (
-    
-    .winc(fifo_enq), .wclk(wclk), .wrst_n(wrst_n),
-    .rinc(fifo_deq), .rclk(clk), .rrst_n(rrst_n),
-    .wdata(wdata),
-    .rdata(rdata),
-    .wfull(wfull),
-    .rempty(rempty)
-    
+  (
+      .clk(clk),
+      .csb0(csb0),
+      .web0(web0),
+      .addr0(addr0),
+      .wpatch0(wpatch0),
+      .rpatch0(rpatch0),
+      .csb1(csb1),
+      .addr1(addr1),
+      .rpatch1(rpatch1)
   );
-
-
- query_row_double_buffer
- #(
-  .DATA_WIDTH(`FETCH_WIDTH *`RAM_WIDTH), 
-  .ADDR_WIDTH(`ADDRESS_WIDTH),
-  .DEPTH(`DEPTH)
- )
- query_dut(
-  .clk(clk),
-  .rst_n(rst_n),
-  .fsm_enable(1), //based on whether we are at the proper I/O portion
-  .sender_enable(receiver_enq),
-  .ren(ren),
-  .radr(radr),
-  .sender_data(receiver_din),
-  .receiver_data(ram_output)  
-
-);
 
 initial begin
   data_file = $fopen("./data/IO_data/patches.txt", "r");
@@ -138,68 +149,46 @@ initial begin
 end
 
 
-  initial begin
-
-    //RAM Stuff
-    ren = 1'b0;
-    radr = 0;
-    read_latency_counter = 2'b0;
-    expected_ram_dout = 0;
-
-    winc = 1'b0;
-    iseven = 2'b10;
-    wrst_n = 1'b0;
-    rst_n = 1'b0;
-    repeat(8) @(posedge clk);
-    //#5
-    wrst_n = 1'b1;
-    rst_n = 1'b1;
-    //iseven = 1'b0;
-  end
-
-  initial begin
-    rinc = 1'b0;
-
-    rrst_n = 1'b0;
-    repeat(8) @(posedge clk);
-    rrst_n = 1'b1;
-
-  end
-
+ 
 
 
 
   initial begin
     clk <= 0;
     wclk <= 0;
-
-    
-
     fifo_valid <=0;
-    //rst_n <= 0;
-   
+    rst_n <= 0;
+    wrst_n = 1'b0;
     stall <= 0; 
     expected_dout <= 11'b0;
     receiver_full_n <= 0;
+    read_latency_counter = 2'b0;
+    expected_ram_dout = 0;
+
+
+    csb0 = 0; //Write
+    web0 = 0;
+    addr0 = 0;
+    wpatch0 = 0;
+    csb1 = 0; //Read
+    addr1 = 0;
+
+
+
     #20 
     receiver_full_n <= 1;
+    wrst_n = 1'b1;
+    rst_n = 1'b1;
     #20
 
  
     fifo_valid <=1;
   end
 
-    //NOTE: All the "even" code is deprecated and can be ignored.
-    //It was used for testing clock domains
-  assign fifo_enq = wrst_n && (!wfull) && (!stall);
-  assign even = (iseven == 2'b10) || (iseven == 2'b00);
+  assign fifo_enq = wrst_n && (wfull) && (!stall);
 
-  always @ (posedge clk) begin   
-    #1 
-    iseven <= (iseven == 2'b10) ? 2'b00: iseven+2'b01; 
-  end
 
-  always @ (posedge clk) begin
+  always @ (posedge wclk) begin
  
     //Into FIFO
 	  if (wrst_n) begin
@@ -216,46 +205,65 @@ end
           if (!$feof(data_file)) begin
             //use captured_data as you would any other wire or reg value;
             wdata <= temp_capture[10:0];
+       
+            
           end
+    
 	     end
 	  end
   end
 
 
-  //Out of RAM and check
+  //RAM and check
   always @ (posedge clk) begin
-  $display("%t: received = %d", $time, ram_output);
-  if (receiver_enq) begin
+  $display("%t: received = %d", $time, rpatch1);
+  if (receiver_enq) begin //If aggregated 5, write to RAM
+      web0 <= 1'b1;
+
+     
+
       ren <= 1;
+      csb1 <= 0;
       read_latency_counter <= 0;
     end 
+
+
     if (ren) begin
         //NOTE RAM read has a one cycle latency, so we make a counter to handle this difference
-      if (read_latency_counter == 2'b01) begin
+      if (read_latency_counter == 2'b10) begin
 	   
 	     //Read from cannonical data. Output of RAM should match
        //IMPORTANT: To test other than 2 11 bit values aggregated, one must MANUALLY CHANGE the below
 	    reg [21:0] hold_expected;
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
-
-		
-	   expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
+	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
+      expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
+	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[43:33]); 
+      expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
+	 
 
       if (!$feof(data_file)) begin
         ren <= 0;
-        radr <= radr + 1;
-        assert(ram_output == hold_expected);
-        $display("%t: received = %d, expected = %d", $time, ram_output, hold_expected);
-        $display("%t: received = %d, expected = %d", $time, ram_output[10:0], hold_expected[10:0]);
-        $display("%t: received = %d, expected = %d", $time, ram_output[21:11], hold_expected[21:11]);
+
+        csb1 <= 0;
+      
+        addr0 <= addr0 + 1;
+        addr1 <= addr1 + 1;
+
+        assert(rpatch1 == hold_expected);
+        $display("%t: received = %d, expected = %d", $time, rpatch1, hold_expected);
+        $display("%t: received = %d, expected = %d", $time, rpatch1[10:0], hold_expected[10:0]);
+        $display("%t: received = %d, expected = %d", $time, rpatch1[21:11], hold_expected[21:11]);
 		    
 	    end
 		
-  end
-	else begin 
-	    ren <= 1; //Handling one cycle latency
-      read_latency_counter <= read_latency_counter + 1;
-	end
+      end
+      else begin 
+          web0 <= 1'b0;
+          ren <= 1; //Handling one cycle latency
+          csb1 <= 1;
+          read_latency_counter <= read_latency_counter + 1;
+      end
       
 
     end

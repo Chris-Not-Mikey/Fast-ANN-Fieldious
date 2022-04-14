@@ -151,7 +151,7 @@ def test_query_buffer_tb():
 
 def test_new_query_buffer_tb():
     print("Running new_query_row_double_buffer_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/new_query_row_double_buffer_tb.v', 'rtl/QueryPatchMem.v',  'rtl/aggregator.v', 'rtl/SyncFIFO.v', '/farmshare/home/classes/ee/372/PDKs/sky130_sram_macros/sky130_sram_1kbyte_1rw1r_32x256_8/sky130_sram_1kbyte_1rw1r_32x256_8.v'])
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/new_query_row_double_buffer_tb.v', 'rtl/QueryPatchMem.v',  'rtl/aggregator.v', 'rtl/SyncFIFO.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v'])
 
 
 def test_adr_gen_sequential_tb():

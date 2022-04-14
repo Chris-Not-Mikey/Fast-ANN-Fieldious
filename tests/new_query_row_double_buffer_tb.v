@@ -204,9 +204,11 @@ end
 	  
 	  
     #3000
-    ren <= 1;
     addr0 <= 0;
-	  write_disable <= 1;
+    write_disable <= 1;
+    #100
+    ren <= 1;
+    
    read_latency_counter <= 0;
 	  
   end

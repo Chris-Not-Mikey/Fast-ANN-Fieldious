@@ -206,6 +206,7 @@ end
 
  
     fifo_valid <=1;
+    wdata <= 11'd251;
 	  
 	  
     #7000

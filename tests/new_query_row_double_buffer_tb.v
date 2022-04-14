@@ -83,7 +83,7 @@ module new_query_row_double_buffer_tb;
   aggregator
   #(
     .DATA_WIDTH(`DATA_WIDTH),
-    .FETCH_WIDTH(`FETCH_WIDTH)
+    .FETCH_WIDTH(6)
   ) aggregator_inst
   (
     .clk(clk),

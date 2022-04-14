@@ -80,14 +80,17 @@ module QueryPatchMem
     
     
     if (!macro_select_0) begin
-      rpatch0 = rpatch0_0[54:0];
-      rpatch1 = rpatch1_0[54:0];
+      rpatch0 = {rpatch0_0[10:0], rpatch0_0[54:11]};
+      rpatch1 = {rpatch1_0[10:0], rpatch1_0[54:11]};
       
     end
     
     else begin
-      rpatch0 = rpatch0_1[54:0];
-      rpatch1 = rpatch1_1[54:0];
+//       rpatch0 = rpatch0_1[54:0];
+//       rpatch1 = rpatch1_1[54:0];
+      
+      rpatch0 = {rpatch0_1[10:0], rpatch0_1[54:11]};
+      rpatch1 = {rpatch1_1[10:0], rpatch1_1[54:11]};
     end
     
     
@@ -138,8 +141,7 @@ module QueryPatchMem
   
   
   
-  
-  
+ 
     sky130_sram_1kbyte_1rw1r_32x256_8
     #(
       .DATA_WIDTH(32), // round(PATCH_SIZE * DATA_WIDTH)

@@ -22,50 +22,48 @@ module QueryPatchMem
     input logic                                       csb0,
     input logic                                       web0,
     input logic [ADDR_WIDTH-1:0]                      addr0,
-    input logic [(DATA_WIDTH*PATCH_SIZE)-1:0]         wpatch0,
-    output logic  [(DATA_WIDTH*PATCH_SIZE)-1:0]       rpatch0,
+    input logic [DATA_WIDTH*PATCH_SIZE-1:0]         wpatch0,
+    output logic  [DATA_WIDTH*PATCH_SIZE-1:0]       rpatch0,
     input logic                                       csb1,
     input logic [ADDR_WIDTH-1:0]                      addr1,
-    output logic  [(DATA_WIDTH*PATCH_SIZE)-1:0]       rpatch1
+    output logic  [DATA_WIDTH*PATCH_SIZE-1:0]       rpatch1
 
 );
   
   reg macro_select_0;
   reg macro_select_1;
+  
+  
+  reg [DATA_WIDTH*PATCH_SIZE-1:0]       rpatch0_0,
+  reg [DATA_WIDTH*PATCH_SIZE-1:0]       rpatch0_1,
+  reg [DATA_WIDTH*PATCH_SIZE-1:0]       rpatch1_0,
+  reg [DATA_WIDTH*PATCH_SIZE-1:0]       rpatch1_1,
+  
+  
+  
+  
+  
+  
 //   reg macro_select_2;
 //   reg macro_select_3;
   
   
   always @(*) begin
-    case(addr0[8:7])
-       2'b00 :   begin
+    case(addr0[8])
+       1'b0 :   begin
          macro_select_0 = 1;
          macro_select_1 = 0;
 //          macro_select_2 = 0;
 //          macro_select_3 = 0;
        end
        
-      2'b01 :   begin
+      1'b1 :   begin
          macro_select_0 = 1;
          macro_select_1 = 0;
 //          macro_select_2 = 0;
 //          macro_select_3 = 0;
        end
       
-      2'b10 :   begin
-         macro_select_0 = 0;
-         macro_select_1 = 1;
-//          macro_select_2 = 1;
-//          macro_select_3 = 0;
-       end
-      
-      
-       2'b11 :   begin
-         macro_select_0 = 0;
-         macro_select_1 = 1;
-//          macro_select_2 = 0;
-//          macro_select_3 = 0;
-       end
       
       
       default :   begin
@@ -76,6 +74,19 @@ module QueryPatchMem
        end
          
     endcase 
+    
+    
+    if (macro_select_0) begin
+      rpatch0 = rpatch0_0;
+      rpatch1 = rpatch1_0;
+      
+    end
+    
+    else begin
+      rpatch0 = rpatch0_1;
+      rpatch1 = rpatch1_1;
+    end
+    
     
   end
   
@@ -93,12 +104,12 @@ module QueryPatchMem
         .csb0(csb0),
         .web0(web0 && macro_select_0),
         .wmask0(4'hF), //TODO: investigate what mask exactly does?
-        .addr0(addr0[6:0]),
+        .addr0(addr0[7:0]),
         .din0(wpatch0[31:0]),
         .dout0(rpatch0[31:0]),
         .clk1(clk), // Port 1: R
         .csb1(csb1 && macro_select_0),
-        .addr1(addr1[6:0]),
+        .addr1(addr1[7:0]),
         .dout1(rpatch1[31:0])
     );
   
@@ -113,12 +124,12 @@ module QueryPatchMem
         .csb0(csb0),
         .web0(web0 && macro_select_0),
         .wmask0(4'hF),
-        .addr0(addr0[6:0]),
+        .addr0(addr0[7:0]),
         .din0(wpatch0[54:32]),
         .dout0(rpatch0[54:32]),
         .clk1(clk), // Port 1: R
         .csb1(csb1 && macro_select_0),
-        .addr1(addr1[6:0]),
+        .addr1(addr1[7:0]),
         .dout1(rpatch1[54:32])
     );
   
@@ -136,12 +147,12 @@ module QueryPatchMem
         .csb0(csb0),
         .web0(web0 && macro_select_1),
         .wmask0(4'hF),
-        .addr0(addr0),
+        .addr0(addr0[7:0]),
         .din0(wpatch0[31:0]),
         .dout0(rpatch0[31:0]),
         .clk1(clk),
         .csb1(csb1 && macro_select_1),
-        .addr1(addr1),
+        .addr1(addr1[7:0]),
         .dout1(rpatch1[31:0])
     );
   
@@ -156,12 +167,12 @@ module QueryPatchMem
         .csb0(csb0),
         .web0(web0 && macro_select_1),
          .wmask0(4'hF),
-        .addr0(addr0),
+        .addr0(addr0[7:0]),
         .din0(wpatch0[54:32]),
         .dout0(rpatch0[54:32]),
         .clk1(clk),
         .csb1(csb1 && macro_select_1),
-        .addr1(addr1),
+        .addr1(addr1[7:0]),
         .dout1(rpatch1[54:32])
     );
   

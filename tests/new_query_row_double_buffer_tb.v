@@ -275,6 +275,7 @@ end
       end
     else if (read_latency_counter == 2'b10) begin
 	csb1 <= 0;
+	read_latency_counter <= read_latency_counter + 1;
     end
 	    
 	    

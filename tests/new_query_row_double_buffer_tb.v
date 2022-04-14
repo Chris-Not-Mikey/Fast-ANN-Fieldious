@@ -199,6 +199,12 @@ end
 
  
     fifo_valid <=1;
+	  
+	  
+    #5000
+    ren <= 1;
+    addr0 <= 0;
+	  
   end
 
   assign fifo_enq = wrst_n && (wfull) && (!stall);
@@ -233,7 +239,7 @@ end
   //RAM and check
   always @ (posedge clk) begin
   //$display("%t: received = %d", $time, rpatch1);
-  if (receiver_enq) begin //If aggregated 5, write to RAM
+  if (receiver_enq && !ren) begin //If aggregated 5, write to RAM
       web0 <= 1'b0; //active low
       csb0 <= 0; //Must activate to write as well
       wen <= 1;
@@ -243,18 +249,56 @@ end
      wen <= 0;
      addr0 <= addr0 + 1;
    end
+	  
+	 
+
+    if (ren) begin
+	    read_latency_counter <= 3'b1;
+	    csb0 <= 0;
+	    web0 <= 1'b1;
+    end
+
+  if (ren && (read_latency_counter == 3'b1)) begin 
+	  read_latency_counter <= 3'b0;
+	  ren <=0;
+	  addr0 <= addr0 + 1;
+	  
+	   reg [54:0] hold_expected;
+	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
+	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
+            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
+	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[43:33]); 
+            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
+	 
+
+	      if (!$feof(data_file)) begin
+		ren <= 0;
+
+		csb0 <= 1; //active low
+
+		
+
+		assert(rpatch0 == hold_expected);
+		$display("%t: received = %d, expected = %d", $time, rpatch0, hold_expected);
+		$display("%t: received = %d, expected = %d", $time, rpatch0[10:0], hold_expected[10:0]);
+		$display("%t: received = %d, expected = %d", $time, rpatch0[21:11], hold_expected[21:11]);
+		$display("%t: received = %d, expected = %d", $time, rpatch0[32:22], hold_expected[32:22]);
+		$display("%t: received = %d, expected = %d", $time, rpatch0[43:33], hold_expected[43:33]);
+		$display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);
 
 
-//     if (ren) begin
-//         //NOTE RAM read has a one cycle latency, so we make a counter to handle this difference
+	     end
+
+  end
+	  
+        //NOTE RAM read has a one cycle latency, so we make a counter to handle this difference
 	    
 	    
-	    
-// 	if (read_latency_counter == 3'b100) begin
+// 	   if (read_latency_counter == 3'b01) begin
 	   
 // 	     //Read from cannonical data. Output of RAM should match
-//        //IMPORTANT: To test other than 2 11 bit values aggregated, one must MANUALLY CHANGE the below
-// 	      reg [54:0] hold_expected;
+//             //IMPORTANT: To test other than 2 11 bit values aggregated, one must MANUALLY CHANGE the below
+// 	    reg [54:0] hold_expected;
 // 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
 // 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
 //             expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
@@ -262,39 +306,32 @@ end
 //             expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
 	 
 
-//       if (!$feof(data_file)) begin
-//         ren <= 0;
+// 	      if (!$feof(data_file)) begin
+// 		ren <= 0;
 
-//         csb0 <= 1; //active low
-      
-//         addr0 <= addr0 + 1;
-//         addr1 <= addr1 + 1;
+// 		csb0 <= 1; //active low
 
-// 	assert(rpatch0 == hold_expected);
-// 	$display("%t: received = %d, expected = %d", $time, rpatch0, hold_expected);
-//         $display("%t: received = %d, expected = %d", $time, rpatch0[10:0], hold_expected[10:0]);
-//         $display("%t: received = %d, expected = %d", $time, rpatch0[21:11], hold_expected[21:11]);
-// 	$display("%t: received = %d, expected = %d", $time, rpatch0[32:22], hold_expected[32:22]);
-//         $display("%t: received = %d, expected = %d", $time, rpatch0[43:33], hold_expected[43:33]);
-// 	$display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);
+// 		addr0 <= addr0 + 1;
 
-		    
-// 	    end
-		
-//       end
-// 	    else if (read_latency_counter == 3'b01) begin
-// 	csb0 <= 0;
-//         web0 <= 1'b1;
-// 	read_latency_counter <= read_latency_counter + 1;
-//     end
+// 		assert(rpatch0 == hold_expected);
+// 		$display("%t: received = %d, expected = %d", $time, rpatch0, hold_expected);
+// 		$display("%t: received = %d, expected = %d", $time, rpatch0[10:0], hold_expected[10:0]);
+// 		$display("%t: received = %d, expected = %d", $time, rpatch0[21:11], hold_expected[21:11]);
+// 		$display("%t: received = %d, expected = %d", $time, rpatch0[32:22], hold_expected[32:22]);
+// 		$display("%t: received = %d, expected = %d", $time, rpatch0[43:33], hold_expected[43:33]);
+// 		$display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);
+
+
+// 	     end
+
+// 	      end
+// 	    else if (read_latency_counter == 3'b00) begin
+// 		csb0 <= 0;
+// 		web0 <= 1'b1;
+// 		read_latency_counter <= read_latency_counter + 1;
+//    	 end
 	    
-	    
-//       else begin 
-//           web0 <= 1'b0;
-//           ren <= 1; //Handling one cycle latency
-//           csb0 <= 0;
-//           read_latency_counter <= read_latency_counter + 1;
-//       end
+
       
 
 //     end

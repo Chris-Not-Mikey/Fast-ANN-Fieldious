@@ -39,6 +39,7 @@ module QueryPatchMem
   wire [64-1:0]       rpatch1_0;
   wire [64-1:0]       rpatch1_1;
   wire [10:0] debug;
+  wire [10:0] debug_write;
   
         
   
@@ -77,6 +78,7 @@ module QueryPatchMem
     
   end
   
+  assign debug_write = wpatch0[10:0]
   assign debug = rpatch0_0[10:0];
   
   always @ (posedge clk) begin

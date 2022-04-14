@@ -230,7 +230,7 @@ end
 
   //RAM and check
   always @ (posedge clk) begin
-  $display("%t: received = %d", $time, rpatch1);
+  //$display("%t: received = %d", $time, rpatch1);
   if (receiver_enq) begin //If aggregated 5, write to RAM
       web0 <= 1'b0; //active low
 

@@ -253,7 +253,7 @@ end
       wen <= 1;
     end 
 	  
-   if (wen) begin
+   if (wen && !write_disable) begin
      wen <= 0;
      addr0 <= addr0 + 1;
    end
@@ -264,6 +264,7 @@ end
 	    read_latency_counter <= read_latency_counter + 1;
 	    csb0 <= 0;
 	    web0 <= 1'b1;
+	    $display("%t: received = %d", $time, rpatch0);
     end
 
 	 if (ren && (read_latency_counter == 3'b11)) begin 

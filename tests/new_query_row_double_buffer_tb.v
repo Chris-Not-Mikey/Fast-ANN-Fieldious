@@ -242,7 +242,10 @@ end
 
     if (ren) begin
         //NOTE RAM read has a one cycle latency, so we make a counter to handle this difference
-      if (read_latency_counter == 2'b10) begin
+	    
+	    
+	    
+	if (read_latency_counter == 2'b11) begin
 	   
 	     //Read from cannonical data. Output of RAM should match
        //IMPORTANT: To test other than 2 11 bit values aggregated, one must MANUALLY CHANGE the below
@@ -270,10 +273,15 @@ end
 	    end
 		
       end
+    else if (read_latency_counter == 2'b10) begin
+	csb1 <= 0;
+    end
+	    
+	    
       else begin 
           web0 <= 1'b1;
           ren <= 1; //Handling one cycle latency
-          csb1 <= 0;
+          csb1 <= 1;
           read_latency_counter <= read_latency_counter + 1;
       end
       

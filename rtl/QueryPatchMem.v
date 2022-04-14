@@ -106,11 +106,11 @@ module QueryPatchMem
         .wmask0(4'hF), //TODO: investigate what mask exactly does?
         .addr0(addr0[7:0]),
         .din0(wpatch0[31:0]),
-        .dout0(rpatch0[31:0]),
+        .dout0(rpatch0_0[31:0]),
         .clk1(clk), // Port 1: R
         .csb1(csb1 && macro_select_0),
         .addr1(addr1[7:0]),
-        .dout1(rpatch1[31:0])
+        .dout1(rpatch1_0[31:0])
     );
   
     
@@ -126,11 +126,11 @@ module QueryPatchMem
         .wmask0(4'hF),
         .addr0(addr0[7:0]),
         .din0(wpatch0[54:32]),
-        .dout0(rpatch0[54:32]),
+        .dout0(rpatch0_0[54:32]),
         .clk1(clk), // Port 1: R
         .csb1(csb1 && macro_select_0),
         .addr1(addr1[7:0]),
-        .dout1(rpatch1[54:32])
+        .dout1(rpatch1_0[54:32])
     );
   
   
@@ -149,11 +149,11 @@ module QueryPatchMem
         .wmask0(4'hF),
         .addr0(addr0[7:0]),
         .din0(wpatch0[31:0]),
-        .dout0(rpatch0[31:0]),
+        .dout0(rpatch0_1[31:0]),
         .clk1(clk),
         .csb1(csb1 && macro_select_1),
         .addr1(addr1[7:0]),
-        .dout1(rpatch1[31:0])
+        .dout1(rpatch1_1[31:0])
     );
   
   
@@ -169,11 +169,11 @@ module QueryPatchMem
          .wmask0(4'hF),
         .addr0(addr0[7:0]),
         .din0(wpatch0[54:32]),
-        .dout0(rpatch0[54:32]),
+        .dout0(rpatch0_1[54:32]),
         .clk1(clk),
         .csb1(csb1 && macro_select_1),
         .addr1(addr1[7:0]),
-        .dout1(rpatch1[54:32])
+        .dout1(rpatch1_1[54:32])
     );
   
   

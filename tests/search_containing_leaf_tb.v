@@ -293,12 +293,23 @@ end
           //Read Data from  I/O
           scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
 		    
-	 if (counter == 3'd1) begin
-	    fsm_enable <= 0;
+	  if (counter == 3'd2) begin
+	     fsm_enable <= 0;
 	     change_fetch_width <= 1;
               input_fetch_width <= 3'd5;
 	    $display("here2");
     	  end  
+		    
+		    
+	  if (temp_capture == 11'd11111111111) begin  //Condition seperating I/O portions (don't read into FIFO)
+             
+              counter <= counter + 1;
+	      //fsm_enable <= 0;
+//		wdata <= temp_capture[10:0];
+	    
+	      $display("here neg");
+	     
+          end
 		  
 
 	   if (temp_capture == 11'd1024) begin  //Condition seperating I/O portions (don't read into FIFO)

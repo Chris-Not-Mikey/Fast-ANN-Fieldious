@@ -293,7 +293,7 @@ end
           //Read Data from  I/O
           scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
 		    
-	  if (counter == 3'd2) begin
+	 if (counter == 3'd1) begin
 	    fsm_enable <= 0;
 	     change_fetch_width <= 1;
               input_fetch_width <= 3'd5;
@@ -307,7 +307,6 @@ end
 	      //fsm_enable <= 0;
 //		wdata <= temp_capture[10:0];
 	    
-	
 	      $display("here");
 	     
           end

@@ -279,6 +279,7 @@ end
 
 
   reg [10:0] temp_capture;
+	reg [10:0] temp;
  reg [2:0] counter;
   always @ (posedge wclk) begin
  
@@ -299,7 +300,7 @@ end
              input_fetch_width <= 3'd5;
 	      i_o_state <= i_o_state + 1;
 		
-		reg [10:0] temp;
+		
 		scan_file = $fscanf(data_file, "%d\n", temp); 
 		  
 	    $display("here2");

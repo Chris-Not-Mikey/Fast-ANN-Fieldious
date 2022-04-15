@@ -241,7 +241,7 @@ end
     wrst_n = 1'b1;
     rst_n = 1'b1;
     change_fetch_width = 1;
-    wdata <= 11'd251;
+    
     #20
     change_fetch_width = 0;
 
@@ -291,11 +291,13 @@ end
           //Read Data from  I/O
           scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
 
-          if (temp_capture == 11'b10000000000) begin  //Condition seperating I/O portions (don't read into FIFO)
+	   if (temp_capture == 11'd1024) begin  //Condition seperating I/O portions (don't read into FIFO)
               change_fetch_width <= 1;
               input_fetch_width <= 3'd5;
               i_o_state <= i_o_state + 1;
               fsm_enable <= 1'b0;
+	      $display("here");
+	      
 
           end
 

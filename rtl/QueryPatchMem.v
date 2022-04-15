@@ -35,7 +35,7 @@ module QueryPatchMem
   
   
   wire [64-1:0]       rpatch0_0;
-  wire [64-1:0]       rpatch0_1;
+  reg [64-1:0]       rpatch0_1;
   wire [64-1:0]       rpatch1_0;
   wire [64-1:0]       rpatch1_1;
   wire [10:0] debug;
@@ -96,7 +96,7 @@ module QueryPatchMem
     end
     
     else begin
-       rpatch0 <= {rpatch0_1[21:0], rpatch0_1[54:22]};
+      rpatch0 <= {rpatch0_1[21:0], rpatch0_1[54:22]};
       rpatch1 <= {rpatch1_1[21:0], rpatch1_1[54:22]};
     end
     
@@ -104,7 +104,7 @@ module QueryPatchMem
   
 
 
-  //Ram instantiaion (8 1k blocks
+  //Ram instantiaion (4 1k blocks
   
     sky130_sram_1kbyte_1rw1r_32x256_8
     #(

@@ -278,6 +278,7 @@ end
   assign fifo_enq = wrst_n && (wfull) && (!stall);
 
 
+ reg [21:0] temp_capture;
   always @ (posedge wclk) begin
  
     //Into FIFO
@@ -287,7 +288,7 @@ end
 	    if (fifo_enq) begin
 	       //scan_file = $fscanf(data_file, "%d\n", captured_data); 
 		    
-          reg [21:0] temp_capture;
+          
           //Read Data from  I/O
           scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
 
@@ -396,7 +397,7 @@ end
     $dumpvars;
 //     $vcdplusmemon();
 //     $vcdpluson(0, aggregator_tb);
-    #290000;
+    #190000;
     $finish(2);
   end
 

@@ -278,7 +278,7 @@ end
   assign fifo_enq = wrst_n && (wfull) && (!stall);
 
 
- reg [21:0] temp_capture;
+  reg [10:0] temp_capture;
   always @ (posedge wclk) begin
  
     //Into FIFO

@@ -296,7 +296,7 @@ end
 	  if (counter == 3'd2) begin
 	     fsm_enable <= 0;
 	     change_fetch_width <= 1;
-              input_fetch_width <= 3'd5;
+             input_fetch_width <= 3'd5;
 		  i_o_state <= i_o_state + 1;
 		  
 	    $display("here2");
@@ -328,7 +328,6 @@ end
           //Prepare to send to FIFO
           else if (!$feof(data_file)) begin
             //use captured_data as you would any other wire or reg value;
-            change_fetch_width <= 0;
 	    counter <= 0;
             wdata <= temp_capture[10:0];
             

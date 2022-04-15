@@ -296,14 +296,18 @@ end
               change_fetch_width <= 1;
               input_fetch_width <= 3'd5;
               i_o_state <= i_o_state + 1;
+	      wdata <= temp_capture[10:0];
+		   
+	      
              
 	      $display("here");
 	     
           end
 		    
 	    if (i_o_state == 3'b1) begin
+		   
 		    fsm_enable <= 0;
-		    $display("here2");
+		
 	    end
 
           //Prepare to send to FIFO

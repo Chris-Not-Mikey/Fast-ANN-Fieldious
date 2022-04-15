@@ -3,7 +3,7 @@ module top
     parameter DATA_WIDTH = 11,
     parameter LEAF_SIZE = 8,
     parameter PATCH_SIZE = 5,
-    parameter ROW_SIZE = 26,
+    parameter ROW_SIZE = 3,//26,
     parameter K = 4,
     parameter NUM_LEAVES = 64,
     parameter ADDR_WIDTH = $clog2(NUM_LEAVES)
@@ -41,6 +41,10 @@ module top
     logic [8:0]                                 best_arr_rindices_1 [K-1:0];
 
     logic [5:0]                                 k0_leaf_idx;
+    logic                                       k0_query_first_in;
+    logic                                       k0_query_first_out;
+    logic                                       k0_query_last_in;
+    logic                                       k0_query_last_out;
     logic                                       k0_query_valid;
     logic signed [4:0] [DATA_WIDTH-1:0]         k0_query_patch;
     logic                                       k0_dist_valid;
@@ -72,6 +76,8 @@ module top
     logic                                       rm_restart;
     logic                                       rm_valid_in;
     logic                                       rm_valid_out;
+    logic                                       rm_query_last_in;
+    logic                                       rm_query_last_out;
     logic [8:0]                                 rm_p0_indices;
     logic [DATA_WIDTH-1:0]                      rm_p0_l2_dist;
     logic [8:0]                                 rm_p1_indices;
@@ -138,6 +144,7 @@ module top
         .LEAF_SIZE          (LEAF_SIZE),
         .PATCH_SIZE         (PATCH_SIZE),
         .ROW_SIZE           (ROW_SIZE),
+        .K                  (K),
         .NUM_LEAVES         (NUM_LEAVES)
     ) main_fsm_inst (
         .clk                (clk),
@@ -149,14 +156,13 @@ module top
         .leaf_mem_wleaf0    (leaf_mem_wleaf0),
         .leaf_mem_csb1      (leaf_mem_csb1),
         .leaf_mem_addr1     (leaf_mem_addr1),
-        // .best_arr_csb0      (best_arr_csb0),
-        // .best_arr_web0      (best_arr_web0),
         .best_arr_addr0     (best_arr_addr0),
         .best_arr_csb1      (best_arr_csb1),
         .best_arr_addr1     (best_arr_addr1),
+        .best_arr_rindices_1(best_arr_rindices_1),
         .k0_query_valid     (k0_query_valid),
-        .rm_restart         (rm_restart),
-        .s0_valid_in        (s0_valid_in),
+        .k0_query_first_in  (k0_query_first_in),
+        .k0_query_last_in   (k0_query_last_in),
         .s0_valid_out       (s0_valid_out)
     );
 
@@ -214,6 +220,10 @@ module top
         .clk                (clk),
         .rst_n              (rst_n),
         .leaf_idx           (k0_leaf_idx),
+        .query_first_in     (k0_query_first_in),
+        .query_first_out    (k0_query_first_out),
+        .query_last_in      (k0_query_last_in),
+        .query_last_out     (k0_query_last_out),
         .query_valid        (k0_query_valid),
         .query_patch        (k0_query_patch),
         .dist_valid         (k0_dist_valid),
@@ -267,6 +277,8 @@ module top
         .restart            (rm_restart),
         .valid_in           (rm_valid_in),
         .valid_out          (rm_valid_out),
+        .query_last_in      (rm_query_last_in),
+        .query_last_out     (rm_query_last_out),
         .p0_l2_dist         (rm_p0_l2_dist),
         .p1_l2_dist         (rm_p1_l2_dist),
         .p2_l2_dist         (rm_p2_l2_dist),
@@ -301,23 +313,25 @@ module top
         .p7_indices_min     (rm_p7_indices_min)
     );
 
-    assign rm_valid_in   = k0_dist_valid;
-    assign rm_p0_l2_dist = k0_p0_l2_dist;
-    assign rm_p1_l2_dist = k0_p1_l2_dist;
-    assign rm_p2_l2_dist = k0_p2_l2_dist;
-    assign rm_p3_l2_dist = k0_p3_l2_dist;
-    assign rm_p4_l2_dist = k0_p4_l2_dist;
-    assign rm_p5_l2_dist = k0_p5_l2_dist;
-    assign rm_p6_l2_dist = k0_p6_l2_dist;
-    assign rm_p7_l2_dist = k0_p7_l2_dist;
-    assign rm_p0_indices = k0_p0_indices;
-    assign rm_p1_indices = k0_p1_indices;
-    assign rm_p2_indices = k0_p2_indices;
-    assign rm_p3_indices = k0_p3_indices;
-    assign rm_p4_indices = k0_p4_indices;
-    assign rm_p5_indices = k0_p5_indices;
-    assign rm_p6_indices = k0_p6_indices;
-    assign rm_p7_indices = k0_p7_indices;
+    assign rm_valid_in      =   k0_dist_valid;
+    assign rm_restart       =   k0_query_first_out;
+    assign rm_query_last_in =   k0_query_last_out;
+    assign rm_p0_l2_dist    =   k0_p0_l2_dist;
+    assign rm_p1_l2_dist    =   k0_p1_l2_dist;
+    assign rm_p2_l2_dist    =   k0_p2_l2_dist;
+    assign rm_p3_l2_dist    =   k0_p3_l2_dist;
+    assign rm_p4_l2_dist    =   k0_p4_l2_dist;
+    assign rm_p5_l2_dist    =   k0_p5_l2_dist;
+    assign rm_p6_l2_dist    =   k0_p6_l2_dist;
+    assign rm_p7_l2_dist    =   k0_p7_l2_dist;
+    assign rm_p0_indices    =   k0_p0_indices;
+    assign rm_p1_indices    =   k0_p1_indices;
+    assign rm_p2_indices    =   k0_p2_indices;
+    assign rm_p3_indices    =   k0_p3_indices;
+    assign rm_p4_indices    =   k0_p4_indices;
+    assign rm_p5_indices    =   k0_p5_indices;
+    assign rm_p6_indices    =   k0_p6_indices;
+    assign rm_p7_indices    =   k0_p7_indices;
 
 
     BitonicSorter sorter0_inst(
@@ -351,6 +365,7 @@ module top
         .indices_out_3      (s0_indices_out_3)
     );
 
+    assign s0_valid_in      =   rm_query_last_out;
     assign s0_data_in_0     =   rm_p0_l2_dist_min;
     assign s0_data_in_1     =   rm_p1_l2_dist_min;
     assign s0_data_in_2     =   rm_p2_l2_dist_min;

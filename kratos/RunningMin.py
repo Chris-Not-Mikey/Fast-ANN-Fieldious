@@ -23,6 +23,8 @@ class RunningMin(Generator):
 
         self._restart = self.input("restart", 1)
         self._valid_in = self.input("valid_in", 1)
+        self._query_last_in = self.input("query_last_in", 1)
+        self._query_last_out = self.output("query_last_out", 1)
         self._valid_out = self.output("valid_out", 1)
         @always_ff((posedge, "clk"), (negedge, "rst_n"))
         def update_valid(self):
@@ -31,6 +33,16 @@ class RunningMin(Generator):
             else:
                 self._valid_out = self._valid_in
         self.add_code(update_valid)
+
+        self._query_last_r = self.var(f"query_last_r", 1)
+        @always_ff((posedge, "clk"), (negedge, "rst_n"))
+        def update_query_last_out(self):
+            if ~self._rst_n:
+                self._query_last_r = 0
+            else:
+                self._query_last_r = self._query_last_in
+        self.add_code(update_query_last_out)
+        self.wire(self._query_last_out, self._query_last_r)
 
         for i in range(self.channel_num):
             self._l2_dist = self.input(f"p{i}_l2_dist", self.data_width)

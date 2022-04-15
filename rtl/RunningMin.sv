@@ -16,6 +16,7 @@ module RunningMin (
   input logic [10:0] p6_l2_dist,
   input logic [8:0] p7_indices,
   input logic [10:0] p7_l2_dist,
+  input logic query_last_in,
   input logic restart,
   input logic rst_n,
   input logic valid_in,
@@ -35,9 +36,11 @@ module RunningMin (
   output logic [10:0] p6_l2_dist_min,
   output logic [8:0] p7_indices_min,
   output logic [10:0] p7_l2_dist_min,
+  output logic query_last_out,
   output logic valid_out
 );
 
+logic query_last_r;
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin
@@ -45,6 +48,14 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else valid_out <= valid_in;
 end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    query_last_r <= 1'h0;
+  end
+  else query_last_r <= query_last_in;
+end
+assign query_last_out = query_last_r;
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin

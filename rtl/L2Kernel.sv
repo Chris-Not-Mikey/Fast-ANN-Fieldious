@@ -9,6 +9,8 @@ module L2Kernel (
   input logic signed [4:0] [10:0] p5_candidate_leaf,
   input logic signed [4:0] [10:0] p6_candidate_leaf,
   input logic signed [4:0] [10:0] p7_candidate_leaf,
+  input logic query_first_in,
+  input logic query_last_in,
   input logic signed [4:0] [10:0] query_patch,
   input logic query_valid,
   input logic rst_n,
@@ -28,7 +30,9 @@ module L2Kernel (
   output logic [8:0] p6_indices,
   output logic [10:0] p6_l2_dist,
   output logic [8:0] p7_indices,
-  output logic [10:0] p7_l2_dist
+  output logic [10:0] p7_l2_dist,
+  output logic query_first_out,
+  output logic query_last_out
 );
 
 logic [10:0] p0_add_tree0 [2:0];
@@ -103,7 +107,25 @@ logic [5:0] p7_leaf_idx_r1;
 logic [5:0] p7_leaf_idx_r2;
 logic [5:0] p7_leaf_idx_r3;
 logic signed [10:0] p7_patch_diff [4:0];
+logic [4:0] query_first_shft;
+logic [4:0] query_last_shft;
 logic [4:0] valid_shft;
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    query_first_shft <= 5'h0;
+  end
+  else query_first_shft <= {query_first_shft[3:0], query_first_in};
+end
+assign query_first_out = query_first_shft[4];
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    query_last_shft <= 5'h0;
+  end
+  else query_last_shft <= {query_last_shft[3:0], query_last_in};
+end
+assign query_last_out = query_last_shft[4];
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin

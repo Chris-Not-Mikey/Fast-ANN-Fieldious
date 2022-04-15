@@ -21,6 +21,8 @@ class L2Kernel(Generator):
         self._clk = self.clock("clk")
         self._rst_n = self.reset("rst_n", 1)
     
+        self._query_first_in = self.input("query_first_in", 1)
+        self._query_last_in = self.input("query_last_in", 1)
         self._query_valid = self.input("query_valid", 1)
         self._query_patch = self.input("query_patch",
                                        width=self.data_width,
@@ -30,7 +32,29 @@ class L2Kernel(Generator):
                                        explicit_array=True)        
         self._leaf_idx = self.input("leaf_idx", clog2(self.total_patches / self.leaf_size))
 
+        self._query_first_out = self.output("query_first_out", 1)
+        self._query_last_out = self.output("query_last_out", 1)
         self._dist_valid = self.output("dist_valid", 1)
+
+        self._query_first_shft = self.var(f"query_first_shft", 5)
+        @always_ff((posedge, "clk"), (negedge, "rst_n"))
+        def update_query_first_out(self):
+            if ~self._rst_n:
+                self._query_first_shft = 0
+            else:
+                self._query_first_shft = concat(self._query_first_shft[self._query_first_shft.width - 2, 0], self._query_first_in)
+        self.add_code(update_query_first_out)
+        self.wire(self._query_first_out, self._query_first_shft[self._query_first_shft.width - 1])
+
+        self._query_last_shft = self.var(f"query_last_shft", 5)
+        @always_ff((posedge, "clk"), (negedge, "rst_n"))
+        def update_query_last_out(self):
+            if ~self._rst_n:
+                self._query_last_shft = 0
+            else:
+                self._query_last_shft = concat(self._query_last_shft[self._query_last_shft.width - 2, 0], self._query_last_in)
+        self.add_code(update_query_last_out)
+        self.wire(self._query_last_out, self._query_last_shft[self._query_last_shft.width - 1])
 
         self._valid_shft = self.var(f"valid_shft", 5)
         @always_ff((posedge, "clk"), (negedge, "rst_n"))

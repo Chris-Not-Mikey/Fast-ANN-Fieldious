@@ -296,11 +296,15 @@ end
               change_fetch_width <= 1;
               input_fetch_width <= 3'd5;
               i_o_state <= i_o_state + 1;
-              fsm_enable <= 1'b0;
+             
 	      $display("here");
-	      
-
+	     
           end
+		    
+	    if (i_o_state == 3'b1) begin
+		    fsm_enable <= 0;
+		    $display("here2");
+	    end
 
           //Prepare to send to FIFO
           else if (!$feof(data_file)) begin
@@ -363,14 +367,14 @@ end
 	
 	  ren <= 1;
 	  addr0 <= addr0 + 1;
-      read_latency_counter <= 0;
+          read_latency_counter <= 0;
 	  
 	    
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
-        expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
+            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[43:33]); 
-        expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
+            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
 	 
 
 	    if (!$feof(expected_data_file)) begin

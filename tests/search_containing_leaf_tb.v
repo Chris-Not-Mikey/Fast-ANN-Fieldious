@@ -295,16 +295,17 @@ end
 		    
 	  if (counter == 3'd2) begin
 	    fsm_enable <= 0;
+	     change_fetch_width <= 1;
+              input_fetch_width <= 3'd5;
 	    $display("here2");
     	  end  
 		  
 
 	   if (temp_capture == 11'd1024) begin  //Condition seperating I/O portions (don't read into FIFO)
-              change_fetch_width <= 1;
-              input_fetch_width <= 3'd5;
+             
               counter <= counter + 1;
 	      //fsm_enable <= 0;
-		wdata <= temp_capture[10:0];
+//		wdata <= temp_capture[10:0];
 	    
 	
 	      $display("here");

@@ -301,7 +301,7 @@ end
     	  end  
 		    
 		    
-	  if (temp_capture == 11'd11111111111) begin  //Condition seperating I/O portions (don't read into FIFO)
+	  if (temp_capture == 11'b11111111111) begin  //Condition seperating I/O portions (don't read into FIFO)
              
               counter <= counter + 1;
 	      //fsm_enable <= 0;

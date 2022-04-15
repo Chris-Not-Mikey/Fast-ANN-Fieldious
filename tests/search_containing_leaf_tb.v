@@ -301,11 +301,12 @@ end
              input_fetch_width <= 3'd5;
 	      i_o_state <= i_o_state + 1;
 		
-		
+		//This is a bad design, but a product of our FILO I/O setup
+		//This prevents the "offset" compared to the compare file
 		scan_file = $fscanf(data_file, "%d\n", temp1); 
 		scan_file = $fscanf(data_file, "%d\n", temp2); 
 		  
-	    $display("here2");
+	    
     	  end  
 		    
         if (counter == 3'd2 && (i_o_state == 3'b1)) begin
@@ -337,7 +338,7 @@ end
 	      //fsm_enable <= 0;
 //		wdata <= temp_capture[10:0];
 	    
-	      $display("here");
+	      //$display("here");
 	     
           end
 		        
@@ -420,11 +421,11 @@ end
 
             assert(rpatch0 == hold_expected);
             $display("%t: received = %d, expected = %d", $time, rpatch0, hold_expected);
-            $display("%t: received = %d, expected = %d", $time, rpatch0[10:0], hold_expected[10:0]);
-            $display("%t: received = %d, expected = %d", $time, rpatch0[21:11], hold_expected[21:11]);
-            $display("%t: received = %d, expected = %d", $time, rpatch0[32:22], hold_expected[32:22]);
-            $display("%t: received = %d, expected = %d", $time, rpatch0[43:33], hold_expected[43:33]);
-            $display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);
+//             $display("%t: received = %d, expected = %d", $time, rpatch0[10:0], hold_expected[10:0]);
+//             $display("%t: received = %d, expected = %d", $time, rpatch0[21:11], hold_expected[21:11]);
+//             $display("%t: received = %d, expected = %d", $time, rpatch0[32:22], hold_expected[32:22]);
+//             $display("%t: received = %d, expected = %d", $time, rpatch0[43:33], hold_expected[43:33]);
+//             $display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);
 
 	     end
 	   

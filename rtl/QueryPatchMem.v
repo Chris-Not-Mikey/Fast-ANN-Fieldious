@@ -88,13 +88,7 @@ module QueryPatchMem
       rpatch1 <= {rpatch1_0[21:0], rpatch1_0[54:22]};
       
     end
-    
-    else if (!macro_select_1)  begin
-      
-      rpatch0 <= {rpatch0_1[21:0], rpatch0_1[54:22]};
-      rpatch1 <= {rpatch1_1[21:0], rpatch1_1[54:22]};
-    end
-    
+   
     else begin
       rpatch0 <= {rpatch0_1[21:0], rpatch0_1[54:22]};
       rpatch1 <= {rpatch1_1[21:0], rpatch1_1[54:22]};

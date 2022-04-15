@@ -162,15 +162,15 @@ module search_containing_leaf_tb;
 
 initial begin
 
-  node_file = $fopen("./data/IO_data/internalNodes.txt", "r");
-  if (node_file == `NULL) begin
-    $display("data_file handle was NULL");
-    $finish;
-  end
+//   node_file = $fopen("./data/IO_data/internalNodes.txt", "r");
+//   if (node_file == `NULL) begin
+//     $display("data_file handle was NULL");
+//     $finish;
+//   end
   
 
 
-  data_file = $fopen("./data/IO_data/patches.txt", "r");
+   data_file = $fopen("./data/IO_data/node_patches.txt", "r");
   if (data_file == `NULL) begin
     $display("data_file handle was NULL");
     $finish;

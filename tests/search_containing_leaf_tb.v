@@ -421,7 +421,7 @@ end
     $dumpvars;
 //     $vcdplusmemon();
 //     $vcdpluson(0, aggregator_tb);
-    #290000;
+    #230000;
     $finish(2);
   end
 

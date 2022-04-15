@@ -84,14 +84,14 @@ module QueryPatchMem
   always @ (posedge clk) begin
     
     if (!macro_select_0) begin
-      rpatch0 <= {rpatch0_0[21:0], rpatch0_0[54:22]};
-      rpatch1 <= {rpatch1_0[21:0], rpatch1_0[54:22]};
+      rpatch0 <= rpatch0_0[54:0];
+      rpatch1 <= rpatch1_0[54:0];
       
     end
    
     else begin
-      rpatch0 <= {rpatch0_1[21:0], rpatch0_1[54:22]};
-      rpatch1 <= {rpatch1_1[21:0], rpatch1_1[54:22]};
+      rpatch0 <= rpatch0_1[54:0];
+      rpatch1 <= rpatch1_1[54:0];
     end
     
   end

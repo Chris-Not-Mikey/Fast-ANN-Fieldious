@@ -304,6 +304,7 @@ end
               input_fetch_width <= 3'd5;
               counter <= counter + 1;
 	      //fsm_enable <= 0;
+		wdata <= temp_capture[10:0];
 	    
 	
 	      $display("here");

@@ -293,10 +293,11 @@ end
           scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
 
 	   if (temp_capture == 11'd1024) begin  //Condition seperating I/O portions (don't read into FIFO)
-              change_fetch_width <= 1;
-              input_fetch_width <= 3'd5;
+//               change_fetch_width <= 1;
+//               input_fetch_width <= 3'd5;
               i_o_state <= i_o_state + 1;
-	      wdata <= temp_capture[10:0];
+	      fsm_enable <= 0;
+	    
 		   
 	      
              
@@ -304,11 +305,6 @@ end
 	     
           end
 		    
-	    if (i_o_state == 3'b1) begin
-		   
-		    fsm_enable <= 0;
-		
-	    end
 
           //Prepare to send to FIFO
           else if (!$feof(data_file)) begin

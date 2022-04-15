@@ -69,7 +69,7 @@ module search_containing_leaf_tb;
   logic [`ADDRESS_WIDTH-1:0]                      addr1;
   logic  [(`DATA_WIDTH*`PATCH_SIZE)-1:0]       rpatch1;
 	
-  reg [`FETCH_WIDTH * `DATA_WIDTH - 1 : 0] receiver_din_storage;
+  reg [5 * `DATA_WIDTH - 1 : 0] receiver_din_storage;
 	
   logic fsm_enable;
 
@@ -358,7 +358,7 @@ end
 	   write_latency_counter <= write_latency_counter + 1;
 	   if (write_latency_counter == 3'b01) begin
 		    web0 <= 1'b0; 
-		    receiver_din_storage <= receiver_din;
+		   receiver_din_storage <= receiver_din[54:0];
 		    
 		    wen <= 1;
 		    //addr0 <= addr0 + 1;

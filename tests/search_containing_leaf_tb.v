@@ -189,7 +189,7 @@ initial begin
 	
   #20
 	
-  scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
+ // scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
 	
 	
   // scan_file = $fscanf(data_file, "%d\n", wdata[21:11]); 

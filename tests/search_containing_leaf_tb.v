@@ -279,7 +279,8 @@ end
 
 
   reg [10:0] temp_capture;
-	reg [10:0] temp;
+	reg [10:0] temp1;
+	reg [10:0] temp2;
  reg [2:0] counter;
   always @ (posedge wclk) begin
  
@@ -301,7 +302,8 @@ end
 	      i_o_state <= i_o_state + 1;
 		
 		
-		scan_file = $fscanf(data_file, "%d\n", temp); 
+		scan_file = $fscanf(data_file, "%d\n", temp1); 
+		scan_file = $fscanf(data_file, "%d\n", temp2); 
 		  
 	    $display("here2");
     	  end  

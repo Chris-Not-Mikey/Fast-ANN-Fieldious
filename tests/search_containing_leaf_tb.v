@@ -279,6 +279,7 @@ end
 
 
   reg [10:0] temp_capture;
+ reg [2:0] counter;
   always @ (posedge wclk) begin
  
     //Into FIFO
@@ -291,25 +292,30 @@ end
           
           //Read Data from  I/O
           scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
+		    
+	  if (counter == 3'd2) begin
+	    fsm_enable <= 0;
+	    $display("here2");
+    	  end  
+		  
 
 	   if (temp_capture == 11'd1024) begin  //Condition seperating I/O portions (don't read into FIFO)
-//               change_fetch_width <= 1;
-//               input_fetch_width <= 3'd5;
-              i_o_state <= i_o_state + 1;
-	      fsm_enable <= 0;
+              change_fetch_width <= 1;
+              input_fetch_width <= 3'd5;
+              counter <= counter + 1;
+	      //fsm_enable <= 0;
 	    
-		   
-	      
-             
+	
 	      $display("here");
 	     
           end
-		    
+		        
 
           //Prepare to send to FIFO
           else if (!$feof(data_file)) begin
             //use captured_data as you would any other wire or reg value;
             change_fetch_width <= 0;
+	    counter <= 0;
             wdata <= temp_capture[10:0];
             
           end

@@ -1,5 +1,5 @@
 `define DATA_WIDTH 11
-`define FETCH_WIDTH 5
+`define FETCH_WIDTH 6
 `define DSIZE 11
 `define PATCH_SIZE 5
 `define ASIZE 4
@@ -70,6 +70,8 @@ module search_containing_leaf_tb;
   logic  [(`DATA_WIDTH*`PATCH_SIZE)-1:0]       rpatch1;
 	
   reg [`FETCH_WIDTH * `DATA_WIDTH - 1 : 0] receiver_din_storage;
+	
+  logic fsm_enable;
 
 
   //File I/O Stuff
@@ -219,6 +221,7 @@ end
     receiver_din_storage = 0;
     wdata = 0;
     i_o_state = 0;
+	  fsm_enable = 0;
 	  
     //Agg
     change_fetch_width = 0;

@@ -297,22 +297,24 @@ end
 	     fsm_enable <= 0;
 	     change_fetch_width <= 1;
               input_fetch_width <= 3'd5;
+		  i_o_state <= i_o_state + 1;
+		  
 	    $display("here2");
     	  end  
 		    
 		    
-	  if (temp_capture == 11'b11111111111) begin  //Condition seperating I/O portions (don't read into FIFO)
+// 	  if (temp_capture == 11'b11111111111) begin  //Condition seperating I/O portions (don't read into FIFO)
              
-              counter <= counter + 1;
-	      //fsm_enable <= 0;
-//		wdata <= temp_capture[10:0];
+//               counter <= counter + 1;
+// 	      //fsm_enable <= 0;
+// //		wdata <= temp_capture[10:0];
 	    
-	      $display("here neg");
+// 	      $display("here neg");
 	     
-          end
+//           end
 		  
 
-	   if (temp_capture == 11'd1024) begin  //Condition seperating I/O portions (don't read into FIFO)
+	  if ( (i_o_state == 1'b0) && ((temp_capture == 11'd1024) || (temp_capture == 11'b11111111111))) begin  //Condition seperating I/O portions (don't read into FIFO)
              
               counter <= counter + 1;
 	      //fsm_enable <= 0;

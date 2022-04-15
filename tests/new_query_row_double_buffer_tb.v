@@ -154,6 +154,11 @@ initial begin
   scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
   //wdata[10:0] = captured_data; //11'b0; Let FILE handle provide data
 	
+  #20
+	
+  scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
+	
+	
   // scan_file = $fscanf(data_file, "%d\n", wdata[21:11]); 
    //wdata[21:11] = captured_data; //11'b0; Let FILE handle provide data
 	
@@ -175,12 +180,12 @@ end
     expected_dout <= 11'b0;
     receiver_full_n <= 0;
     read_latency_counter = 3'b0;
-	  write_latency_counter = 3'b0;
+    write_latency_counter = 3'b0;
     expected_ram_dout = 0;
     ren = 0;
     wen = 0;
-	  write_disable = 0;
-	  receiver_din_storage = 0;
+    write_disable = 0;
+    receiver_din_storage = 0;
     wdata = 0;
 	  
     //Agg

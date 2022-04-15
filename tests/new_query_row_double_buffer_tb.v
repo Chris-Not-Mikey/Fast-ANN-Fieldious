@@ -277,14 +277,11 @@ end
 	   
 	   
 	   if (write_latency_counter == 3'b10) begin
-		     web0 <= 1'b1; 
+		    web0 <= 1'b1; 
 		    wen <= 0;
 		    addr0 <= addr0 + 1;
 	   end
-	   
-    
-  
-    
+
    end
 	  
 	 
@@ -310,7 +307,7 @@ end
             expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
 	 
 
-	      if (!$feof(data_file)) begin
+	      if (!$feof(expected_data_file)) begin
 		//ren <= 0;
 
 		csb0 <= 0; //active low

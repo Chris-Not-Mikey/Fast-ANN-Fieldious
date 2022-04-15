@@ -35,7 +35,7 @@ module QueryPatchMem
   
   
   wire [64-1:0]       rpatch0_0;
-  reg [64-1:0]       rpatch0_1;
+  wire [64-1:0]       rpatch0_1;
   wire [64-1:0]       rpatch1_0;
   wire [64-1:0]       rpatch1_1;
   wire [10:0] debug;
@@ -83,7 +83,7 @@ module QueryPatchMem
   
   always @ (posedge clk) begin
     
-    if (!macro_select_0) begin
+    if (1) begin
       rpatch0 <= {rpatch0_0[21:0], rpatch0_0[54:22]};
       rpatch1 <= {rpatch1_0[21:0], rpatch1_0[54:22]};
       
@@ -160,7 +160,7 @@ module QueryPatchMem
         .wmask0(4'hF),
         .addr0(addr0[7:0]),
         .din0(wpatch0[31:0]),
-        .dout0(rpatch0_1[31:0]),
+        .dout0(rpatch0_0[31:0]),
         .clk1(clk),
         .csb1(csb1 || macro_select_1),
         .addr1(addr1[7:0]),
@@ -180,7 +180,7 @@ module QueryPatchMem
          .wmask0(4'hF),
         .addr0(addr0[7:0]),
         .din0({9'b0, wpatch0[54:32]}),
-        .dout0(rpatch0_1[63:32]),
+        .dout0(rpatch0_0[63:32]),
         .clk1(clk),
       .csb1(csb1 || macro_select_1),
         .addr1(addr1[7:0]),

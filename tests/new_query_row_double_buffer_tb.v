@@ -79,7 +79,7 @@ module new_query_row_double_buffer_tb;
   logic   signed [`DSIZE-1:0] expected_captured_data;
      
   
-  always #20 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
+  always #10 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
   always #20 wclk =~wclk;
 	
 	

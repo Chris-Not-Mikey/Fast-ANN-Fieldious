@@ -286,15 +286,16 @@ end
 	  
 	 
 
-    if (ren) begin
+   if (ren && (read_latency_counter != 3'b11)) begin
 	    read_latency_counter <= read_latency_counter + 1;
+	    
 	    csb0 <= 0;
 	    web0 <= 1'b1;
 	   // $display("%t: received = %d", $time, rpatch0);
     end
 
-	 if (ren && (read_latency_counter == 3'b11)) begin 
-	  read_latency_counter <= 3'b0;
+	 else if (ren && (read_latency_counter == 3'b11)) begin 
+	
 	  ren <= 1;
 	  addr0 <= addr0 + 1;
           read_latency_counter <= 0;
@@ -335,7 +336,7 @@ end
     $dumpvars;
 //     $vcdplusmemon();
 //     $vcdpluson(0, aggregator_tb);
-    #90000;
+    #81000;
     $finish(2);
   end
 

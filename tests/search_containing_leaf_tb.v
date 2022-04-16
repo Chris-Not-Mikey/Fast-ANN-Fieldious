@@ -54,9 +54,9 @@ module search_containing_leaf_tb;
 
 
   // Async Fifo Stuff
-  logic [`DSIZE-1:0] rdata;
-  logic wfull;
-  logic rempty;
+  logic [`DSIZE-1:0] rdata_io;
+  logic wfull_io;
+  logic rempty_io;
   logic [`DSIZE-1:0] wdata;
   logic winc, wclk, wrst_n;
   logic rinc, rrst_n;
@@ -94,6 +94,14 @@ module search_containing_leaf_tb;
   logic [`DSIZE-1:0] rdata_wb;
   logic wfull_wb;
   logic rempty_wb;
+	
+	
+  logic [`DSIZE-1:0] rdata;
+  logic wfull;
+  logic rempty;
+	
+	
+ 
 
 
   //File I/O Stuff
@@ -140,10 +148,10 @@ module search_containing_leaf_tb;
       .dCLK(clk),
       .sENQ(fifo_enq),
       .sD_IN(wdata),
-      .sFULL_N(wfull),
+	    .sFULL_N(wfull_io),
       .dDEQ(fifo_deq),
-      .dD_OUT(rdata),
-      .dEMPTY_N(rempty)
+	    .dD_OUT(rdata_io),
+	    .dEMPTY_N(rempty_io)
     );
 	
 
@@ -324,12 +332,32 @@ end
 	assign fifo_enq = wrst_n && (wfull) && (!stall) && (!wish_bone_en);
 	assign fifo_enq_wb = wrst_n && (wfull) && (!stall) && wish_bone_en;
 
+	
+	//Determine proper rdata,rempty,wfull depending on wish bone toggle
+	always @(*) begin
+		if (wish_bone_en) begin
+			rdata = rdata_wb;
+			wfull = wfull_wb;
+			rempty = rempty_wb;
+	
+		end
+		else begin
+			rdata = rdata_io;
+			wfull = wfull_io;
+			rempty = rempty_io;
+	
+		end
+	end
+	
+	
 
   reg [10:0] temp_capture;
 	reg [10:0] temp1;
 	reg [10:0] temp2;
  reg [2:0] counter;
 
+
+	
 
 
 

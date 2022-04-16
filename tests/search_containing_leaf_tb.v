@@ -388,7 +388,12 @@ end
  end
 
 //Write to FIFO
-  always @ (posedge wclk) begin
+	
+	
+ 
+	
+	
+always @ (posedge wbclk) begin
  
     //Into FIFO
 	  if (wrst_n) begin

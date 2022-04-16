@@ -252,6 +252,7 @@ end
   initial begin
     clk <= 0;
     wclk <= 0;
+    wbclk <= 0;
     fifo_valid <=0;
     rst_n <= 0;
     fsm_rst_agg_n <= 0;

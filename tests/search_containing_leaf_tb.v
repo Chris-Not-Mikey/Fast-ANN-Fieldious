@@ -62,6 +62,7 @@ module search_containing_leaf_tb;
   logic rinc, rrst_n;
 
   reg [7:0] node_counter;
+  reg [8:0] patch_counter;
 
   // RAM Stuff
   logic                                       csb0; //Write
@@ -228,6 +229,7 @@ end
     i_o_state = 0;
 	  fsm_enable = 0;
       node_counter = 0;
+	  patch_counter =0;
 	  
     //Agg
     change_fetch_width = 0;
@@ -345,8 +347,16 @@ end
   if (receiver_enq && !write_disable && (i_o_state == 3'b1)) begin //If aggregated 5, write to RAM
       web0 <= 1'b1; //active low
       csb0 <= 0; //Must activate to write as well
-      wen <= 1;
+     
       write_latency_counter <= 0;
+	  
+	  if (patch_counter == 9'd442) begin
+		write_disable <= 1;
+		  
+	  end
+	  else begin
+		   wen <= 1;
+	  end
      
       
     end 
@@ -385,7 +395,7 @@ end
 	
 	  ren <= 1;
 	  addr0 <= addr0 + 1;
-      read_latency_counter <= 0;
+          read_latency_counter <= 0;
 	  
 	    
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 

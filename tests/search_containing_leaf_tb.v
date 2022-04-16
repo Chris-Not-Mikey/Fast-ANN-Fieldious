@@ -84,6 +84,11 @@ module search_containing_leaf_tb;
   reg patch_en;
   wire [7 : 0] leaf_index;
   wire leaf_en;
+	
+	
+  //Wish bone stuff
+  reg wish_bone_en;
+  wire fifo_enq_wb;
 
 
   //File I/O Stuff
@@ -98,6 +103,8 @@ module search_containing_leaf_tb;
   
   always #6.66666667 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
   always #20 wclk =~wclk;
+	
+  always #100 wbclk = ~wbclk; //Clock for wishbone
 	
 	
 	
@@ -127,6 +134,20 @@ module search_containing_leaf_tb;
       .sRST(wrst_n),
       .dCLK(clk),
       .sENQ(fifo_enq),
+      .sD_IN(wdata),
+      .sFULL_N(wfull),
+      .dDEQ(fifo_deq),
+      .dD_OUT(rdata),
+      .dEMPTY_N(rempty)
+    );
+	
+
+   SyncFIFO #(`DATA_WIDTH, 16, 4)
+    wishbone_dut (
+      .sCLK(wbclk),
+      .sRST(wrst_n),
+      .dCLK(clk),
+      .sENQ(fifo_enq_wb),
       .sD_IN(wdata),
       .sFULL_N(wfull),
       .dDEQ(fifo_deq),
@@ -236,9 +257,10 @@ end
     i_o_state = 0;
 	  fsm_enable = 0;
       node_counter = 0;
-	  patch_counter =0;
+	  patch_counter = 0;
 	  read_patch_counter = 0;
 	  patch_en = 0;
+	  wish_bone_en = 0;
 
 	  
     //Agg
@@ -294,7 +316,8 @@ end
 	  
   end
 
-  assign fifo_enq = wrst_n && (wfull) && (!stall);
+	assign fifo_enq = wrst_n && (wfull) && (!stall) && (!wish_bone_en);
+	assign fifo_enq_wb = wrst_n && (wfull) && (!stall) && wish_bone_en;
 
 
   reg [10:0] temp_capture;

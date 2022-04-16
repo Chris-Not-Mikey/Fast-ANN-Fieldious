@@ -356,6 +356,7 @@ end
 	  end
 	  else begin
 		   wen <= 1;
+		  patch_counter <= patch_counter + 1;
 	  end
      
       

@@ -82,7 +82,7 @@ module search_containing_leaf_tb;
 	
   //TREE stuff
   reg patch_en;
-  reg [7 : 0] leaf_index;
+  wire [7 : 0] leaf_index;
 
 
   //File I/O Stuff
@@ -238,7 +238,7 @@ end
 	  patch_counter =0;
 	  read_patch_counter = 0;
 	  patch_en = 0;
-	  leaf_index = 0;
+
 	  
     //Agg
     change_fetch_width = 0;

@@ -1,5 +1,6 @@
 from cmath import inf
 from re import L
+from tarfile import LENGTH_PREFIX
 from turtle import right, xcor
 import kdtree
 import statistics
@@ -39,16 +40,10 @@ def top_to_bottom(tree, patch):
 
         if patch[dim_index] < subtree.data.median[dim_index]:
             subtree = subtree.left
-            # print("Left")
-            # print(dim_index)
-            # print(patch[dim_index])
-            # print(subtree.data.median[dim_index])
 
         else:
             subtree = subtree.right
-            # print("Right")
-            # print(dim_index)
-            # print(subtree.data.median[dim_index])
+          
 
 
     # Once at the leaf, find best index
@@ -59,27 +54,7 @@ def top_to_bottom(tree, patch):
 
     psize = 5
     best_dists = []
-    #print(subtree.data.patches)
-    #TODO: Add best 5
 
-    # def compute_distance(data, point):
-    # dist = 0
-
-    # data_list = []
-
-    # point1 = numpy.array(data_list)
-    # point2 = numpy.array(point)
-
-    # smallest_dist = inf
-    # index = 0
-    # for candidate in data.patches:
-    #     dist = numpy.linalg.norm(candidate[0:5] - point2)
-
-    #     if dist < smallest_dist:
-    #         smallest_dist = dist
-    #         index = candidate[5]
-
-    # return smallest_dist,  int(index)
 
 
     for candidate in subtree.data.patches:
@@ -88,6 +63,11 @@ def top_to_bottom(tree, patch):
 
         dist = numpy.linalg.norm(candidate[0:5] - patch)
 
+
+        for q in best_dists:
+            if int(q[0]) == int(dist): #No duplicates
+                continue
+
         if dist < smallest_dist:
             smallest_dist = dist
             index = candidate[5]
@@ -95,31 +75,30 @@ def top_to_bottom(tree, patch):
 
 
         # We are looking for the 5 best candidates
-        if len(best_dists) < 4:  #UPDATE: Changed to 4
+        if len(best_dists) < 4:  #UPDATE: Changed to 4 per Jake's request
+
+      
+
             best_dists.append([dist, candidate[5], subtree])
-            #best_dists = sorted(best_dists)
             best_dists.sort(key=lambda x: x[0])
 
         else:
 
             found = False
-            #best_dists = sorted(best_dists)
+      
             best_dists.sort(key=lambda x: x[0])
             for comp in best_dists:
 
                 # If calcuated distance is better than one of the current candidates
             
                 if dist < comp[0] and found == False:
-                    
+
                     best_dists.pop()
-                    
                     best_dists.append([dist, candidate[5], subtree])
                     best_dists.sort(key=lambda x: x[0])
-                    #best_dists = sorted(best_dists)
                     found = True
 
 
-    #print(index)
     return int(index), best_dists, leaf_index
 
 
@@ -127,8 +106,8 @@ def top_to_bottom(tree, patch):
 def create_tree_recurse(patches, idx, depth):
 
     if len(patches) <= 5:
-        print("here len(patches")
-        print( len(patches))
+        # print("here len(patches")
+        # print( len(patches))
         return None
 
 
@@ -155,8 +134,8 @@ def create_tree_recurse(patches, idx, depth):
 def create_tree(patches):
 
 
-    print(patches.shape)
-    print("Now add index")
+    # print(patches.shape)
+    # print("Now add index")
 
     counter = 0
 
@@ -195,7 +174,7 @@ def create_tree(patches):
 
 
     #kdtree.visualize(tree)
-    print("V IMPORTANT")
+    print("Is Tree Balanced?  (IMPORTANT)")
     print(tree.is_balanced)
 
 
@@ -262,7 +241,7 @@ def find_dimension_median_max_spread(patches):
 
     # THE MEDAIN IS NOT A SINGLE NUMBER, IT IS 5
 
-    inf_list = [float("inf"),float("inf"),float("inf"),float("inf"),float("inf"), -1]
+    inf_list = [float(1024),float(1024),float(1024),float(1024),float(1024), -1]
     inf_array = numpy.array([inf_list])
 
 
@@ -278,7 +257,7 @@ def find_dimension_median_max_spread(patches):
     # Round median to nearest integer
     for med in range(len(median)):
 
-        print(median[med])
+        #print(median[med])
         median[med] = int(round(median[med]))
         
 
@@ -427,6 +406,8 @@ def compute_distance(data, point):
     return smallest_dist,  int(index)
 
 
+# Unused: Can be used to test if RERANKING, per the papers, is actually effective
+# Empirically, we found this NOT to be effective
 def compute_distance_rerank(data, point, _pca_model):
     dist = 0
 
@@ -447,8 +428,8 @@ def compute_distance_rerank(data, point, _pca_model):
 
 
         dist = numpy.linalg.norm(point1 - point2)
-        print("rerank dist")
-        print(dist)
+        # print("rerank dist")
+        # print(dist)
 
         if dist < smallest_dist:
             smallest_dist = dist
@@ -475,8 +456,8 @@ def compute_distance_non_median(data, point):
     dist = 0
     count = 0
     for i in data.patches:
-        print(i)
-        print(i[0:4])
+        # print(i)
+        # print(i[0:4])
         dist =  dist + (numpy.linalg.norm(i[0:4] - point2))
 
     if (len(data.patches) > 8):
@@ -658,11 +639,18 @@ def compute_all_distances_find_best_new(candidate, point, _pca_model):
        # current_dist = numpy.linalg.norm(cand[2].data.best_dim - point2)
 
         current_dist, idx = compute_distance(cand[2].data, point2)
+
+        for q in best_dists:
+            
+            if int(q[0]) == int(current_dist): #No duplicates
+                continue
      
         #best_five = sorted(best_five)
         best_five.sort(key=lambda x: x[0])
 
         if len(best_five) < 4: #change to 4
+
+        
         
             best_five.append([current_dist, idx, cand[2]])
             #best_five = sorted(best_five)
@@ -673,6 +661,8 @@ def compute_all_distances_find_best_new(candidate, point, _pca_model):
 
                 # If calcuated distance is better than one of the current candidates
                 if current_dist < comp[0]:
+
+
                     #best_five = sorted(best_five)
                     best_five.sort(key=lambda x: x[0])
                     best_five.pop()
@@ -771,8 +761,6 @@ def BFS(tree):
 
 def preorder(tree):
     """ iterator for nodes: root, left, right """
-
-    print("at tree?")
 
     if not tree:
         return
@@ -975,8 +963,6 @@ def preorderFile(tree):
 
 
     result = preorderMedian(tree)
-    print("Look here")
-    print(len(result))
 
     f = open("myfile.txt", "w")
 
@@ -1040,11 +1026,11 @@ class BetterItem(object):
  
 
 
-    # def __eq__(self, other):
-    #     if(self.a == other.a):
-    #         return "Both are equal"
-    #     else:
-    #         return "Not equal"   
+    def __eq__(self, other):
+        if(self.patches == other.patches):
+            return True
+        else:
+            return False  
        
 
     def __len__(self):
@@ -1192,7 +1178,7 @@ if __name__ == "__main__":
     # image_b = cv2.cvtColor(image_b, cv2.COLOR_BGR2GRAY)
     # image_b = cv2.cvtColor(image_b,cv2.COLOR_GRAY2RGB)
 
-    reconstruct_file_name = "../data/gold_results/frame1ball_30_recontruct.png"
+    reconstruct_file_name = "../data/gold_results/frame1ball_30_reconstruct.png"
 
 
     #Image Dimensions
@@ -1234,7 +1220,7 @@ if __name__ == "__main__":
 
     max_patches = patches_b_reduced.shape[0]
 
-    inf_list = [float("inf"),float("inf"),float("inf"),float("inf"),float("inf")]
+    inf_list = [float(1024),float(1024),float(1024),float(1024),float(1024)]
     inf_array = numpy.array([inf_list])
     print(inf_array.shape)
 
@@ -1253,12 +1239,6 @@ if __name__ == "__main__":
     for nodek in range(int(split_num)):
 
         item_list.append(Item(split[nodek], nodek))
-
-
-    # Again, from a list of points
-    #tree = kdtree.create(item_list, dimensions=5)
-
-
 
 
     #  The root node
@@ -1281,6 +1261,10 @@ if __name__ == "__main__":
     # distance = result[0][1]
 
 
+    # print(len(patches_a_reduced))
+    # asf()
+
+
     #Experiment with using ints instead
     for patchRound in patches_a_reduced:
 
@@ -1299,6 +1283,8 @@ if __name__ == "__main__":
     nn_row_storage = []
 
     BFS(tree)
+
+
  
 
     # Top to Bottom Traversal
@@ -1311,58 +1297,9 @@ if __name__ == "__main__":
         # TODO: Report best 5 (k) results
         index, nn_best_dists, leaf_index  = top_to_bottom(tree, patchA)
 
-        print("Leaf Index!")
-        print(leaf_index)
-        print(patchA)
-
-        # asf()
-
-        if count == 20:
-            asf()
-
-        count = count +1
-
-       
-      
-     
-
-        #result = search_knn_custom(patchA, 5, tree, dist=compute_distance_non_median)
-        
-
-        # smallest_cand_dist = inf
-        # smallest_cand_idx = 0
-        # cand_idx = 0
-        # for leafPatch in result[0][0].data.patches:
-
-        #     tempdist = compute_distance_non_median(leafPatch, patchA)
-        #     if tempdist < smallest_cand_dist:
-        #         smallest_cand_dist = tempdist
-        #         smallest_cand_idx = cand_idx
-
-        #     cand_idx = cand_idx + 1
-
-
-
-        # index = int(result[0][0].data.patches[smallest_cand_idx][5])
-        # print(index)
-        # if index < 0:
-        #     print("Uh oh")
-        
-         #psize*(result[0][0].data.count) + result[0][0].data.best_dim_idx
-        #distance = result[0][1]
 
         nn_indices.append(index)
-        #nn_distances.append(distance)
-        #nn_nodes.append(result[0][0])
-
-
-        # Add to a list that will later be used in process rows as an intial guess
-        # for j in range(5):
-            
-        #     nn_best_dists.append([result[j][1], result[j][0].data.depth, result[j][0]])
-          
-
-        
+    
 
         # nn_best_dists = sorted(nn_best_dists)
         nn_row_storage.append(nn_best_dists)
@@ -1382,7 +1319,7 @@ if __name__ == "__main__":
     #TODO: Remove internal nodes
     preorderNodes = preorderLeaves(tree)
 
-    print("Look here!")
+  
     BFS(tree)
 
 
@@ -1391,6 +1328,7 @@ if __name__ == "__main__":
     nn_full_indices = []
     nn_full_distances = []
     row_storage = []
+
 
 
     for patchA2 in patches_a_reduced:
@@ -1407,6 +1345,7 @@ if __name__ == "__main__":
 
         #TODO: Add in to bring in top to bottom results
         for j in range(4): #Changed to 4
+
             best_dists.append(nn_row_storage[row_idx_counter][j])
             #print(nn_row_storage[row_idx_counter][j])
         
@@ -1415,11 +1354,18 @@ if __name__ == "__main__":
         for nodeB in preorderNodes:
 
             dist, idx = compute_distance(nodeB.data, patchA2)
+
+
+            for q in best_dists:
+                    if int(q[0]) == int(dist): #No duplicates
+                        continue
       
          
 
             # We are looking for the 5 best candidates
             if len(best_dists) < 4: #Update 4
+
+               
                 best_dists.append([dist, idx, nodeB])
                 #best_dists = sorted(best_dists)
                 best_dists.sort(key=lambda x: x[0])
@@ -1463,69 +1409,54 @@ if __name__ == "__main__":
 
     # # # Process Rows on remaning rows (Main Algo)
    
-    for patchA3 in patches_a_reduced:
+    for patchA3 in patches_a_reduced[26:]:
 
         if row_idx_counter >= max_patches:
             break
 
 
         # Look at candidates in the row above
-        candidates = row_storage[(row_idx_counter%row_size)]
+        candidates = row_storage[(row_idx_counter%row_size)]    
 
-
-        #Get row below:
-
-        temp_count = 0
-        # print(candidates)
-        # print(len(candidates))
-        # print(candidates[1])
-        # print(candidates[1][1])
-        #asf()
 
         # Better Propagation (Doesn't actually help)
         better = []
-        for prop in range(len(candidates)):
+        for prop in range(1):
 
-            temp_count = temp_count + 1
             prop_index = int(candidates[prop][1] + row_size)
 
 
             if prop_index >= 494:
                 continue
 
-            # for tt in range(5):
-            #    # candidates.append(nn_row_storage[prop_index][tt])
-
-            
-
-
-
-        # print("Old")
-        #print(candidates)
-
-        # print("new")
+            for tt in range(4):
      
+               add = True
+               for q in candidates:
+                   if int(q[0]) == int(nn_row_storage[prop_index][tt][0]):
+                       add = False
+                        
+               if add:
+                candidates.append(nn_row_storage[prop_index][tt])
+
+        
 
         # Add candidates from top to bottom traversal  on current row/index
         # TODO: Add back in
         for t in range(4):  #Change to 4
-            candidates.append(nn_row_storage[row_idx_counter][t])
+            add = True
+            # for qq in candidates:
+            #     if int(qq[0]) == int(nn_row_storage[row_idx_counter][t][0]):
+            #         add = False
+                        
+            if add:
+                candidates.append(nn_row_storage[row_idx_counter][t])
             
-        #     print(nn_row_storage[row_idx_counter][t])
-
-
-
-        #candidates_below = 
-         
  
         # Find the best 5 of these reuslts   
         dist, best_node, best_five = compute_all_distances_find_best_new(candidates, patchA3, _pca_model)
+    
 
-
-        #TODO: REMOVE
-        # new_cands = []
-        # for j in range(5):
-        #     new_cands.append(nn_row_storage[row_idx_counter][j])
             
 
         dist, idx = compute_distance(best_node.data, patchA3)
@@ -1569,6 +1500,9 @@ if __name__ == "__main__":
 
 
 
+
+
+    
 
 
     

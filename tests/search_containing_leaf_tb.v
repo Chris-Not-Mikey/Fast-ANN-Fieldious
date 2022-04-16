@@ -311,7 +311,7 @@ end
     end
 
     else begin
-	     node_counter <= node_counter + 1;  
+	     node_counter <= node_counter;  
     end
 
  end

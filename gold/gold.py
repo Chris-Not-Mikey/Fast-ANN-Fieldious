@@ -634,6 +634,8 @@ def compute_all_distances_find_best_new(candidate, point, _pca_model):
     dist = inf
     best_node = None
     best_five = []
+
+    
     for cand in candidate:
 
        # current_dist = numpy.linalg.norm(cand[2].data.best_dim - point2)
@@ -641,7 +643,6 @@ def compute_all_distances_find_best_new(candidate, point, _pca_model):
         current_dist, idx = compute_distance(cand[2].data, point2)
 
         for q in best_dists:
-            
             if int(q[0]) == int(current_dist): #No duplicates
                 continue
      
@@ -715,7 +716,7 @@ def BFS(tree):
 
         if is_leaf:
             patch_str = "#Starting Leaf \n"
-            f_leaf.write(patch_str)
+            #f_leaf.write(patch_str)
             s.data.leaf_count = leaf_counter
             # print("Here Leaf Counter")
             # print(leaf_counter)
@@ -723,10 +724,10 @@ def BFS(tree):
             for data in s.data.patches:
 
                 patch_str = "#Starting Patch \n"
-                f_leaf.write(patch_str)
+                #f_leaf.write(patch_str)
                 ct = 0
                 for dim in data:
-                    dim_str = str(dim) + "\n"
+                    dim_str = str(int(dim)) + "\n"
                     if ct == 5:
                         dim_str = str(int(dim)) + "\n"
 
@@ -758,6 +759,8 @@ def BFS(tree):
                 s.right.data.visited = True
 
 
+    f_int.close()
+    f_leaf.close()
 
 def preorder(tree):
     """ iterator for nodes: root, left, right """
@@ -1320,7 +1323,7 @@ if __name__ == "__main__":
     preorderNodes = preorderLeaves(tree)
 
   
-    BFS(tree)
+   
 
 
     row_idx_counter = 0
@@ -1330,7 +1333,7 @@ if __name__ == "__main__":
     row_storage = []
 
 
-
+    f_exact_row = open("exactFirstRowBestIndex.txt", "w")
     for patchA2 in patches_a_reduced:
 
         # Only do full traversal on first row (of patch dimensions)
@@ -1403,13 +1406,22 @@ if __name__ == "__main__":
       
         # These are the guesses that will actually count toward the score
         nn_full_indices.append(best_idx)
+
+
+        best_index_str = str(best_idx) + "\n"
+        f_exact_row.write(best_index_str)
+
+
         nn_full_distances.append(best_dist)
      
-
+    f_exact_row.close()
 
     # # # Process Rows on remaning rows (Main Algo)
    
+    f_process_row = open("processRowBestIndex.txt", "w")
     for patchA3 in patches_a_reduced[26:]:
+
+
 
         if row_idx_counter >= max_patches:
             break
@@ -1454,15 +1466,26 @@ if __name__ == "__main__":
             
  
         # Find the best 5 of these reuslts   
+
+        #Best 5 is a misnomer, it is actually best 4 now (My fault for the poor variable name ~Chris)
         dist, best_node, best_five = compute_all_distances_find_best_new(candidates, patchA3, _pca_model)
+
+        best_indexes = []
+        for ix in best_five:
+            
+            best_indexes.append(ix[1])
+            
     
 
-            
 
         dist, idx = compute_distance(best_node.data, patchA3)
+
+      
     
         best_dist = dist
         best_idx = idx
+        best_index_str = str(best_idx) + "\n"
+        f_process_row.write(best_index_str)
         nn_full_indices.append(best_idx)
         nn_full_distances.append(best_dist)
 
@@ -1473,7 +1496,7 @@ if __name__ == "__main__":
        
 
 
-        
+    f_process_row.close()
     # # Compute final score
     patches_a_reconst = patches_b[nn_full_indices]
     diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
@@ -1499,6 +1522,17 @@ if __name__ == "__main__":
     cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))
 
 
+
+
+
+    
+
+
+
+    
+
+
+  
 
 
 

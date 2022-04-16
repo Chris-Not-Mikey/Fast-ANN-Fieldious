@@ -403,7 +403,7 @@ end
 
 	 else if (ren && (read_latency_counter == 3'b11)) begin 
 	
-	  ren <= 1;
+
 	  addr0 <= addr0 + 1;
           read_latency_counter <= 0;
 		 
@@ -416,20 +416,23 @@ end
             expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[43:33]); 
             expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
-	 
-
-	    if (!$feof(expected_data_file)) begin
-		//ren <= 0;
-
-            csb0 <= 0; //active low
-
-            assert(rpatch0 == hold_expected);
+		 
+		 
+	     assert(rpatch0 == hold_expected);
             $display("%t: received = %d, expected = %d", $time, rpatch0, hold_expected);
             $display("%t: received = %d, expected = %d", $time, rpatch0[10:0], hold_expected[10:0]);
             $display("%t: received = %d, expected = %d", $time, rpatch0[21:11], hold_expected[21:11]);
             $display("%t: received = %d, expected = %d", $time, rpatch0[32:22], hold_expected[32:22]);
             $display("%t: received = %d, expected = %d", $time, rpatch0[43:33], hold_expected[43:33]);
             $display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);
+	 
+
+	    if ($feof(expected_data_file)) begin
+		ren <= 0;
+
+            	//csb0 <= 0; //active low
+
+           
 
 	     end
 

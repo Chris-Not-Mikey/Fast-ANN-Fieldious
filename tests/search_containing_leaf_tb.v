@@ -299,15 +299,19 @@ end
 //Read from FIFO and stop if we reach a interput signal in FIFO
  always @ (posedge clk) begin
 
-	 if (((node_counter == 8'd127) && (i_o_state == 0 ) && (fifo_deq) && (rempty) )) begin  //Condition seperating I/O portions (don't read into FIFO)
+   if (((node_counter == 8'd127) && (i_o_state == 0 ) && (fifo_deq) && (rempty) )) begin  //Condition seperating I/O portions (don't read into FIFO)
         //Change fetch width if we are done
         fsm_enable <= 0;
         change_fetch_width <= 1;
         input_fetch_width <= 3'd5;
 	i_o_state <= i_o_state + 1;
     end
-    else begin
+    else if ((fifo_deq) && (rempty)) begin
         node_counter <= node_counter + 1;  
+    end
+
+    else begin
+	     node_counter <= node_counter + 1;  
     end
 
  end

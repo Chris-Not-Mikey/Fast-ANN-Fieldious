@@ -90,6 +90,10 @@ module search_containing_leaf_tb;
   reg wish_bone_en;
   wire fifo_enq_wb;
   reg wbclk;
+	
+  logic [`DSIZE-1:0] rdata_wb;
+  logic wfull_wb;
+  logic rempty_wb;
 
 
   //File I/O Stuff
@@ -150,10 +154,10 @@ module search_containing_leaf_tb;
       .dCLK(clk),
       .sENQ(fifo_enq_wb),
       .sD_IN(wdata),
-      .sFULL_N(wfull),
+      .sFULL_N(wfull_wb),
       .dDEQ(fifo_deq),
-      .dD_OUT(rdata),
-      .dEMPTY_N(rempty)
+      .dD_OUT(rdata_wb),
+      .dEMPTY_N(rempty_wb)
     );
 	
 

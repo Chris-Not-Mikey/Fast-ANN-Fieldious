@@ -34,6 +34,8 @@ module search_containing_leaf_tb;
   reg [1:0] iseven;
   wire even;
 
+  reg fsm_rst_agg_n;
+
 
   reg [2:0] read_latency_counter;
   reg [2:0] write_latency_counter;
@@ -58,6 +60,8 @@ module search_containing_leaf_tb;
   logic [`DSIZE-1:0] wdata;
   logic winc, wclk, wrst_n;
   logic rinc, rrst_n;
+
+  reg [7:0] node_counter;
 
   // RAM Stuff
   logic                                       csb0; //Write
@@ -97,7 +101,7 @@ module search_containing_leaf_tb;
   ) aggregator_inst
   (
     .clk(clk),
-    .rst_n(rst_n),
+    .rst_n(rst_n && fsm_rst_agg_n),
     .sender_data(rdata),
     .sender_empty_n(rempty),
     .sender_deq(fifo_deq),
@@ -208,6 +212,7 @@ end
     wclk <= 0;
     fifo_valid <=0;
     rst_n <= 0;
+    fsm_rst_agg_n <= 0;
     wrst_n = 1'b0;
     stall <= 0; 
     expected_dout <= 11'b0;
@@ -222,6 +227,7 @@ end
     wdata = 0;
     i_o_state = 0;
 	  fsm_enable = 0;
+      node_counter = 0;
 	  
     //Agg
     change_fetch_width = 0;
@@ -240,6 +246,7 @@ end
     receiver_full_n <= 1;
     wrst_n = 1'b1;
     rst_n = 1'b1;
+    fsm_rst_agg_n =  1'b1;
     change_fetch_width = 1;
     
     #20
@@ -282,6 +289,27 @@ end
 	reg [10:0] temp1;
 	reg [10:0] temp2;
  reg [2:0] counter;
+
+
+
+
+
+//Read from FIFO and stop if we reach a interput signal in FIFO
+ always @ (posedge clk) begin
+
+    if (((node_counter == 8'd127) || (i_o_state == 0 ))) begin  //Condition seperating I/O portions (don't read into FIFO)
+        //Change fetch width if we are done
+        fsm_enable <= 0;
+        change_fetch_width <= 1;
+        input_fetch_width <= 3'd5;
+    end
+    else begin
+        node_counter <= node_counter + 1;  
+    end
+
+ end
+
+//Write to FIFO
   always @ (posedge wclk) begin
  
     //Into FIFO
@@ -293,67 +321,19 @@ end
 		    
           
           //Read Data from  I/O
-          scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
-		    
-	if (counter == 3'd2 && (i_o_state == 3'b0)) begin
-	     fsm_enable <= 0;
-	     change_fetch_width <= 1;
-             input_fetch_width <= 3'd5;
-	      i_o_state <= i_o_state + 1;
-		
-		//This is a bad design, but a product of our FILO I/O setup
-		//This prevents the "offset" compared to the compare file
-		scan_file = $fscanf(data_file, "%d\n", temp1); 
-		scan_file = $fscanf(data_file, "%d\n", temp2); 
-		  
-	    
-    	  end  
-		    
-        if (counter == 3'd2 && (i_o_state == 3'b1)) begin
-	     fsm_enable <= 0;
-// 	     change_fetch_width <= 1;
-//              input_fetch_width <= 3'd5;
-	     i_o_state <= i_o_state + 1;
-	     write_disable <= 1;
-		  
-	    $display("here2");
-    	  end  
-		    
-		    
-// 	  if (temp_capture == 11'b11111111111) begin  //Condition seperating I/O portions (don't read into FIFO)
-             
-//               counter <= counter + 1;
-// 	      //fsm_enable <= 0;
-// //		wdata <= temp_capture[10:0];
-	    
-// 	      $display("here neg");
-	     
-//           end
-		  
+            scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
 
-	  if (((temp_capture == 11'd1024) || (temp_capture == 11'b11111111111))) begin  //Condition seperating I/O portions (don't read into FIFO)
-             
-              counter <= counter + 1;
-	      
-	      //fsm_enable <= 0;
-//		wdata <= temp_capture[10:0];
-	    
-	      //$display("here");
-	     
-          end
-		        
 
-          //Prepare to send to FIFO
-          else if (!$feof(data_file)) begin
-            //use captured_data as you would any other wire or reg value;
-	    counter <= 0;
-            wdata <= temp_capture[10:0];
-            
-          end
+            if (!$feof(data_file)) begin
+                //use captured_data as you would any other wire or reg value;
+                counter <= 0;
+                wdata <= temp_capture[10:0];
+                
+            end
     
-	     end
-	  end
-  end
+	    end
+	end
+end
 
 	
   reg [54:0] hold_expected;
@@ -404,14 +384,14 @@ end
 	
 	  ren <= 1;
 	  addr0 <= addr0 + 1;
-          read_latency_counter <= 0;
+      read_latency_counter <= 0;
 	  
 	    
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
-            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
+        expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[43:33]); 
-            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
+        expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
 	 
 
 	    if (!$feof(expected_data_file)) begin

@@ -162,7 +162,7 @@ module search_containing_leaf_tb;
   .sender_enable(receiver_enq),
   .sender_data(receiver_din[21:0]),
   .patch_en(patch_en),
-  .patch_in(patch_in),
+  .patch_in(rpatch0),
   .leaf_index(leaf_index),
   .receiver_en(leaf_en)
 	  
@@ -411,6 +411,8 @@ end
 		 //The first patch contains garbadge values, so we simply flush it out)
 	 if (read_patch_counter != 0) begin
 		 
+	   patch_en <= 1; //Start streaming patches to Tree to get index
+		 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
             expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
@@ -425,12 +427,12 @@ end
 
             	//csb0 <= 0; //active low
      		assert(rpatch0 == hold_expected);
-		    $display("%t: received = %d, expected = %d", $time, rpatch0, hold_expected);
-		    $display("%t: received = %d, expected = %d", $time, rpatch0[10:0], hold_expected[10:0]);
-		    $display("%t: received = %d, expected = %d", $time, rpatch0[21:11], hold_expected[21:11]);
-		    $display("%t: received = %d, expected = %d", $time, rpatch0[32:22], hold_expected[32:22]);
-		    $display("%t: received = %d, expected = %d", $time, rpatch0[43:33], hold_expected[43:33]);
-		    $display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);
+// 		    $display("%t: received = %d, expected = %d", $time, rpatch0, hold_expected);
+// 		    $display("%t: received = %d, expected = %d", $time, rpatch0[10:0], hold_expected[10:0]);
+// 		    $display("%t: received = %d, expected = %d", $time, rpatch0[21:11], hold_expected[21:11]);
+// 		    $display("%t: received = %d, expected = %d", $time, rpatch0[32:22], hold_expected[32:22]);
+// 		    $display("%t: received = %d, expected = %d", $time, rpatch0[43:33], hold_expected[43:33]);
+// 		    $display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);
 
 
 

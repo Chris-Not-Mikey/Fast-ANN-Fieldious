@@ -63,6 +63,7 @@ module search_containing_leaf_tb;
 
   reg [7:0] node_counter;
   reg [8:0] patch_counter;
+	reg [8:0] read_patch_counter;
 
   // RAM Stuff
   logic                                       csb0; //Write
@@ -230,6 +231,7 @@ end
 	  fsm_enable = 0;
       node_counter = 0;
 	  patch_counter =0;
+	  read_patch_counter = 0;
 	  
     //Agg
     change_fetch_width = 0;
@@ -404,9 +406,11 @@ end
 	  ren <= 1;
 	  addr0 <= addr0 + 1;
           read_latency_counter <= 0;
-	  
-	    
-	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
+		 
+	  read_patch_counter <= read_patch_counter + 1;
+	 if (read_patch_counter != 0) begin
+		 
+		     expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
             expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[43:33]); 
@@ -427,6 +431,11 @@ end
             $display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);
 
 	     end
+
+	 end
+	  
+	    
+	
 	   
      end
 

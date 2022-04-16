@@ -83,6 +83,7 @@ module search_containing_leaf_tb;
   //TREE stuff
   reg patch_en;
   wire [7 : 0] leaf_index;
+  wire leaf_en;
 
 
   //File I/O Stuff

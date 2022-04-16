@@ -299,7 +299,7 @@ end
 //Read from FIFO and stop if we reach a interput signal in FIFO
  always @ (posedge clk) begin
 
-   if (((node_counter == 8'd127) && (i_o_state == 0 ))) begin  //Condition seperating I/O portions (don't read into FIFO)
+   if (((node_counter == 8'd127) && (i_o_state == 0 ) && (fifo_deq) )) begin  //Condition seperating I/O portions (don't read into FIFO)
         //Change fetch width if we are done
         fsm_enable <= 0;
         change_fetch_width <= 1;
@@ -401,9 +401,9 @@ end
 	    
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
-        expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
+            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[43:33]); 
-        expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
+            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
 	 
 
 	    if (!$feof(expected_data_file)) begin

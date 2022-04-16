@@ -408,9 +408,10 @@ end
           read_latency_counter <= 0;
 		 
 	  read_patch_counter <= read_patch_counter + 1;
+		 //The first patch contains garbadge values, so we simply flush it out)
 	 if (read_patch_counter != 0) begin
 		 
-		     expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
+	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
             expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[43:33]); 
@@ -446,7 +447,7 @@ end
     $dumpvars;
 //     $vcdplusmemon();
 //     $vcdpluson(0, aggregator_tb);
-    #191000;
+    #291000;
     $finish(2);
   end
 

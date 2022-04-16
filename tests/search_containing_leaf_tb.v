@@ -78,6 +78,10 @@ module search_containing_leaf_tb;
   reg [5 * `DATA_WIDTH - 1 : 0] receiver_din_storage;
 	
   logic fsm_enable;
+	
+	
+  //TREE stuff
+  reg patch_en;
 
 
   //File I/O Stuff
@@ -232,6 +236,7 @@ end
       node_counter = 0;
 	  patch_counter =0;
 	  read_patch_counter = 0;
+	  patch_en = 0;
 	  
     //Agg
     change_fetch_width = 0;

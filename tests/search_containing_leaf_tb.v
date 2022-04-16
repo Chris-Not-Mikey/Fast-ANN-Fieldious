@@ -158,7 +158,7 @@ module search_containing_leaf_tb;
    internal_node_tree
   #(
    .INTERNAL_WIDTH(`STORAGE_WIDTH),
-   .PATCH_WIDTH(`DATA_WIDTH),
+   .PATCH_WIDTH(55),
    .ADDRESS_WIDTH(`ADDRESS_WIDTH - 1)
   ) tree_dut (
   .clk(clk),

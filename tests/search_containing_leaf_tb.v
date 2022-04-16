@@ -302,6 +302,7 @@ end
         fsm_enable <= 0;
         change_fetch_width <= 1;
         input_fetch_width <= 3'd5;
+	i_o_state <= i_o_state + 1;
     end
     else begin
         node_counter <= node_counter + 1;  

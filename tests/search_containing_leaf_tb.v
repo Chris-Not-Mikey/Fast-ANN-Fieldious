@@ -89,6 +89,7 @@ module search_containing_leaf_tb;
   //Wish bone stuff
   reg wish_bone_en;
   wire fifo_enq_wb;
+  reg wbclk;
 
 
   //File I/O Stuff

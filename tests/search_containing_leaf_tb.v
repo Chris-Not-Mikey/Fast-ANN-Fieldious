@@ -441,7 +441,7 @@ end
 		write_disable <= 1;
 		addr0 <= 0;
 		  ren <= 1;
-		  ead_latency_counter <= 0;
+		  read_latency_counter <= 0;
 		  
 		  
 	  end

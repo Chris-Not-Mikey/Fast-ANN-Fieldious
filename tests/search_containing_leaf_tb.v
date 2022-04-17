@@ -291,7 +291,7 @@ end
 
 
     #100 
-    wish_bone_en = 1;
+    wish_bone_en = 0;
     receiver_full_n <= 1;
     wrst_n = 1'b1;
     rst_n = 1'b1;
@@ -522,7 +522,7 @@ end
     $dumpvars;
 //     $vcdplusmemon();
 //     $vcdpluson(0, aggregator_tb);
-    #191000;
+    #291000;
     $finish(2);
   end
 

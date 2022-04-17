@@ -393,7 +393,7 @@ end
  
 	
 	
-always @ (posedge wbclk) begin
+always @ (posedge wclk) begin
  
     //Into FIFO
 	  if (wrst_n) begin

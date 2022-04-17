@@ -336,17 +336,20 @@ end
 
 	
 	//Determine proper rdata,rempty,wfull depending on wish bone toggle
+	reg write_clock;
 	always @(*) begin
 		if (wish_bone_en) begin
 			rdata = rdata_wb;
 			wfull = wfull_wb;
 			rempty = rempty_wb;
+			write_clock = wbclk;
 	
 		end
 		else begin
 			rdata = rdata_io;
 			wfull = wfull_io;
 			rempty = rempty_io;
+			write_clock = wclk;
 	
 		end
 	end
@@ -391,9 +394,9 @@ end
 	
 	
  
+
 	
-	
-always @ (posedge wclk) begin
+always @ (posedge write_clock) begin
  
     //Into FIFO
 	  if (wrst_n) begin

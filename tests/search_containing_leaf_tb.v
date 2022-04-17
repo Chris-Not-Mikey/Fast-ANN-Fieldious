@@ -291,7 +291,7 @@ end
 
 
     #100 
-    wish_bone_en = 0;
+    wish_bone_en = 1;
     receiver_full_n <= 1;
     wrst_n = 1'b1;
     rst_n = 1'b1;

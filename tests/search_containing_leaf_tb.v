@@ -160,7 +160,7 @@ module search_containing_leaf_tb;
       .sCLK(wbclk),
       .sRST(wrst_n),
       .dCLK(clk),
-	    .sENQ(fifo_enq_wb && wish_bone_en),
+	    .sENQ(fifo_enq && wish_bone_en),
       .sD_IN(wdata),
       .sFULL_N(wfull_wb),
       .dDEQ(fifo_deq),

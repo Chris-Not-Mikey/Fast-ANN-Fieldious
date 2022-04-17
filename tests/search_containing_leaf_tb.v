@@ -319,15 +319,15 @@ end
    
 	//Write to Query Patch Memory
 
-    #190000
+//     #190000
 
-    //Now read from memory
-    addr0 <= 0;
-    write_disable <= 1;
-    #100
-    ren <= 1;
+//     //Now read from memory
+//     addr0 <= 0;
+//     write_disable <= 1;
+//     #100
+//     ren <= 1;
     
-    read_latency_counter <= 0;
+//     read_latency_counter <= 0;
 	  
   end
 
@@ -368,8 +368,13 @@ end
 
 
 //Read from FIFO and stop if we reach a interput signal in FIFO
+//"The interupt" signal, is actually just a counter register
+//Since we know the size of the input is fixed, we simply count inputs until we are done
+//This is poor design for generality, but for a system where I/O is a concern, this is foolproof way
+// to work with I/O, wishbone, without altering any input streams
  always @ (posedge clk) begin
 
+   // (TOP LEVEL: Include counter register like this)
    if (((node_counter == 8'd127) && (i_o_state == 0 ) && (fifo_deq) && (rempty) )) begin  //Condition seperating I/O portions (don't read into FIFO)
         //Change fetch width if we are done
         fsm_enable <= 0;
@@ -389,13 +394,11 @@ end
     end
 
  end
+	
+	
+	
 
 //Write to FIFO
-	
-	
- 
-
-	
 always @ (posedge write_clock) begin
  
     //Into FIFO
@@ -433,7 +436,13 @@ end
       write_latency_counter <= 0;
 	  
 	  if (patch_counter == 9'd442) begin
+		  
+		  //Stop writing, start reading (TOP LEVEL: Include counter register like this)
 		write_disable <= 1;
+		addr0 <= 0;
+		  ren <= 1;
+		  ead_latency_counter <= 0;
+		  
 		  
 	  end
 	  else begin

@@ -375,7 +375,7 @@ end
  always @ (posedge clk) begin
 
    // (TOP LEVEL: Include counter register like this)
-   if (((node_counter == 8'd127) && (i_o_state == 0 ) && (fifo_deq) && (rempty) )) begin  //Condition seperating I/O portions (don't read into FIFO)
+   if (((node_counter == 8'd126) && (i_o_state == 0 ) && (fifo_deq) && (rempty) )) begin  //Condition seperating I/O portions (don't read into FIFO)
         //Change fetch width if we are done
         fsm_enable <= 0;
         change_fetch_width <= 1;

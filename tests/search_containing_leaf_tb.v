@@ -146,7 +146,7 @@ module search_containing_leaf_tb;
       .sCLK(wclk),
       .sRST(wrst_n),
       .dCLK(clk),
-      .sENQ(fifo_enq),
+	    .sENQ(fifo_enq && !wish_bone_en),
       .sD_IN(wdata),
 	    .sFULL_N(wfull_io),
       .dDEQ(fifo_deq),
@@ -160,7 +160,7 @@ module search_containing_leaf_tb;
       .sCLK(wbclk),
       .sRST(wrst_n),
       .dCLK(clk),
-      .sENQ(fifo_enq_wb),
+	    .sENQ(fifo_enq_wb && wish_bone_en),
       .sD_IN(wdata),
       .sFULL_N(wfull_wb),
       .dDEQ(fifo_deq),
@@ -331,8 +331,8 @@ end
 	  
   end
 
-	assign fifo_enq = wrst_n && (wfull) && (!stall) && (!wish_bone_en);
-	assign fifo_enq_wb = wrst_n && (wfull) && (!stall) && wish_bone_en;
+	assign fifo_enq = wrst_n && (wfull) && (!stall);
+	//assign fifo_enq_wb = wrst_n && (wfull) && (!stall) && wish_bone_en;
 
 	
 	//Determine proper rdata,rempty,wfull depending on wish bone toggle
@@ -402,20 +402,19 @@ always @ (posedge wbclk) begin
 	    if (fifo_enq) begin
 	       //scan_file = $fscanf(data_file, "%d\n", captured_data); 
 		    
-          
-          //Read Data from  I/O
-            scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
+
+		  //Read Data from  I/O
+		    scan_file = $fscanf(data_file, "%d\n", temp_capture[10:0]); 
 
 
-            if (!$feof(data_file)) begin
-                //use captured_data as you would any other wire or reg value;
-                counter <= 0;
-                wdata <= temp_capture[10:0];
-                
-            end
-    
-	    end
-	end
+		    if (!$feof(data_file)) begin
+			//use captured_data as you would any other wire or reg value;
+			counter <= 0;
+			wdata <= temp_capture[10:0];
+
+		    end
+		end
+    end
 end
 
 	

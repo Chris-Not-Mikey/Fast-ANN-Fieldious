@@ -367,7 +367,7 @@ end
     //input_fetch_width = 3'd2;
     //change_fetch_width <= 1'b1;
     receiver_full_n <=1;
-    fsm_enable <= 1;
+
 	   
     // #10200
     // fsm_enable <= 0; //Turn off to stop overwriting data
@@ -442,8 +442,9 @@ end
         input_fetch_width <= 3'd2;
 	    i_o_state <= i_o_state + 1;
 	    fsm_rst_agg_n <= 0;
+		 fsm_enable <= 1;
     end
-	 else if ( (i_o_state == 3'b0  ) && (rempty)) begin
+    else if ( (i_o_state == 3'b0  ) && (rempty)) begin
         leaf_counter <= leaf_counter + 1;  
 	 fsm_rst_agg_n <= 1;
         leaf_web0 <= 1'b1; //active low

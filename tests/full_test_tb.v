@@ -576,6 +576,7 @@ end
 	
   reg [54:0] hold_expected;
   reg [527:0] hold_leaf_expected;
+	reg [47:0] hold_leaf_debug;
 
   //RAM and check (both LEAF and Query)
   always @ (posedge clk) begin
@@ -746,7 +747,7 @@ end
 	   
 		 
 		 
-	
+	     hold_leaf_debug = rleaf0[0];
 
 	     if (!$feof(expected_leaf_data_file)) begin
 	//	ren <= 0;

@@ -261,7 +261,7 @@ initial begin
   
 
 
-  data_file = $fopen("./data/IO_data/nodes_patches.txt", "r");
+  data_file = $fopen("./data/IO_data/nodes_patches_leaves.txt", "r");
   if (data_file == `NULL) begin
     $display("data_file handle was NULL");
     $finish;

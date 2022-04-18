@@ -92,7 +92,7 @@ module search_containing_leaf_tb;
 	logic [5:0]                      leaf_addr1;
 	logic  [`PATCH_SIZE-1:0] [`DATA_WIDTH-1:0]   rleaf1 [`LEAF_SIZE-1:0];
 
-    reg [(`PATCH_SIZE * `DATA_WIDTH * `LEAF_SIZE) - 1 : 0] receiver_din_leaf_storage;
+    reg [(`PATCH_SIZE * `DATA_WIDTH ) - 1 : 0] receiver_din_leaf_storage; [`LEAF_SIZE-1:0]
     reg leaf_write_disable;
     reg leaf_wen;
 
@@ -472,7 +472,14 @@ end
 	   write_latency_counter <= write_latency_counter + 1;
 	   if (write_latency_counter == 3'b01) begin
 		   leaf_web0 <= 1'b0; 
-		   receiver_din_leaf_storage <= receiver_din;
+		   receiver_din_leaf_storage[0] <= receiver_din[54:0];
+		   receiver_din_leaf_storage[1] <= receiver_din[109:55];
+		   receiver_din_leaf_storage[2] <= receiver_din[164:110];
+		   receiver_din_leaf_storage[3] <= receiver_din[219:165];
+		   receiver_din_leaf_storage[4] <= receiver_din[274:220];
+		   receiver_din_leaf_storage[5] <= receiver_din[329:275];
+		   receiver_din_leaf_storage[6] <= receiver_din[384:330];
+		   receiver_din_leaf_storage[7] <= receiver_din[439:385];
 		    
 		    leaf_wen <= 1;
 		    //addr0 <= addr0 + 1;

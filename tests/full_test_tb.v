@@ -92,7 +92,7 @@ module search_containing_leaf_tb;
 	logic [5:0]                      leaf_addr1;
 	logic  [`PATCH_SIZE:0] [`DATA_WIDTH-1:0]   rleaf1 [`LEAF_SIZE-1:0];
 
-	reg [(`PATCH_SIZE * `DATA_WIDTH ) - 1 : 0] receiver_din_leaf_storage [`LEAF_SIZE-1:0];
+	reg [(6 * `DATA_WIDTH ) - 1 : 0] receiver_din_leaf_storage [`LEAF_SIZE-1:0];
     reg leaf_write_disable;
     reg leaf_wen;
 

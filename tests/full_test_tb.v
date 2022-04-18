@@ -325,7 +325,7 @@ end
     write_disable = 0;
     leaf_write_disable = 0;
     receiver_din_storage = 0;
-    wdata = 11'd1818;
+    wdata = 0;
     i_o_state = 0;
 	  fsm_enable = 0;
       node_counter = 0;

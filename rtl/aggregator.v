@@ -1,7 +1,7 @@
 module aggregator
 #(
   parameter DATA_WIDTH = 16,
-  parameter FETCH_WIDTH = 6 //6 is the most we will use, so we will use this by default
+  parameter FETCH_WIDTH = 40 //40 is the most we will use, so we will use this by default
 )
 (
   input clk,
@@ -34,7 +34,7 @@ module aggregator
   endgenerate
   
   
-  reg [2:0] LOCAL_FETCH_WIDTH;
+  reg [5:0] LOCAL_FETCH_WIDTH;
   always @ (posedge clk) begin
     if (!rst_n) begin
        LOCAL_FETCH_WIDTH <= FETCH_WIDTH;
@@ -42,7 +42,7 @@ module aggregator
     end
     
     else if (change_fetch_width) begin
-       LOCAL_FETCH_WIDTH <= input_fetch_width;
+      LOCAL_FETCH_WIDTH <= {3'b0, input_fetch_width};
     end
     
     else begin

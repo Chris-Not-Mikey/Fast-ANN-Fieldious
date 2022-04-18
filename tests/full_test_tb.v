@@ -757,7 +757,7 @@ end
 	//	ren <= 0;
 
             	//csb0 <= 0; //active low
-		     assert(hold_leaf_debug[63:0] == hold_leaf_expected[63:0]);
+		     assert(hold_leaf_debug[54:0] == hold_leaf_expected[54:0]);
 		     $display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0[0], hold_leaf_expected[47:0]);
 		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_debug[10:0], hold_leaf_expected[10:0]);
 		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_debug[21:11], hold_leaf_expected[21:11]);

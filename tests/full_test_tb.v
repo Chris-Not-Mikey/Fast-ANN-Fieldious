@@ -85,15 +85,16 @@ module search_containing_leaf_tb;
 
    logic                                       leaf_csb0;
    logic                                       leaf_web0;
-   logic [ADDR_WIDTH-1:0]                      leaf_addr0;
-   logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     wleaf0 [LEAF_SIZE-1:0];
-   logic  [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]   rleaf0 [LEAF_SIZE-1:0];
+	logic [5:0]                      leaf_addr0;
+	logic [`PATCH_SIZE-1:0] [`DATA_WIDTH-1:0]     wleaf0 [`LEAF_SIZE-1:0];
+	logic  [`PATCH_SIZE-1:0] [`DATA_WIDTH-1:0]   rleaf0 [`LEAF_SIZE-1:0];
     logic                                       leaf_csb1;
-    logic [ADDR_WIDTH-1:0]                      leaf_addr1;
-    logic  [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]   rleaf1 [LEAF_SIZE-1:0];
+	logic [5:0]                      leaf_addr1;
+	logic  [`PATCH_SIZE-1:0] [`DATA_WIDTH-1:0]   rleaf1 [`LEAF_SIZE-1:0];
 
     reg [(`PATCH_SIZE * `DATA_WIDTH * `LEAF_SIZE) - 1 : 0] receiver_din_leaf_storage;
     reg leaf_write_disable;
+    reg leaf_wen;
 
 
 
@@ -343,6 +344,7 @@ end
     wleaf0 = 0;
     leaf_csb1 = 1; //Read
     leaf_addr1 = 0;
+    leaf_wen = 0;
 
 
     #100 

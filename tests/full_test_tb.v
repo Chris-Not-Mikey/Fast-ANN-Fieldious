@@ -87,10 +87,10 @@ module search_containing_leaf_tb;
    logic                                       leaf_web0;
 	logic [5:0]                      leaf_addr0;
 	logic [`PATCH_SIZE-1:0] [`DATA_WIDTH-1:0]     wleaf0 [`LEAF_SIZE-1:0];
-	logic  [`PATCH_SIZE-1:0] [`DATA_WIDTH-1:0]   rleaf0 [`LEAF_SIZE-1:0];
+	logic  [`PATCH_SIZE:0] [`DATA_WIDTH-1:0]   rleaf0 [`LEAF_SIZE-1:0]; //note PATCH size is 6 here
     logic                                       leaf_csb1;
 	logic [5:0]                      leaf_addr1;
-	logic  [`PATCH_SIZE-1:0] [`DATA_WIDTH-1:0]   rleaf1 [`LEAF_SIZE-1:0];
+	logic  [`PATCH_SIZE:0] [`DATA_WIDTH-1:0]   rleaf1 [`LEAF_SIZE-1:0];
 
 	reg [(`PATCH_SIZE * `DATA_WIDTH ) - 1 : 0] receiver_din_leaf_storage [`LEAF_SIZE-1:0];
     reg leaf_write_disable;
@@ -576,8 +576,8 @@ end
 	
   reg [54:0] hold_expected;
   reg [527:0] hold_leaf_expected;
-	reg [47:0] hold_leaf_debug;
-	reg [47:0] hold_leaf_8_debug;
+	reg [65:0] hold_leaf_debug;
+	reg [65:0] hold_leaf_8_debug;
 
   //RAM and check (both LEAF and Query)
   always @ (posedge clk) begin
@@ -755,20 +755,21 @@ end
 	//	ren <= 0;
 
             	//csb0 <= 0; //active low
-		     assert(rleaf0[0] == hold_leaf_expected[47:0]);
+		     assert(rleaf0[0] == hold_leaf_expected[65:0]);
 		     $display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0[0], hold_leaf_expected[47:0]);
 		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_debug[10:0], hold_leaf_expected[10:0]);
 		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_debug[21:11], hold_leaf_expected[21:11]);
 		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_debug[32:22], hold_leaf_expected[32:22]);
 		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_debug[43:33], hold_leaf_expected[43:33]);
 		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_debug[54:44], hold_leaf_expected[54:44]);
+		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_debug[65:55], hold_leaf_expected[65:55]);
 		     
-		     $display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0[7], hold_leaf_expected[47:0]);
-		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_8_debug[10:0], hold_leaf_expected[10:0]);
-		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_8_debug[21:11], hold_leaf_expected[21:11]);
-		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_8_debug[32:22], hold_leaf_expected[32:22]);
-		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_8_debug[43:33], hold_leaf_expected[43:33]);
-		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_8_debug[54:44], hold_leaf_expected[54:44]);
+// 		     $display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0[7], hold_leaf_expected[47:0]);
+// 		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_8_debug[10:0], hold_leaf_expected[10:0]);
+// 		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_8_debug[21:11], hold_leaf_expected[21:11]);
+// 		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_8_debug[32:22], hold_leaf_expected[32:22]);
+// 		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_8_debug[43:33], hold_leaf_expected[43:33]);
+// 		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_8_debug[54:44], hold_leaf_expected[54:44]);
 // 		    $display("%t: received = %d, expected = %d", $time, rpatch0[32:22], hold_expected[32:22]);
 // 		    $display("%t: received = %d, expected = %d", $time, rpatch0[43:33], hold_expected[43:33]);
 // 		    $display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);

@@ -135,6 +135,12 @@ module search_containing_leaf_tb;
   integer               expected_data_file    ; // file handler
   integer               expected_scan_file    ; // file handler
   logic   signed [`DSIZE-1:0] expected_captured_data;
+	
+	
+   integer               expected_leaf_data_file    ; // file handler
+  integer               expected_leaf_scan_file    ; // file handler
+ logic   signed [`DSIZE-1:0] expected_leaf_captured_data;
+     
      
   
   always #6.66666667 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
@@ -273,6 +279,13 @@ initial begin
     $display("expected_data_file handle was NULL");
     $finish;
   end
+	
+  expected_leaf_data_file = $fopen("./data/IO_data/expected_leaves.txt", "r");
+  if (expected_leaf_data_file == `NULL) begin
+    $display("expected_leaf_data_file handle was NULL");
+    $finish;
+  end
+
 
   scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
   //wdata[10:0] = captured_data; //11'b0; Let FILE handle provide data
@@ -437,6 +450,7 @@ end
 
         leaf_web0 <= 1'b1; //active low
         leaf_csb0 <= 0; //Must activate to write as well
+        leaf_addr0 <= 0; //change back to original leaf address (for verification)
      
         change_fetch_width <= 1;
         input_fetch_width <= 3'd2;
@@ -560,8 +574,9 @@ end
 
 	
   reg [54:0] hold_expected;
+  reg [527:0] hold_leaf_expected;
 
-  //RAM and check
+  //RAM and check (both LEAF and Query)
   always @ (posedge clk) begin
   //$display("%t: received = %d", $time, rpatch1);
   if (receiver_enq && !write_disable && (i_o_state == 3'b10)) begin //If aggregated 5, write to RAM
@@ -621,6 +636,8 @@ end
 	 else if (ren && (read_latency_counter == 3'b11)) begin 
 	
 
+		 
+	  //Query
 	  addr0 <= addr0 + 1;
           read_latency_counter <= 0;
 		 
@@ -656,7 +673,99 @@ end
 	     end
 
 	 end
-	  
+		 
+	//Leaf
+	   leaf_addr0 <= leaf_addr0 + 1;
+          read_latency_counter <= 0;
+		 
+	  read_patch_counter <= read_patch_counter + 1;
+		 //The first patch contains garbadge values, so we simply flush it out)
+	 if (read_patch_counter != 0) begin
+		 
+	   patch_en <= 1; //Start streaming patches to Tree to get index
+		 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[10:0]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[21:11]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[32:22]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[43:33]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[54:44]); 
+
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[65:55]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[76:66]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[87:77]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[98:88]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[109:99]); 
+
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[120:110]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[131:121]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[142:132]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[153:143]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[164:154]); 
+
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[175:165]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[186:176]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[197:187]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[208:198]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[219:209]); 
+
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[230:220]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[241:231]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[252:242]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[263:253]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[274:264]); 
+
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[285:275]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[296:286]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[307:297]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[318:308]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[329:319]); 
+
+
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[340:330]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[351:341]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[362:352]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[373:363]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[384:374]); 
+
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[395:385]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[406:396]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[417:407]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[428:418]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[439:429]); 
+
+       expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[450:440]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[461:451]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[472:462]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[483:473]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[494:484]); 
+
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[505:495]); 
+	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[516:506]); 
+      expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[527:517]); 
+	   
+		 
+		 
+	
+
+	     if (!$feof(expected_leaf_data_file)) begin
+	//	ren <= 0;
+
+            	//csb0 <= 0; //active low
+     		assert(rleaf0 == hold_leaf_expected);
+		    $display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0, hold_leaf_expected);
+		    $display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0[10:0], hold_leaf_expected[10:0]);
+		    /$display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0[21:11], hold_leaf_expected[21:11]);
+		    // $display("%t: received = %d, expected = %d", $time, rpatch0[32:22], hold_expected[32:22]);
+		    // $display("%t: received = %d, expected = %d", $time, rpatch0[43:33], hold_expected[43:33]);
+		    // $display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);
+
+
+
+	     end
+
+	 end
+		 
+	//End check
 	    
 	
 	   

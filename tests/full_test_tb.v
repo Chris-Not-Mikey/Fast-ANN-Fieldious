@@ -754,7 +754,7 @@ end
      		assert(rleaf0 == hold_leaf_expected);
 		    $display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0, hold_leaf_expected);
 		    $display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0[10:0], hold_leaf_expected[10:0]);
-		    /$display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0[21:11], hold_leaf_expected[21:11]);
+		    $display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0[21:11], hold_leaf_expected[21:11]);
 		    // $display("%t: received = %d, expected = %d", $time, rpatch0[32:22], hold_expected[32:22]);
 		    // $display("%t: received = %d, expected = %d", $time, rpatch0[43:33], hold_expected[43:33]);
 		    // $display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);

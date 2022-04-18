@@ -754,6 +754,7 @@ end
 
             	//csb0 <= 0; //active low
 		     assert(rleaf0[0] == hold_leaf_expected[47:0]);
+		     $display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0[0], hold_leaf_expected[47:0]);
 		     $display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0[0][10:0], hold_leaf_expected[10:0]);
 		     $display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0[0][21:11], hold_leaf_expected[21:11]);
 		     $display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0[0][32:22], hold_leaf_expected[32:22]);

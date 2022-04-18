@@ -535,7 +535,7 @@ end
         input_fetch_width <= 3'd5;
         i_o_state <= i_o_state + 1;
         fsm_rst_agg_n <= 0;
-	   leaf_addr0 <= 0; //for verifcation(weird spot for this, but should happen several cycles after)
+	      leaf_addr0 <= 0; //for verifcation(weird spot for this, but should happen several cycles after)
     end
     else if ((fifo_deq) && (rempty)) begin
         node_counter <= node_counter + 1;  
@@ -576,6 +576,15 @@ always @ (posedge write_clock) begin
 		end
     end
 end
+
+ always @ (posedge clk) begin
+
+   if (leaf_en) begin
+
+     leaf_addr0 <= leaf_index[5:0];
+   end
+
+ end
 
 	
   reg [54:0] hold_expected;
@@ -687,7 +696,7 @@ end
 		 
 	  //read_patch_counter <= read_patch_counter + 1;
 		 //The first patch contains garbadge values, so we simply flush it out)
-		 if (verification_leaf_counter < 7'd64) begin
+		 if (verification_leaf_counter < 7'd64 && 0) begin
 		 
 	   //patch_en <= 1; //Start streaming patches to Tree to get index
 			 verification_leaf_counter <= verification_leaf_counter + 1;
@@ -792,6 +801,8 @@ end
      end
 
   end
+	
+  
 
   initial begin
     $dumpfile("dump.vcd");

@@ -74,8 +74,6 @@ module MainFSM #(
     logic [6:0] query_cnt_read;
     logic signed [PATCH_SIZE-1:0] [DATA_WIDTH-1:0] cur_query_patch;
     logic qp_mem_rvalid1;
-    logic donefirstquery;
-    logic donefirstquery_next;
     logic best_arr_cur_row;
     logic switch_bank;
     logic query_cnt_read_done;
@@ -119,7 +117,6 @@ module MainFSM #(
         counter_en = '0;
         counter_in = '0;
         qp_mem_rvalid1 = '0;
-        donefirstquery_next = '0;
         switch_bank = '0;
         query_cnt_read_done = '0;
 
@@ -198,13 +195,9 @@ module MainFSM #(
                 leaf_mem_web0 = '1;
                 leaf_mem_addr0 = counter;
 
-                if ((query_cnt_read == NUM_ROWS - 1) && (counter_done)) begin
+                if ((query_cnt_read == 0) && (counter_done)) begin
                     nextState = ExactFstRowLast;
                 end
-
-                // if (counter_done) begin
-                //     donefirstquery_next = 1'b1;
-                // end
 
                 if (counter == 1) begin
                     k0_query_first_in = 1'b1;
@@ -212,7 +205,6 @@ module MainFSM #(
                     k0_query_patch = qp_mem_rpatch1;
                 end
 
-                // if ((counter == 0) && donefirstquery) begin
                 if (counter == 0) begin
                     qp_mem_csb1 = 1'b0;
                     qp_mem_addr1 = query_cnt_read;
@@ -370,14 +362,6 @@ module MainFSM #(
         if (~rst_n) cur_query_patch <= '0;
         else if (qp_mem_rvalid1) begin
             cur_query_patch <= qp_mem_rpatch1;
-        end
-    end
-    
-    
-    always_ff @(posedge clk, negedge rst_n) begin
-        if (~rst_n) donefirstquery <= '0;
-        else if (donefirstquery_next) begin
-            donefirstquery <= 1'b1;
         end
     end
     

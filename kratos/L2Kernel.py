@@ -114,62 +114,90 @@ class L2Kernel(Generator):
             self.add_code(update_patch_diff)
 
             self._diff2 = self.var(f"p{i}_diff2", 
-                                   width=self.data_width,
+                                   width=self.data_width*2,
                                    size=self.pca_size,
                                    is_signed=True,
                                    explicit_array=True)
             self._diff2_unsigned = self.var(f"p{i}_diff2_unsigned", 
-                                            width=self.data_width,
+                                            width=self.data_width*2,
                                             size=self.pca_size,
                                             is_signed=False,
                                             explicit_array=True)
+            self._diff2_overflow_p = self.var(f"p{i}_diff2_overflow_p", self.pca_size)
+            self._diff2_overflow = self.var(f"p{i}_diff2_overflow", 1)
             @always_comb
             def update_diff2(self):
                 for p in range(self.pca_size):
-                    self._diff2[p] = self._patch_diff[p] * self._patch_diff[p]
+                    self._diff2[p] = self._patch_diff[p].extend(self.data_width * 2) * self._patch_diff[p].extend(self.data_width * 2)
+                    self._diff2_overflow_p[p] = unsigned(self._diff2[p][self.data_width*2-1, self.data_width]).r_or()
             
             @always_ff((posedge, "clk"), (negedge, "rst_n"))
             def update_diff2_unsigned(self):
                 if ~self._rst_n:
+                    self._diff2_overflow = 0
                     for p in range(self.pca_size):
                         self._diff2_unsigned[p] = 0
                 elif self._valid_shft[0]:
+                    self._diff2_overflow = self._diff2_overflow_p.r_or()
                     for p in range(self.pca_size):
                         # remove the sign bit
                         self._diff2_unsigned[p] = unsigned(self._diff2[p])
+                        # self._diff2_unsigned[p] = unsigned(self._diff2[p][self.data_width-1, 0])
             self.add_code(update_diff2)
             self.add_code(update_diff2_unsigned)
         
+            # these overflows just pipeline the multiplication overflow, not the actuall add overflow
+            self._add_tree0_overflow = self.var(f"p{i}_add_tree0_overflow", 1)
+            self._add_tree1_overflow = self.var(f"p{i}_add_tree1_overflow", 1)
+            self._add_tree2_overflow = self.var(f"p{i}_add_tree2_overflow", 1)
             self._add_tree0 = self.var(f"p{i}_add_tree0",
-                                       width=self.data_width,
+                                       width=self.data_width*2+1,
                                        size=3,
                                        explicit_array=True)
             self._add_tree1 = self.var(f"p{i}_add_tree1",
-                                       width=self.data_width,
+                                       width=self.data_width*2+2,
                                        size=2,
                                        explicit_array=True)
+            self._add_tree2 = self.var(f"p{i}_add_tree2", self.data_width*2+3)
             @always_ff((posedge, "clk"), (negedge, "rst_n"))
             def update_add_tree(self):
                 if ~self._rst_n:
+                    self._add_tree0_overflow = 0
+                    self._add_tree1_overflow = 0
+                    self._add_tree2_overflow = 0
                     self._add_tree0[0] = 0
                     self._add_tree0[1] = 0
                     self._add_tree0[2] = 0
                     self._add_tree1[0] = 0
                     self._add_tree1[1] = 0
-                    self._l2_dist = 0
+                    self._add_tree2 = 0
+                    # self._l2_dist = 0
                 else:
                     if self._valid_shft[1]:
-                        self._add_tree0[0] = self._diff2_unsigned[0] + self._diff2_unsigned[1]
-                        self._add_tree0[1] = self._diff2_unsigned[2] + self._diff2_unsigned[3]
-                        self._add_tree0[2] = self._diff2_unsigned[4]
+                        self._add_tree0_overflow = self._diff2_overflow
+                        self._add_tree0[0] = self._diff2_unsigned[0].extend(self.data_width * 2 + 1) + self._diff2_unsigned[1].extend(self.data_width * 2 + 1)
+                        self._add_tree0[1] = self._diff2_unsigned[2].extend(self.data_width * 2 + 1) + self._diff2_unsigned[3].extend(self.data_width * 2 + 1)
+                        self._add_tree0[2] = self._diff2_unsigned[4].extend(self.data_width * 2 + 1)
                     
                     if self._valid_shft[2]:
-                        self._add_tree1[0] = self._add_tree0[0] + self._add_tree0[1]
-                        self._add_tree1[1] = self._add_tree0[2]
+                        self._add_tree1_overflow = self._add_tree0_overflow
+                        self._add_tree1[0] = self._add_tree0[0].extend(self.data_width * 2 + 2) + self._add_tree0[1].extend(self.data_width * 2 + 2)
+                        self._add_tree1[1] = self._add_tree0[2].extend(self.data_width * 2 + 2)
                     
                     if self._valid_shft[3]:
-                        self._l2_dist = self._add_tree1[0] + self._add_tree1[1]
+                        self._add_tree2_overflow = self._add_tree1_overflow
+                        self._add_tree2 = self._add_tree1[0].extend(self.data_width * 2 + 3) + self._add_tree1[1].extend(self.data_width * 2 + 3)
+                        # self._l2_dist = self._add_tree1[0] + self._add_tree1[1]
             self.add_code(update_add_tree)
+            
+            # detect add and multiplication overflow
+            self._final_overflow = self.var(f"p{i}_final_overflow", 1)
+            # empiracally determined that add_tree2[19, 9] provides good precisions
+            self.wire(self._final_overflow, self._add_tree2[self._add_tree2.width - 1, 20].r_or())
+            self.wire(self._l2_dist, ternary(self._final_overflow,
+                                             const(pow(2, 11) - 1, 11),
+                                             self._add_tree2[19, 9]))
+                                            #  self._add_tree2[self.data_width - 1, 0]))
             
             
             '''

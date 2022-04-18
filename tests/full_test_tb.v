@@ -148,7 +148,7 @@ module search_containing_leaf_tb;
   aggregator
   #(
     .DATA_WIDTH(`DATA_WIDTH),
-    .FETCH_WIDTH(40)
+    .FETCH_WIDTH(48)
   ) aggregator_inst
   (
     .clk(clk),

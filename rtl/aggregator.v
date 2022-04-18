@@ -55,8 +55,8 @@ module aggregator
     if (rst_n) begin
       if (sender_deq_w) begin
         receiver_data_unpacked[count_r] <= sender_data;
-        count_r <= (count_r == LOCAL_FETCH_WIDTH - 1) ? 0 : count_r + 1;
-        receiver_enq <= (count_r == LOCAL_FETCH_WIDTH - 1); 
+        count_r <= (count_r == LOCAL_FETCH_WIDTH) ? 0 : count_r + 1;
+        receiver_enq <= (count_r == LOCAL_FETCH_WIDTH); 
       end else begin
         receiver_enq <= 0;
       end

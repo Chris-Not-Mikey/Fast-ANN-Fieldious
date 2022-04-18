@@ -9,20 +9,22 @@ module LeavesMem
 (
     input logic clk,
 
-    input logic                                       csb0,
-    input logic                                       web0,
+    input logic [LEAF_SIZE-1:0]                       csb0,
+    input logic [LEAF_SIZE-1:0]                       web0,
     input logic [ADDR_WIDTH-1:0]                      addr0,
-    input logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     wleaf0 [LEAF_SIZE-1:0],
+    input logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     wleaf0,
     output logic  [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]   rleaf0 [LEAF_SIZE-1:0],
     input logic                                       csb1,
     input logic [ADDR_WIDTH-1:0]                      addr1,
     output logic  [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]   rleaf1 [LEAF_SIZE-1:0]
 );
 
-    logic [63:0] wdata0 [LEAF_SIZE-1:0];
+    logic [63:0] wdata0;
     logic [63:0] rdata0 [LEAF_SIZE-1:0];
     logic [63:0] rdata1 [LEAF_SIZE-1:0];
 
+    assign wdata0 = {'0, wleaf0};
+    
     genvar i;
     generate
     for (i=0; i<LEAF_SIZE; i=i+1) begin : loop_ram_patch_gen
@@ -33,10 +35,10 @@ module LeavesMem
             .RAM_DEPTH(256) // NUM_LEAVES
         ) ram_patch_inst (
             .clk0(clk),
-            .csb0(csb0),
-            .web0(web0),
+            .csb0(csb0[i]),
+            .web0(web0[i]),
             .addr0({2'b0, addr0}),
-            .din0(wdata0[i]),
+            .din0(wdata0),
             .dout0(rdata0[i]),
             .clk1(clk),
             .csb1(csb1),
@@ -44,7 +46,6 @@ module LeavesMem
             .dout1(rdata1[i])
         );
 
-        assign wdata0[i] = {'0, wleaf0[i]};
         assign rleaf0[i] = rdata0[i][PATCH_SIZE*DATA_WIDTH-1:0];
         assign rleaf1[i] = rdata1[i][PATCH_SIZE*DATA_WIDTH-1:0];
     end

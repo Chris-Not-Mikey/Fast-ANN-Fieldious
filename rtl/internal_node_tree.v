@@ -129,7 +129,7 @@ generate
     
    for (i = 0; i < 6; i = i +1) begin
 
-        wire [2*(2**i)] valid_output;
+        // wire [2*(2**i)] valid_output;
         //Fan out like a tree (TODO: Check that 2**i doesn't cause synthesis problems)
       
         for (j =0; j < (2**i); j = j +1 ) begin

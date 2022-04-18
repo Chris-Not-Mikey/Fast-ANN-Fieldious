@@ -279,7 +279,7 @@ end
 	  
     //Agg
     change_fetch_width = 0;
-    input_fetch_width = 3'd2;
+    input_fetch_width = 3'd1;
 
 
     csb0 = 1; //Write
@@ -307,7 +307,7 @@ end
 
     //Write to internal Tree
     #40 rst_n <= 1;
-    input_fetch_width = 3'd2;
+    input_fetch_width = 3'd1;
     change_fetch_width <= 1'b1;
     receiver_full_n <=1;
     fsm_enable <= 1;
@@ -379,7 +379,7 @@ end
         //Change fetch width if we are done
         fsm_enable <= 0;
         change_fetch_width <= 1;
-        input_fetch_width <= 3'd5;
+        input_fetch_width <= 3'd4;
 	i_o_state <= i_o_state + 1;
 	fsm_rst_agg_n <= 0;
     end

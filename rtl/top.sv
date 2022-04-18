@@ -2,8 +2,10 @@ module top
 #(
     parameter DATA_WIDTH = 11,
     parameter LEAF_SIZE = 8,
-    parameter PATCH_SIZE = 5,
-    parameter ROW_SIZE = 3,//26,
+    parameter PATCH_SIZE = 5, //excluding the index
+    parameter NUM_ROWS = 26,
+    parameter NUM_COLS = 19,
+    parameter NUM_QUERYS = NUM_ROWS * NUM_COLS,
     parameter K = 4,
     parameter NUM_LEAVES = 64,
     parameter ADDR_WIDTH = $clog2(NUM_LEAVES)
@@ -12,6 +14,16 @@ module top
     input logic clk,
     input logic rst_n,
 
+    input logic                                 load_kdtree,
+
+    // FIFO
+    input logic                                 in_fifo_wclk,
+    input logic                                 in_fifo_wrst_n,
+    input logic                                 in_fifo_wenq,
+    input logic [DATA_WIDTH-1:0]                in_fifo_wdata,
+    output logic                                in_fifo_wfull_n,
+
+
     // testbench use
     input logic fsm_start
 
@@ -19,14 +31,44 @@ module top
 );
 
 
-    logic                                       leaf_mem_csb0;
-    logic                                       leaf_mem_web0;
+    logic                                       in_fifo_deq;
+    logic [DATA_WIDTH-1:0]                      in_fifo_rdata;
+    logic                                       in_fifo_rempty;
+
+    logic [DATA_WIDTH-1:0]                      agg_sender_data;
+    logic                                       agg_sender_empty_n;
+    logic                                       agg_sender_deq;
+    logic [6*DATA_WIDTH-1:0]                    agg_receiver_data;
+    logic                                       agg_receiver_full_n;
+    logic                                       agg_receiver_enq;
+    logic                                       agg_change_fetch_width;
+    logic [2:0]                                 agg_input_fetch_width;
+
+    logic                                       int_node_fsm_enable;
+    logic                                       int_node_sender_enable;
+    logic [2*DATA_WIDTH-1:0]                    int_node_sender_data;
+    logic                                       int_node_patch_en;
+    logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     int_node_patch_in;
+    logic [ADDR_WIDTH-1:0]                      int_node_leaf_index;
+    logic                                       int_node_leaf_valid;
+
+    logic [LEAF_SIZE-1:0]                       leaf_mem_csb0;
+    logic [LEAF_SIZE-1:0]                       leaf_mem_web0;
     logic [ADDR_WIDTH-1:0]                      leaf_mem_addr0;
-    logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     leaf_mem_wleaf0 [LEAF_SIZE-1:0];
+    logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     leaf_mem_wleaf0;
     logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     leaf_mem_rleaf0 [LEAF_SIZE-1:0];
     logic                                       leaf_mem_csb1;
     logic [ADDR_WIDTH-1:0]                      leaf_mem_addr1;
     logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     leaf_mem_rleaf1 [LEAF_SIZE-1:0];
+
+    logic                                       qp_mem_csb0;
+    logic                                       qp_mem_web0;
+    logic [$clog2(NUM_QUERYS)-1:0]              qp_mem_addr0;
+    logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     qp_mem_wpatch0;
+    logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     qp_mem_rpatch0;
+    logic                                       qp_mem_csb1;
+    logic [$clog2(NUM_QUERYS)-1:0]              qp_mem_addr1;
+    logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     qp_mem_rpatch1;
 
     logic                                       best_arr_csb0;
     logic                                       best_arr_web0;
@@ -40,7 +82,7 @@ module top
     logic [DATA_WIDTH-1:0]                      best_arr_rdist_1 [K-1:0];
     logic [8:0]                                 best_arr_rindices_1 [K-1:0];
 
-    logic [5:0]                                 k0_leaf_idx;
+    logic [ADDR_WIDTH-1:0]                      k0_leaf_idx;
     logic                                       k0_query_first_in;
     logic                                       k0_query_first_out;
     logic                                       k0_query_last_in;
@@ -113,14 +155,14 @@ module top
 
     logic                                       s0_valid_in;
     logic                                       s0_valid_out;
-    logic [10:0]                                s0_data_in_0;
-    logic [10:0]                                s0_data_in_1;
-    logic [10:0]                                s0_data_in_2;
-    logic [10:0]                                s0_data_in_3;
-    logic [10:0]                                s0_data_in_4;
-    logic [10:0]                                s0_data_in_5;
-    logic [10:0]                                s0_data_in_6;
-    logic [10:0]                                s0_data_in_7;
+    logic [DATA_WIDTH-1:0]                      s0_data_in_0;
+    logic [DATA_WIDTH-1:0]                      s0_data_in_1;
+    logic [DATA_WIDTH-1:0]                      s0_data_in_2;
+    logic [DATA_WIDTH-1:0]                      s0_data_in_3;
+    logic [DATA_WIDTH-1:0]                      s0_data_in_4;
+    logic [DATA_WIDTH-1:0]                      s0_data_in_5;
+    logic [DATA_WIDTH-1:0]                      s0_data_in_6;
+    logic [DATA_WIDTH-1:0]                      s0_data_in_7;
     logic [8:0]                                 s0_indices_in_0;
     logic [8:0]                                 s0_indices_in_1;
     logic [8:0]                                 s0_indices_in_2;
@@ -129,10 +171,10 @@ module top
     logic [8:0]                                 s0_indices_in_5;
     logic [8:0]                                 s0_indices_in_6;
     logic [8:0]                                 s0_indices_in_7;
-    logic [10:0]                                s0_data_out_0;
-    logic [10:0]                                s0_data_out_1;
-    logic [10:0]                                s0_data_out_2;
-    logic [10:0]                                s0_data_out_3;
+    logic [DATA_WIDTH-1:0]                      s0_data_out_0;
+    logic [DATA_WIDTH-1:0]                      s0_data_out_1;
+    logic [DATA_WIDTH-1:0]                      s0_data_out_2;
+    logic [DATA_WIDTH-1:0]                      s0_data_out_3;
     logic [8:0]                                 s0_indices_out_0;
     logic [8:0]                                 s0_indices_out_1;
     logic [8:0]                                 s0_indices_out_2;
@@ -143,31 +185,103 @@ module top
         .DATA_WIDTH         (DATA_WIDTH),
         .LEAF_SIZE          (LEAF_SIZE),
         .PATCH_SIZE         (PATCH_SIZE),
-        .ROW_SIZE           (ROW_SIZE),
+        .NUM_ROWS           (NUM_ROWS),
+        .NUM_COLS           (NUM_COLS),
         .K                  (K),
         .NUM_LEAVES         (NUM_LEAVES)
     ) main_fsm_inst (
-        .clk                (clk),
-        .rst_n              (rst_n),
-        .fsm_start          (fsm_start),
-        .leaf_mem_csb0      (leaf_mem_csb0),
-        .leaf_mem_web0      (leaf_mem_web0),
-        .leaf_mem_addr0     (leaf_mem_addr0),
-        .leaf_mem_wleaf0    (leaf_mem_wleaf0),
-        .leaf_mem_csb1      (leaf_mem_csb1),
-        .leaf_mem_addr1     (leaf_mem_addr1),
-        .best_arr_addr0     (best_arr_addr0),
-        .best_arr_csb1      (best_arr_csb1),
-        .best_arr_addr1     (best_arr_addr1),
-        .best_arr_rindices_1(best_arr_rindices_1),
-        .k0_query_valid     (k0_query_valid),
-        .k0_query_first_in  (k0_query_first_in),
-        .k0_query_last_in   (k0_query_last_in),
-        .s0_valid_out       (s0_valid_out)
+        .clk                                    (clk),
+        .rst_n                                  (rst_n),
+        .load_kdtree                            (load_kdtree),
+        .agg_receiver_enq                       (agg_receiver_enq),
+        .agg_receiver_full_n                    (agg_receiver_full_n),
+        .agg_change_fetch_width                 (agg_change_fetch_width),
+        .agg_input_fetch_width                  (agg_input_fetch_width),
+        .int_node_fsm_enable                    (int_node_fsm_enable),
+        .fsm_start                              (fsm_start),
+        .qp_mem_csb0                            (qp_mem_csb0),
+        .qp_mem_web0                            (qp_mem_web0),
+        .qp_mem_addr0                           (qp_mem_addr0),
+        .qp_mem_csb1                            (qp_mem_csb1),
+        .qp_mem_addr1                           (qp_mem_addr1),
+        .leaf_mem_csb0                          (leaf_mem_csb0),
+        .leaf_mem_web0                          (leaf_mem_web0),
+        .leaf_mem_addr0                         (leaf_mem_addr0),
+        .leaf_mem_csb1                          (leaf_mem_csb1),
+        .leaf_mem_addr1                         (leaf_mem_addr1),
+        .best_arr_addr0                         (best_arr_addr0),
+        .best_arr_csb1                          (best_arr_csb1),
+        .best_arr_addr1                         (best_arr_addr1),
+        .best_arr_rindices_1                    (best_arr_rindices_1),
+        .k0_query_valid                         (k0_query_valid),
+        .k0_query_first_in                      (k0_query_first_in),
+        .k0_query_last_in                       (k0_query_last_in),
+        .s0_valid_out                           (s0_valid_out)
     );
 
 
-    // Memories 
+    // I/O FIFO and Aggregator
+    SyncFIFO #(
+        .dataWidth          (DATA_WIDTH),
+        .depth              (16),
+        .indxWidth          (4)
+    ) input_fifo_inst (
+        .sCLK               (in_fifo_wclk),
+        .sRST               (in_fifo_wrst_n),
+        .sENQ               (in_fifo_wenq),
+        .sD_IN              (in_fifo_wdata),
+        .sFULL_N            (in_fifo_wfull_n),
+        .dCLK               (clk),
+        .dDEQ               (in_fifo_deq),
+        .dD_OUT             (in_fifo_rdata),
+        .dEMPTY_N           (in_fifo_rempty)
+    );
+
+    assign in_fifo_deq = agg_sender_deq;
+	
+    aggregator
+    #(
+        .DATA_WIDTH         (DATA_WIDTH),
+        .FETCH_WIDTH        (6)
+    ) in_fifo_aggregator_inst
+    (
+        .clk                (clk),
+        .rst_n              (rst_n),
+        .sender_data        (agg_sender_data),
+        .sender_empty_n     (agg_sender_empty_n),
+        .sender_deq         (agg_sender_deq),
+        .receiver_data      (agg_receiver_data),
+        .receiver_full_n    (agg_receiver_full_n),
+        .receiver_enq       (agg_receiver_enq),
+        .change_fetch_width (agg_change_fetch_width),
+        .input_fetch_width  (agg_input_fetch_width)
+    );
+
+    assign agg_sender_data = in_fifo_rdata;
+    assign agg_sender_empty_n = in_fifo_rempty;
+
+
+    // Memories
+    internal_node_tree
+    #(
+        .INTERNAL_WIDTH     (2*DATA_WIDTH),
+        .PATCH_WIDTH        (PATCH_SIZE*DATA_WIDTH),
+        .ADDRESS_WIDTH      (ADDR_WIDTH)
+    ) internal_node_inst (
+        .clk                (clk),
+        .rst_n              (rst_n),
+        .fsm_enable         (int_node_fsm_enable), //based on whether we are at the proper I/O portion
+        .sender_enable      (int_node_sender_enable),
+        .sender_data        (int_node_sender_data),
+        .patch_en           (int_node_patch_en),
+        .patch_in           (int_node_patch_in),
+        .leaf_index         (int_node_leaf_index),
+        .receiver_en        (int_node_leaf_valid)
+    );
+
+    assign int_node_sender_enable = agg_receiver_enq;
+    assign int_node_sender_data = agg_receiver_data[2*DATA_WIDTH-1:0];
+
     LeavesMem #(
         .DATA_WIDTH         (DATA_WIDTH),
         .LEAF_SIZE          (LEAF_SIZE),
@@ -184,6 +298,27 @@ module top
         .addr1              (leaf_mem_addr1),
         .rleaf1             (leaf_mem_rleaf1)
     );
+
+    assign leaf_mem_wleaf0 = agg_receiver_data[63:0]; // index will be capped due to the macro width
+
+    QueryPatchMem2 #(
+        .DATA_WIDTH         (DATA_WIDTH),
+        .PATCH_SIZE         (PATCH_SIZE),
+        .ADDR_WIDTH         (9),
+        .DEPTH              (512)
+    ) qp_mem_inst (
+        .clk                (clk),
+        .csb0               (qp_mem_csb0),
+        .web0               (qp_mem_web0),
+        .addr0              (qp_mem_addr0),
+        .wpatch0            (qp_mem_wpatch0),
+        .rpatch0            (qp_mem_rpatch0),
+        .csb1               (qp_mem_csb1),
+        .addr1              (qp_mem_addr1),
+        .rpatch1            (qp_mem_rpatch1)
+    );
+
+    assign qp_mem_wpatch0 = agg_receiver_data;
 
     kBestArrays #(
         .DATA_WIDTH         (DATA_WIDTH),

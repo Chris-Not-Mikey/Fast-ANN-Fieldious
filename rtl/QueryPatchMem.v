@@ -1,3 +1,52 @@
+module QueryPatchMem2
+#(
+  parameter DATA_WIDTH = 11,
+  parameter PATCH_SIZE = 5,
+  parameter ADDR_WIDTH = 9,
+  parameter DEPTH = 512
+)
+(
+
+    input logic                                       clk,
+    input logic                                       csb0,
+    input logic                                       web0,
+    input logic [ADDR_WIDTH-1:0]                      addr0,
+    input logic [DATA_WIDTH*PATCH_SIZE-1:0]           wpatch0,
+    output logic  [DATA_WIDTH*PATCH_SIZE-1:0]         rpatch0,
+    input logic                                       csb1,
+    input logic [ADDR_WIDTH-1:0]                      addr1,
+    output logic  [DATA_WIDTH*PATCH_SIZE-1:0]         rpatch1
+
+);
+
+    logic [63:0] wdata0;
+    logic [63:0] rdata0;
+    logic [63:0] rdata1;
+
+    assign wdata0 = {'0, wpatch0};
+    assign rpatch0 = rdata0[PATCH_SIZE*DATA_WIDTH-1:0];
+    assign rpatch1 = rdata1[PATCH_SIZE*DATA_WIDTH-1:0];
+
+    sram_1kbyte_1rw1r
+    #(
+        .DATA_WIDTH(64), // round_up(PATCH_SIZE * DATA_WIDTH)
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .RAM_DEPTH(DEPTH) // round_up(26*19)
+    ) ram_patch_inst (
+        .clk0(clk),
+        .csb0(csb0),
+        .web0(web0),
+        .addr0(addr0),
+        .din0(wdata0),
+        .dout0(rdata0),
+        .clk1(clk),
+        .csb1(csb1),
+        .addr1(addr1),
+        .dout1(rdata1)
+    );
+
+endmodule
+
 /*
   A Wrapper for a 1w1r Ram that will hold the current patch queries.
   The idea is that as query image patches are read in via I/O, they are stored in this SRAM

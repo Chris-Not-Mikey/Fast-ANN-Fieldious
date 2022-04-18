@@ -487,14 +487,14 @@ end
 	   write_latency_counter <= write_latency_counter + 1;
 	   if (write_latency_counter == 3'b01) begin
 		   leaf_web0 <= 1'b0; 
-		   receiver_din_leaf_storage[0] <= receiver_din[54:0];
-		   receiver_din_leaf_storage[1] <= receiver_din[109:55];
-		   receiver_din_leaf_storage[2] <= receiver_din[164:110];
-		   receiver_din_leaf_storage[3] <= receiver_din[219:165];
-		   receiver_din_leaf_storage[4] <= receiver_din[274:220];
-		   receiver_din_leaf_storage[5] <= receiver_din[329:275];
-		   receiver_din_leaf_storage[6] <= receiver_din[384:330];
-		   receiver_din_leaf_storage[7] <= receiver_din[439:385];
+		   receiver_din_leaf_storage[0] <= receiver_din[65:0];
+		   receiver_din_leaf_storage[1] <= receiver_din[131:66];
+		   receiver_din_leaf_storage[2] <= receiver_din[197:132];
+		   receiver_din_leaf_storage[3] <= receiver_din[263:198];
+		   receiver_din_leaf_storage[4] <= receiver_din[329:264];
+		   receiver_din_leaf_storage[5] <= receiver_din[395:330];
+		   receiver_din_leaf_storage[6] <= receiver_din[461:396];
+		   receiver_din_leaf_storage[7] <= receiver_din[527:462];
 		    
 		    leaf_wen <= 1;
 		    //addr0 <= addr0 + 1;

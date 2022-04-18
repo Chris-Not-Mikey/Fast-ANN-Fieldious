@@ -3,6 +3,7 @@ from kratos import *
 class L2Kernel(Generator):
     def __init__(self,
                  data_width=11,
+                 idx_width=9,
                  pca_size=5,
                  leaf_size=8,
                  patch_size=5,
@@ -10,6 +11,7 @@ class L2Kernel(Generator):
                  height=23):
         super().__init__("L2Kernel", False)
         self.data_width = data_width
+        self.idx_width = idx_width
         self.pca_size = pca_size
         self.leaf_size = leaf_size
         self.patch_size = patch_size
@@ -30,7 +32,6 @@ class L2Kernel(Generator):
                                        is_signed=True,
                                        packed=True,
                                        explicit_array=True)        
-        self._leaf_idx = self.input("leaf_idx", clog2(self.total_patches / self.leaf_size))
 
         self._query_first_out = self.output("query_first_out", 1)
         self._query_last_out = self.output("query_last_out", 1)
@@ -67,34 +68,35 @@ class L2Kernel(Generator):
         self.wire(self._dist_valid, self._valid_shft[self._valid_shft.width - 1])
 
         for i in range(leaf_size):
-            self._candidate_leaf = self.input(f"p{i}_candidate_leaf",
-                                              width=self.data_width,
-                                              size=self.pca_size,
-                                              is_signed=True,
-                                              packed=True,
-                                              explicit_array=True)
+            self._leaf_data = self.input(f"p{i}_leaf_data",
+                                        width=self.data_width,
+                                        size=self.pca_size,
+                                        is_signed=True,
+                                        packed=True,
+                                        explicit_array=True)
+            self._leaf_idx = self.input(f"p{i}_leaf_idx", self.idx_width)
             self._l2_dist = self.output(f"p{i}_l2_dist", self.data_width)
-            self._indices = self.output(f"p{i}_indices", clog2(self.total_patches))
+            self._idx = self.output(f"p{i}_idx", self.idx_width)
 
-            self._leaf_idx_r0 = self.var(f"p{i}_leaf_idx_r0", clog2(self.total_patches / self.leaf_size))
-            self._leaf_idx_r1 = self.var(f"p{i}_leaf_idx_r1", clog2(self.total_patches / self.leaf_size))
-            self._leaf_idx_r2 = self.var(f"p{i}_leaf_idx_r2", clog2(self.total_patches / self.leaf_size))
-            self._leaf_idx_r3 = self.var(f"p{i}_leaf_idx_r3", clog2(self.total_patches / self.leaf_size))
+            self._leaf_idx_r0 = self.var(f"p{i}_leaf_idx_r0", self.idx_width)
+            self._leaf_idx_r1 = self.var(f"p{i}_leaf_idx_r1", self.idx_width)
+            self._leaf_idx_r2 = self.var(f"p{i}_leaf_idx_r2", self.idx_width)
+            self._leaf_idx_r3 = self.var(f"p{i}_leaf_idx_r3", self.idx_width)
             @always_ff((posedge, "clk"), (negedge, "rst_n"))
-            def update_indices(self):
+            def update_idx(self):
                 if ~self._rst_n:
                     self._leaf_idx_r0 = 0
                     self._leaf_idx_r1 = 0
                     self._leaf_idx_r2 = 0
                     self._leaf_idx_r3 = 0
-                    self._indices = 0
+                    self._idx = 0
                 else:
                     self._leaf_idx_r0 = self._leaf_idx
                     self._leaf_idx_r1 = self._leaf_idx_r0
                     self._leaf_idx_r2 = self._leaf_idx_r1
                     self._leaf_idx_r3 = self._leaf_idx_r2
-                    self._indices = concat(self._leaf_idx_r3, const(i, 3))
-            self.add_code(update_indices)
+                    self._idx = self._leaf_idx_r3
+            self.add_code(update_idx)
 
             self._patch_diff = self.var(f"p{i}_patch_diff",
                                         width=self.data_width,
@@ -108,7 +110,7 @@ class L2Kernel(Generator):
                         self._patch_diff[p] = 0
                 elif self._query_valid:
                     for p in range(self.pca_size):
-                        self._patch_diff[p] = self._query_patch[p] - self._candidate_leaf[p]
+                        self._patch_diff[p] = self._query_patch[p] - self._leaf_data[p]
             self.add_code(update_patch_diff)
 
             self._diff2 = self.var(f"p{i}_diff2", 

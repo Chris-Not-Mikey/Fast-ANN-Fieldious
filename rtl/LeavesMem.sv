@@ -1,29 +1,34 @@
 module LeavesMem
 #(
     parameter DATA_WIDTH = 11,
+    parameter IDX_WIDTH = 9,
     parameter LEAF_SIZE = 8,
     parameter PATCH_SIZE = 5,
     parameter NUM_LEAVES = 64,
-    parameter ADDR_WIDTH = $clog2(NUM_LEAVES)
+    parameter LEAF_ADDRW = $clog2(NUM_LEAVES)
 )
 (
     input logic clk,
 
-    input logic [LEAF_SIZE-1:0]                       csb0,
-    input logic [LEAF_SIZE-1:0]                       web0,
-    input logic [ADDR_WIDTH-1:0]                      addr0,
-    input logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]     wleaf0,
-    output logic  [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]   rleaf0 [LEAF_SIZE-1:0],
-    input logic                                       csb1,
-    input logic [ADDR_WIDTH-1:0]                      addr1,
-    output logic  [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]   rleaf1 [LEAF_SIZE-1:0]
+    input logic [LEAF_SIZE-1:0]                         csb0,
+    input logic [LEAF_SIZE-1:0]                         web0,
+    input logic [LEAF_ADDRW-1:0]                        addr0,
+    input logic [PATCH_SIZE*DATA_WIDTH+IDX_WIDTH-1:0]   wleaf0,
+    output logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]      rleaf_data0 [LEAF_SIZE-1:0],
+    output logic [IDX_WIDTH-1:0]                        rleaf_idx0 [LEAF_SIZE-1:0],
+    input logic                                         csb1,
+    input logic [LEAF_ADDRW-1:0]                        addr1,
+    output logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]      rleaf_data1 [LEAF_SIZE-1:0],
+    output logic [IDX_WIDTH-1:0]                        rleaf_idx1 [LEAF_SIZE-1:0]
 );
 
-    logic [63:0] wdata0;
+    logic [7:0] ram_addr0;
+    logic [7:0] ram_addr1;
     logic [63:0] rdata0 [LEAF_SIZE-1:0];
     logic [63:0] rdata1 [LEAF_SIZE-1:0];
 
-    assign wdata0 = {'0, wleaf0};
+    assign ram_addr0 = {'0, addr0};
+    assign ram_addr1 = {'0, addr1};
     
     genvar i;
     generate
@@ -31,23 +36,25 @@ module LeavesMem
         sram_1kbyte_1rw1r
         #(
             .DATA_WIDTH(64), // round(PATCH_SIZE * DATA_WIDTH)
-            .ADDR_WIDTH(8),
+            .LEAF_ADDRW(8),
             .RAM_DEPTH(256) // NUM_LEAVES
         ) ram_patch_inst (
             .clk0(clk),
             .csb0(csb0[i]),
             .web0(web0[i]),
-            .addr0({2'b0, addr0}),
-            .din0(wdata0),
+            .addr0(ram_addr0),
+            .din0(wleaf0),
             .dout0(rdata0[i]),
             .clk1(clk),
             .csb1(csb1),
-            .addr1({2'b0, addr1}),
+            .addr1(ram_addr1),
             .dout1(rdata1[i])
         );
 
-        assign rleaf0[i] = rdata0[i][PATCH_SIZE*DATA_WIDTH-1:0];
-        assign rleaf1[i] = rdata1[i][PATCH_SIZE*DATA_WIDTH-1:0];
+        assign rleaf_data0[i] = rdata0[i][PATCH_SIZE*DATA_WIDTH-1:0];
+        assign rleaf_idx0[i] = rdata0[i][63:PATCH_SIZE*DATA_WIDTH];
+        assign rleaf_data1[i] = rdata1[i][PATCH_SIZE*DATA_WIDTH-1:0];
+        assign rleaf_idx1[i] = rdata1[i][63:PATCH_SIZE*DATA_WIDTH];
     end
     endgenerate
 

@@ -3,6 +3,7 @@ from kratos import *
 class RunningMin(Generator):
     def __init__(self,
                  data_width=11,
+                 idx_width=9,
                  leaf_size=8,
                  patch_size=5,
                  row=30,
@@ -11,6 +12,7 @@ class RunningMin(Generator):
         super().__init__("RunningMin", False)
         self.channel_num = channel_num
         self.data_width = data_width
+        self.idx_width = idx_width
         self.leaf_size = leaf_size
         self.patch_size = patch_size
         self.row = row
@@ -46,19 +48,19 @@ class RunningMin(Generator):
 
         for i in range(self.channel_num):
             self._l2_dist = self.input(f"p{i}_l2_dist", self.data_width)
-            self._indices = self.input(f"p{i}_indices", clog2(self.total_patches))
+            self._idx = self.input(f"p{i}_idx", self.idx_width)
 
             self._l2_dist_min = self.output(f"p{i}_l2_dist_min", self.data_width)
-            self._indices_min = self.output(f"p{i}_indices_min", clog2(self.total_patches))
+            self._idx_min = self.output(f"p{i}_idx_min", self.idx_width)
             @always_ff((posedge, "clk"), (negedge, "rst_n"))
             def update_min(self):
                 if ~self._rst_n:
                     self._l2_dist_min = 0
-                    self._indices_min = 0
+                    self._idx_min = 0
                 elif self._valid_in:
                     if (self._l2_dist < self._l2_dist_min) | self._restart:
                         self._l2_dist_min = self._l2_dist
-                        self._indices_min = self._indices
+                        self._idx_min = self._idx
             self.add_code(update_min)
     
 

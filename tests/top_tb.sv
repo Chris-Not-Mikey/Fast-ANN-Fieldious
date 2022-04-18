@@ -142,6 +142,7 @@ module top_tb();
         in_fifo_wenq = 0;
         in_fifo_wdata = '0;
 
+        #100;
         @(negedge clk) fsm_start = 1'b1;
         @(negedge clk) fsm_start = 1'b0;
 

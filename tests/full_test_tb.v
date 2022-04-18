@@ -287,7 +287,7 @@ initial begin
   end
 
 
-  scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
+  //scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
   //wdata[10:0] = captured_data; //11'b0; Let FILE handle provide data
 	
  // #20
@@ -325,7 +325,7 @@ end
     write_disable = 0;
     leaf_write_disable = 0;
     receiver_din_storage = 0;
-    wdata = 0;
+    wdata = 11'd1818;
     i_o_state = 0;
 	  fsm_enable = 0;
       node_counter = 0;

@@ -432,7 +432,7 @@ end
  always @ (posedge clk) begin
 
     // (TOP LEVEL: Include counter register like this)
-   if (((leaf_counter == 12'd64) && (i_o_state == 3'b0 ) && (receiver_enq) && (rempty) )) begin  //Condition seperating I/O portions (don't read into FIFO)
+   if (((leaf_counter == 12'd64) && (i_o_state == 3'b0 ) && (receiver_enq) )) begin  //Condition seperating I/O portions (don't read into FIFO)
         //Change fetch width if we are done
 
         leaf_web0 <= 1'b1; //active low
@@ -443,9 +443,9 @@ end
 	    i_o_state <= i_o_state + 1;
 	    fsm_rst_agg_n <= 0;
     end
-    else if ((receiver_enq) && (rempty)) begin
+    else if (receiver_enq && (i_o_state == 3'b0 )) begin
         leaf_counter <= leaf_counter + 1;  
-	    fsm_rst_agg_n <= 1;
+	 fsm_rst_agg_n <= 1;
         leaf_web0 <= 1'b1; //active low
         leaf_csb0 <= 0; //Must activate to write as well
     end

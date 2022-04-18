@@ -583,6 +583,10 @@ end
 
      leaf_addr0 <= leaf_index[5:0];
    end
+	 
+   else begin
+	leaf_addr0 <= 0;
+   end
 
  end
 

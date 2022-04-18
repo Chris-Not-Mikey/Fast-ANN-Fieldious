@@ -95,6 +95,7 @@ module search_containing_leaf_tb;
 	reg [(6 * `DATA_WIDTH ) - 1 : 0] receiver_din_leaf_storage [`LEAF_SIZE-1:0];
     reg leaf_write_disable;
     reg leaf_wen;
+	reg [6:0] verification_leaf_counter;
 
 
 
@@ -334,6 +335,7 @@ end
 	  read_patch_counter = 0;
 	  patch_en = 0;
 	  wish_bone_en = 0;
+	  verification_leaf_counter = 0;
 
 	  
     //Agg
@@ -685,9 +687,10 @@ end
 		 
 	  //read_patch_counter <= read_patch_counter + 1;
 		 //The first patch contains garbadge values, so we simply flush it out)
-	 if (1) begin
+		 if (verification_leaf_counter < 7'd64) begin
 		 
 	   //patch_en <= 1; //Start streaming patches to Tree to get index
+			 verification_leaf_counter <= verification_leaf_counter + 1;
 		 
 	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[10:0]); 
 	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[21:11]); 
@@ -758,7 +761,7 @@ end
 
             	//csb0 <= 0; //active low
 		     assert(hold_leaf_debug[54:0] == hold_leaf_expected[54:0]);
-		     $display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0[0], hold_leaf_expected[47:0]);
+// 		     $display("%t: (LEAF) received = %d, expected = %d", $time, rleaf0[0], hold_leaf_expected[47:0]);
 		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_debug[10:0], hold_leaf_expected[10:0]);
 		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_debug[21:11], hold_leaf_expected[21:11]);
 		     $display("%t: (LEAF) received = %d, expected = %d", $time, hold_leaf_debug[32:22], hold_leaf_expected[32:22]);

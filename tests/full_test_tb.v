@@ -353,7 +353,7 @@ end
     wrst_n = 1'b1;
     rst_n = 1'b1;
     fsm_rst_agg_n =  1'b1;
-    change_fetch_width = 1;
+    //change_fetch_width = 1;
     
     #20
     change_fetch_width = 0;

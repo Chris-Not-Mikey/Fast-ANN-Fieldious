@@ -450,7 +450,7 @@ end
 
         leaf_web0 <= 1'b1; //active low
         leaf_csb0 <= 0; //Must activate to write as well
-        leaf_addr0 <= 0; //change back to original leaf address (for verification)
+       // leaf_addr0 <= 0; //change back to original leaf address (for verification)
      
         change_fetch_width <= 1;
         input_fetch_width <= 3'd2;
@@ -531,6 +531,7 @@ end
         input_fetch_width <= 3'd5;
         i_o_state <= i_o_state + 1;
         fsm_rst_agg_n <= 0;
+	   leaf_addr0 <= 0; //for verifcation(weird spot for this, but should happen several cycles after)
     end
     else if ((fifo_deq) && (rempty)) begin
         node_counter <= node_counter + 1;  
@@ -678,11 +679,11 @@ end
 	   leaf_addr0 <= leaf_addr0 + 1;
           read_latency_counter <= 0;
 		 
-	  read_patch_counter <= read_patch_counter + 1;
+	  //read_patch_counter <= read_patch_counter + 1;
 		 //The first patch contains garbadge values, so we simply flush it out)
 	 if (read_patch_counter != 0) begin
 		 
-	   patch_en <= 1; //Start streaming patches to Tree to get index
+	   //patch_en <= 1; //Start streaming patches to Tree to get index
 		 
 	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[10:0]); 
 	    expected_leaf_scan_file = $fscanf(expected_leaf_data_file, "%d\n", hold_leaf_expected[21:11]); 

@@ -223,7 +223,7 @@ module search_containing_leaf_tb;
 #(
     .DATA_WIDTH(`DATA_WIDTH),
     .LEAF_SIZE(`LEAF_SIZE),
-    .PATCH_SIZE(`PATCH_SIZE),
+    .PATCH_SIZE(6), //need index as sixth input
     .NUM_LEAVES(64),
     .ADDR_WIDTH(6)
 )
@@ -749,7 +749,7 @@ end
 		 
 		 
 	     hold_leaf_debug = rleaf0[0];
-	    hold_leaf_8_debug = rleaf0[8];
+// 	    hold_leaf_8_debug = rleaf0[8];
 
 	     if (!$feof(expected_leaf_data_file)) begin
 	//	ren <= 0;

@@ -1,5 +1,5 @@
 `define DATA_WIDTH 11
-`define FETCH_WIDTH 40
+`define FETCH_WIDTH 48 //(this is max for leaves. We dynamically change to the others)
 `define DSIZE 11
 `define PATCH_SIZE 5
 `define ASIZE 4

@@ -685,7 +685,7 @@ end
 		 
 	  //read_patch_counter <= read_patch_counter + 1;
 		 //The first patch contains garbadge values, so we simply flush it out)
-	 if (read_patch_counter != 0) begin
+	 if (1) begin
 		 
 	   //patch_en <= 1; //Start streaming patches to Tree to get index
 		 

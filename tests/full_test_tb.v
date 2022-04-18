@@ -148,7 +148,7 @@ module search_containing_leaf_tb;
   aggregator
   #(
     .DATA_WIDTH(`DATA_WIDTH),
-    .FETCH_WIDTH(6)
+    .FETCH_WIDTH(40)
   ) aggregator_inst
   (
     .clk(clk),
@@ -341,7 +341,7 @@ end
     leaf_csb0 = 1; //Write
     leaf_web0 = 1;
     leaf_addr0 = 0;
-    wleaf0 = 0;
+   // wleaf0 = 0;
     leaf_csb1 = 1; //Read
     leaf_addr1 = 0;
     leaf_wen = 0;

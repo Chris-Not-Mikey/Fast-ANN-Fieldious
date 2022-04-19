@@ -6,7 +6,7 @@
   Author: Chris Calloway, cmc2374@stanford.edu
 */
 
-
+`default_nettype none
 module internal_node_tree
 #(
   parameter INTERNAL_WIDTH = 22,
@@ -201,6 +201,7 @@ always @(*) begin
 end
 
 endmodule
+`default_nettype wire
 
 
 
@@ -212,7 +213,7 @@ endmodule
   Author: Chris Calloway, cmc2374@stanford.edu
 */
 
-
+`default_nettype none
 module internal_node
 #(
   parameter DATA_WIDTH = 55,
@@ -297,3 +298,4 @@ assign patch_out = patch_in;
 
 
 endmodule
+`default_nettype wire

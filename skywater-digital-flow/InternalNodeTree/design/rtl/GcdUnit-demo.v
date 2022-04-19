@@ -2,7 +2,6 @@
  A module for an internal node of a KD-Tree
  A set of these nodes will be instantiated together to make an actual tree,
  this is a physical description of the node of the tree. 
-
   Author: Chris Calloway, cmc2374@stanford.edu
 */
 
@@ -17,11 +16,15 @@ module internal_node
   input rst_n,
   input wen, //Determined by FSM, reciever enq, and DECODER from KD Tree
   input valid,
+  input valid_two,
   input [STORAGE_WIDTH -1 : 0] wdata,
   input [DATA_WIDTH - 1 : 0] patch_in,
+  input [DATA_WIDTH - 1 : 0] patch_in_two,
   output [DATA_WIDTH - 1 : 0] patch_out, //Same patch, but we will be pipeling so it will be useful to adopt this input/ouput scheme
   output valid_left,
-  output valid_right
+  output valid_right,
+  output valid_left_two,
+  output valid_right_two
 
 );
 
@@ -29,11 +32,13 @@ module internal_node
 reg [2:0] idx;
 reg signed [10: 0] median; 
 reg signed [10: 0] sliced_patch;
+reg signed [10: 0] sliced_patch_two;
 
  
  
 
 wire comparison;
+wire comparison_two;
 
 //Wdata: 1st 11 bits is Index (which can slice to the  3 LSB bits) since we gave 5 indeces, and 5 < 2^3.
 // 2nd 11 bits are the Median, for which we must store the entire 11 bits
@@ -73,21 +78,52 @@ end
  //NOTE: some testbenches have this order flipped (think endianess) You may need to flip the order of these case statements
 always @(*) begin 
     case(idx)
-       3'b000 :   sliced_patch = patch_in[10:0];
-       3'b001 :   sliced_patch = patch_in[21:11];
-       3'b010 :   sliced_patch = patch_in[32:22];
-       3'b011 :   sliced_patch = patch_in[43:33];
-       3'b100 :   sliced_patch = patch_in[54:44];
-       default :  sliced_patch = 11'b0;
+       3'b000 :   begin:
+                sliced_patch = patch_in[10:0];
+                sliced_patch_two = patch_in_two[10:0];
+       end
+       3'b001 :  begin
+            sliced_patch = patch_in[21:11];
+             sliced_patch_two = patch_in_two[21:11];
+       end
+       3'b010 : begin
+            sliced_patch = patch_in[32:22];
+            sliced_patch_two = patch_in_two[32:22];
+       end   
+ 
+       3'b011 :   begin
+            sliced_patch = patch_in[43:33];
+            sliced_patch_two = patch_in_two[43:33];
+       end    
+       3'b100 :  begin
+            sliced_patch = patch_in[54:44];
+            sliced_patch_two = patch_in_two[54:44];
+       end
+
+       default :  begin
+            sliced_patch = 11'b0;;
+            sliced_patch_two =11'b0;;
+       end
+       
+       
+        // sliced_patch = 11'b0;
     endcase 
 end
 
 
 assign comparison = (sliced_patch < median);
+assign comparison_two = (sliced_patch_two < median);
 
 assign valid_left = comparison && valid;
 assign valid_right = (!comparison) && valid;
-assign patch_out = patch_in;
+
+
+assign valid_left_two = comparison_two && valid_two;
+assign valid_right_two = (!comparison_two) && valid_two;
+
+
+
+assign patch_out = patch_in; //deprecated
 
 
 
@@ -118,7 +154,9 @@ module internal_node_tree
   input [INTERNAL_WIDTH - 1 : 0] sender_data,
   input patch_en,
   input [PATCH_WIDTH - 1 : 0] patch_in,
+  input [PATCH_WIDTH - 1 : 0] patch_in_two,
   output logic [ADDRESS_WIDTH - 1 : 0] leaf_index,
+  output logic [ADDRESS_WIDTH - 1 : 0] leaf_index_two,
   output receiver_en
 );
  
@@ -196,11 +234,11 @@ end
 // Generate the internal kd tree
 
 reg [PATCH_WIDTH-1:0] level_patches [7:0]; //For storing patch
- wire [PATCH_WIDTH-1:0] level_patches_storage [7:0]; //For storing patch
+reg [PATCH_WIDTH-1:0] level_patches_two [7:0]; //For storing patch
 reg level_valid [63:0][7:0]; //for storing valid signals
+reg level_valid_two [63:0][7:0]; //for storing valid signals
 wire level_valid_storage [63:0][7:0]; //for storing valid signals
-
- assign level_patches_storage[0] = patch_in;
+wire level_valid_storage_two [63:0][7:0]; //for storing valid signals
  
 
 
@@ -208,6 +246,7 @@ always @(*) begin
     
     level_valid[0][0] = 255'b1;
     level_patches[0] = patch_in;
+    level_patches_two[0] = patch_in_two;
 
 end
  
@@ -244,9 +283,12 @@ generate
             .valid(level_valid[j][i]),
             .wdata(sender_data), //writing mechanics are NOT pipelined
             .patch_in(level_patches[i]),
+            .patch_in_two(level_patches_two[i])
             .patch_out(), //TODO REMOVE this, we don't need to store this at the internal node level
             .valid_left(level_valid_storage[j*2][i]),
             .valid_right(level_valid_storage[(j*2)+1][i])
+            .valid_left_two(level_valid_storage_two[j*2][i]),
+            .valid_right_two(level_valid_storage_two[(j*2)+1][i])
             );
 
         //  assign valid_output[(j*2)+1:(j*2)] = vl;
@@ -266,6 +308,7 @@ generate
                 level_patches[i+1] <= 0;
                  for (int r = 0; r < 64; r++) begin
                      level_valid[r][i+1] = 1'b0;
+                      level_valid_two[r][i+1] = 1'b0;
                  end
              
             end
@@ -274,6 +317,7 @@ generate
                 //level_valid[i+1] <= level_valid[i];
                  for (int r = 0; r < 64; r++) begin
                     level_valid[r][i+1] = level_valid_storage[r][i];
+                    level_valid_two[r][i+1] = level_valid_storage_two[r][i];
                  end
             end
 
@@ -292,9 +336,17 @@ endgenerate
 always @(*) begin
 
     leaf_index = 0;
- for (int i = 0; i < 64; i++) begin
+    for (int i = 0; i < 64; i++) begin
         if (level_valid[i][6] == 1'b1) begin
           leaf_index = i;
+        end
+    end
+
+
+    leaf_index_two = 0;
+    for (int i = 0; i < 64; i++) begin
+        if (level_valid_two[i][6] == 1'b1) begin
+          leaf_index_two = i;
         end
     end
 

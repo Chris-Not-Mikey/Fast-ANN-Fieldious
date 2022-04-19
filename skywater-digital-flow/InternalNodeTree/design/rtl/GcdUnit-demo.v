@@ -225,29 +225,27 @@ generate
       
         for (j =0; j < (2**i); j = j +1 ) begin
          
-         
-         
-         
+             
 
          //((i * (2**i)) + j) i * (number of iterations of j)+ j //Keep track of one_hot_address_en
          
-//             internal_node
-//             #(
-//             .DATA_WIDTH(PATCH_WIDTH),
-//             .STORAGE_WIDTH(INTERNAL_WIDTH)
-//             )
-//             node
-//             (
-//             .clk(clk),
-//             .rst_n(rst_n),
-//              .wen(wen && one_hot_address_en[(((2**i)) + j-1)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
-//             .valid(level_valid[j][i]),
-//             .wdata(sender_data), //writing mechanics are NOT pipelined
-//             .patch_in(level_patches[i]),
-//             .patch_out(level_patches_storage[i]), //TODO REMOVE this, we don't need to store this at the internal node level
-//             .valid_left(level_valid_storage[j*2][i]),
-//             .valid_right(level_valid_storage[(j*2)+1][i])
-//             );
+            internal_node
+            #(
+            .DATA_WIDTH(PATCH_WIDTH),
+            .STORAGE_WIDTH(INTERNAL_WIDTH)
+            )
+            node
+            (
+            .clk(clk),
+            .rst_n(rst_n),
+             .wen(wen), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
+             .valid(0),
+            .wdata(sender_data), //writing mechanics are NOT pipelined
+            .patch_in(5'b0),
+             .patch_out(5'b0), //TODO REMOVE this, we don't need to store this at the internal node level
+             .valid_left(0),
+             .valid_right(0)
+            );
 
         //  assign valid_output[(j*2)+1:(j*2)] = vl;
         //  assign valid_output[(j*2)+2:(j*2)+1] = vr;

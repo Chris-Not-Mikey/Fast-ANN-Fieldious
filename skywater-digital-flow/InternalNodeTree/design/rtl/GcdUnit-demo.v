@@ -78,7 +78,7 @@ end
  //NOTE: some testbenches have this order flipped (think endianess) You may need to flip the order of these case statements
 always @(*) begin 
     case(idx)
-       3'b000 :   begin:
+       3'b000 :   begin
                 sliced_patch = patch_in[10:0];
                 sliced_patch_two = patch_in_two[10:0];
        end

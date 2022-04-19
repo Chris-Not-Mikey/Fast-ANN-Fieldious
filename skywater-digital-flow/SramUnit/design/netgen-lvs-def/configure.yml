@@ -1,0 +1,34 @@
+#=========================================================================
+# LVS using netgen
+#=========================================================================
+# Author : Priyanka Raina
+# Date   : Dec 12, 2020
+#
+
+name: netgen-lvs-def
+
+#-------------------------------------------------------------------------
+# Inputs and Outputs
+#-------------------------------------------------------------------------
+inputs:
+  - adk
+  - design_extracted.spice
+  - design.lvs.v
+  - design.flatbuslvs.v
+
+outputs:
+  - lvs_results.log
+
+#-------------------------------------------------------------------------
+# Parameters
+#-------------------------------------------------------------------------
+
+parameters:
+  design_name: undefined
+
+commands: 
+  # - v2lvs -i -lsp inputs/adk/stdcells.spi -s inputs/adk/stdcells.spi -lsp inputs/*.sp -s inputs/*.sp -v inputs/design.flatbuslvs.v -o design_lvs.spice
+  # - cat inputs/adk/stdcells.v inputs/design.lvs.v > design.lvs.v  # EXPERIMENT
+  - cat inputs/adk/netgen_setup.tcl blackbox.tcl > netgen_blackbox_setup.tcl
+  - sh run_lvs.sh
+

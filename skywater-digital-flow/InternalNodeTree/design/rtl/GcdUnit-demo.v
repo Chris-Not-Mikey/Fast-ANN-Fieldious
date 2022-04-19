@@ -1,776 +1,303 @@
-//-----------------------------------------------------------------------------
-// GcdUnit
-//-----------------------------------------------------------------------------
-// dump-vcd: False
-// verilator-xinit: zeros
-`default_nettype none
-module GcdUnit
+/*
+ A module for an register based tree of internal node of a KD-Tree
+ A set of these nodes will be instantiated together to make an actual tree,
+ this is a physical description of the node of the tree. 
+
+  Author: Chris Calloway, cmc2374@stanford.edu
+*/
+
+
+module internal_node_tree
+#(
+  parameter INTERNAL_WIDTH = 22,
+  parameter PATCH_WIDTH = 55,
+  parameter ADDRESS_WIDTH = 8
+)
 (
-  input  wire [   0:0] clk,
-  input  wire [  31:0] req_msg,
-  output wire [   0:0] req_rdy,
-  input  wire [   0:0] req_val,
-  input  wire [   0:0] reset,
-  output wire [  15:0] resp_msg,
-  input  wire [   0:0] resp_rdy,
-  output wire [   0:0] resp_val
+  input clk,
+  input rst_n,
+  input fsm_enable, //based on whether we are at the proper I/O portion
+  input sender_enable,
+  input [INTERNAL_WIDTH - 1 : 0] sender_data,
+  input patch_en,
+  input [PATCH_WIDTH - 1 : 0] patch_in,
+  output logic [ADDRESS_WIDTH - 1 : 0] leaf_index,
+  output receiver_en
 );
-
-  // ctrl temporaries
-  wire   [   0:0] ctrl$is_b_zero;
-  wire   [   0:0] ctrl$resp_rdy;
-  wire   [   0:0] ctrl$clk;
-  wire   [   0:0] ctrl$is_a_lt_b;
-  wire   [   0:0] ctrl$req_val;
-  wire   [   0:0] ctrl$reset;
-  wire   [   1:0] ctrl$a_mux_sel;
-  wire   [   0:0] ctrl$resp_val;
-  wire   [   0:0] ctrl$b_mux_sel;
-  wire   [   0:0] ctrl$b_reg_en;
-  wire   [   0:0] ctrl$a_reg_en;
-  wire   [   0:0] ctrl$req_rdy;
-
-  GcdUnitCtrlRTL_0x29124399ca008c5e ctrl
-  (
-    .is_b_zero ( ctrl$is_b_zero ),
-    .resp_rdy  ( ctrl$resp_rdy ),
-    .clk       ( ctrl$clk ),
-    .is_a_lt_b ( ctrl$is_a_lt_b ),
-    .req_val   ( ctrl$req_val ),
-    .reset     ( ctrl$reset ),
-    .a_mux_sel ( ctrl$a_mux_sel ),
-    .resp_val  ( ctrl$resp_val ),
-    .b_mux_sel ( ctrl$b_mux_sel ),
-    .b_reg_en  ( ctrl$b_reg_en ),
-    .a_reg_en  ( ctrl$a_reg_en ),
-    .req_rdy   ( ctrl$req_rdy )
-  );
-
-  // dpath temporaries
-  wire   [   1:0] dpath$a_mux_sel;
-  wire   [   0:0] dpath$clk;
-  wire   [  15:0] dpath$req_msg_b;
-  wire   [  15:0] dpath$req_msg_a;
-  wire   [   0:0] dpath$b_mux_sel;
-  wire   [   0:0] dpath$reset;
-  wire   [   0:0] dpath$b_reg_en;
-  wire   [   0:0] dpath$a_reg_en;
-  wire   [   0:0] dpath$is_b_zero;
-  wire   [  15:0] dpath$resp_msg;
-  wire   [   0:0] dpath$is_a_lt_b;
-
-  GcdUnitDpathRTL_0x29124399ca008c5e dpath
-  (
-    .a_mux_sel ( dpath$a_mux_sel ),
-    .clk       ( dpath$clk ),
-    .req_msg_b ( dpath$req_msg_b ),
-    .req_msg_a ( dpath$req_msg_a ),
-    .b_mux_sel ( dpath$b_mux_sel ),
-    .reset     ( dpath$reset ),
-    .b_reg_en  ( dpath$b_reg_en ),
-    .a_reg_en  ( dpath$a_reg_en ),
-    .is_b_zero ( dpath$is_b_zero ),
-    .resp_msg  ( dpath$resp_msg ),
-    .is_a_lt_b ( dpath$is_a_lt_b )
-  );
-
-  // signal connections
-  assign ctrl$clk        = clk;
-  assign ctrl$is_a_lt_b  = dpath$is_a_lt_b;
-  assign ctrl$is_b_zero  = dpath$is_b_zero;
-  assign ctrl$req_val    = req_val;
-  assign ctrl$reset      = reset;
-  assign ctrl$resp_rdy   = resp_rdy;
-  assign dpath$a_mux_sel = ctrl$a_mux_sel;
-  assign dpath$a_reg_en  = ctrl$a_reg_en;
-  assign dpath$b_mux_sel = ctrl$b_mux_sel;
-  assign dpath$b_reg_en  = ctrl$b_reg_en;
-  assign dpath$clk       = clk;
-  assign dpath$req_msg_a = req_msg[31:16];
-  assign dpath$req_msg_b = req_msg[15:0];
-  assign dpath$reset     = reset;
-  assign req_rdy         = ctrl$req_rdy;
-  assign resp_msg        = dpath$resp_msg;
-  assign resp_val        = ctrl$resp_val;
+ 
 
 
 
-endmodule // GcdUnit
-`default_nettype wire
+reg [5:0] wadr; //Internal state holding current address to be read (2^6 internal nodes)
+reg  one_hot_address_en [63:0]; //TODO: Fix width on these
+wire [PATCH_WIDTH - 1 : 0] patch_out;
 
-//-----------------------------------------------------------------------------
-// GcdUnitCtrlRTL_0x29124399ca008c5e
-//-----------------------------------------------------------------------------
-// dump-vcd: False
-// verilator-xinit: zeros
-`default_nettype none
-module GcdUnitCtrlRTL_0x29124399ca008c5e
-(
-  output reg  [   1:0] a_mux_sel,
-  output reg  [   0:0] a_reg_en,
-  output reg  [   0:0] b_mux_sel,
-  output reg  [   0:0] b_reg_en,
-  input  wire [   0:0] clk,
-  input  wire [   0:0] is_a_lt_b,
-  input  wire [   0:0] is_b_zero,
-  output reg  [   0:0] req_rdy,
-  input  wire [   0:0] req_val,
-  input  wire [   0:0] reset,
-  input  wire [   0:0] resp_rdy,
-  output reg  [   0:0] resp_val
-);
+wire wen;
+assign wen = fsm_enable && sender_enable;
+ 
 
-  // register declarations
-  reg    [   1:0] curr_state__0;
-  reg    [   1:0] current_state__1;
-  reg    [   0:0] do_sub;
-  reg    [   0:0] do_swap;
-  reg    [   1:0] next_state__0;
-  reg    [   1:0] state$in_;
-
-  // localparam declarations
-  localparam A_MUX_SEL_B = 2;
-  localparam A_MUX_SEL_IN = 0;
-  localparam A_MUX_SEL_SUB = 1;
-  localparam A_MUX_SEL_X = 0;
-  localparam B_MUX_SEL_A = 0;
-  localparam B_MUX_SEL_IN = 1;
-  localparam B_MUX_SEL_X = 0;
-  localparam STATE_CALC = 1;
-  localparam STATE_DONE = 2;
-  localparam STATE_IDLE = 0;
-
-  // state temporaries
-  wire   [   0:0] state$reset;
-  wire   [   0:0] state$clk;
-  wire   [   1:0] state$out;
-
-  RegRst_0x9f365fdf6c8998a state
-  (
-    .reset ( state$reset ),
-    .in_   ( state$in_ ),
-    .clk   ( state$clk ),
-    .out   ( state$out )
-  );
-
-  // signal connections
-  assign state$clk   = clk;
-  assign state$reset = reset;
-
-
-  // PYMTL SOURCE:
-  //
-  // @s.combinational
-  // def state_transitions():
-  //
-  //       curr_state = s.state.out
-  //       next_state = s.state.out
-  //
-  //       # Transitions out of IDLE state
-  //
-  //       if ( curr_state == s.STATE_IDLE ):
-  //         if ( s.req_val and s.req_rdy ):
-  //           next_state = s.STATE_CALC
-  //
-  //       # Transitions out of CALC state
-  //
-  //       if ( curr_state == s.STATE_CALC ):
-  //         if ( not s.is_a_lt_b and s.is_b_zero ):
-  //           next_state = s.STATE_DONE
-  //
-  //       # Transitions out of DONE state
-  //
-  //       if ( curr_state == s.STATE_DONE ):
-  //         if ( s.resp_val and s.resp_rdy ):
-  //           next_state = s.STATE_IDLE
-  //
-  //       s.state.in_.value = next_state
-
-  // logic for state_transitions()
-  always @ (*) begin
-    curr_state__0 = state$out;
-    next_state__0 = state$out;
-    if ((curr_state__0 == STATE_IDLE)) begin
-      if ((req_val&&req_rdy)) begin
-        next_state__0 = STATE_CALC;
-      end
-      else begin
-      end
+ //Register for keeping track of whether output is valid (keeps track of pipelined inputs as well.
+ // This handles the 6 cycle latency of this setup
+ reg latency_track_reciever_en [5:0];
+ 
+ always @ (posedge clk) begin
+     if (rst_n == 0) begin
+      latency_track_reciever_en[0] <= 0;
+      latency_track_reciever_en[1] <= 0;
+      latency_track_reciever_en[2] <= 0;
+      latency_track_reciever_en[3] <= 0;
+      latency_track_reciever_en[4] <= 0;
+      latency_track_reciever_en[5] <= 0;
     end
     else begin
+      latency_track_reciever_en[0] <= patch_en;
+      latency_track_reciever_en[1] <= latency_track_reciever_en[0];
+      latency_track_reciever_en[2] <= latency_track_reciever_en[1];
+      latency_track_reciever_en[3] <= latency_track_reciever_en[2];
+      latency_track_reciever_en[4] <= latency_track_reciever_en[3];
+      latency_track_reciever_en[5] <= latency_track_reciever_en[4];
     end
-    if ((curr_state__0 == STATE_CALC)) begin
-      if ((!is_a_lt_b&&is_b_zero)) begin
-        next_state__0 = STATE_DONE;
-      end
-      else begin
-      end
-    end
-    else begin
-    end
-    if ((curr_state__0 == STATE_DONE)) begin
-      if ((resp_val&&resp_rdy)) begin
-        next_state__0 = STATE_IDLE;
-      end
-      else begin
-      end
-    end
-    else begin
-    end
-    state$in_ = next_state__0;
-  end
+  
+ end
+ 
+ assign receiver_en = latency_track_reciever_en[5];
 
-  // PYMTL SOURCE:
-  //
-  // @s.combinational
-  // def state_outputs():
-  //
-  //       current_state = s.state.out
-  //
-  //       # Avoid latches
-  //
-  //       s.do_swap.value   = 0
-  //       s.do_sub .value   = 0
-  //
-  //       s.req_rdy.value   = 0
-  //       s.resp_val.value  = 0
-  //       s.a_mux_sel.value = 0
-  //       s.a_reg_en.value  = 0
-  //       s.b_mux_sel.value = 0
-  //       s.b_reg_en.value  = 0
-  //
-  //       # In IDLE state we simply wait for inputs to arrive and latch them
-  //
-  //       if current_state == s.STATE_IDLE:
-  //         s.req_rdy.value   = 1
-  //         s.resp_val.value  = 0
-  //         s.a_mux_sel.value = A_MUX_SEL_IN
-  //         s.a_reg_en.value  = 1
-  //         s.b_mux_sel.value = B_MUX_SEL_IN
-  //         s.b_reg_en.value  = 1
-  //
-  //       # In CALC state we iteratively swap/sub to calculate GCD
-  //
-  //       elif current_state == s.STATE_CALC:
-  //
-  //         s.do_swap.value = s.is_a_lt_b
-  //         s.do_sub.value  = ~s.is_b_zero
-  //
-  //         s.req_rdy.value   = 0
-  //         s.resp_val.value  = 0
-  //         s.a_mux_sel.value = A_MUX_SEL_B if s.do_swap else A_MUX_SEL_SUB
-  //         s.a_reg_en.value  = 1
-  //         s.b_mux_sel.value = B_MUX_SEL_A
-  //         s.b_reg_en.value  = s.do_swap
-  //
-  //       # In DONE state we simply wait for output transaction to occur
-  //
-  //       elif current_state == s.STATE_DONE:
-  //         s.req_rdy.value   = 0
-  //         s.resp_val.value  = 1
-  //         s.a_mux_sel.value = A_MUX_SEL_X
-  //         s.a_reg_en.value  = 0
-  //         s.b_mux_sel.value = B_MUX_SEL_X
-  //         s.b_reg_en.value  = 0
 
-  // logic for state_outputs()
-  always @ (*) begin
-    current_state__1 = state$out;
-    do_swap = 0;
-    do_sub = 0;
-    req_rdy = 0;
-    resp_val = 0;
-    a_mux_sel = 0;
-    a_reg_en = 0;
-    b_mux_sel = 0;
-    b_reg_en = 0;
-    if ((current_state__1 == STATE_IDLE)) begin
-      req_rdy = 1;
-      resp_val = 0;
-      a_mux_sel = A_MUX_SEL_IN;
-      a_reg_en = 1;
-      b_mux_sel = B_MUX_SEL_IN;
-      b_reg_en = 1;
+//Register for storing and updating address
+always @ (posedge clk) begin
+
+    if (rst_n == 0) begin
+        wadr <= 0;
+    end
+    else if (wen) begin
+        wadr <= wadr + 1;
     end
     else begin
-      if ((current_state__1 == STATE_CALC)) begin
-        do_swap = is_a_lt_b;
-        do_sub = ~is_b_zero;
-        req_rdy = 0;
-        resp_val = 0;
-        a_mux_sel = do_swap ? A_MUX_SEL_B : A_MUX_SEL_SUB;
-        a_reg_en = 1;
-        b_mux_sel = B_MUX_SEL_A;
-        b_reg_en = do_swap;
-      end
-      else begin
-        if ((current_state__1 == STATE_DONE)) begin
-          req_rdy = 0;
-          resp_val = 1;
-          a_mux_sel = A_MUX_SEL_X;
-          a_reg_en = 0;
-          b_mux_sel = B_MUX_SEL_X;
-          b_reg_en = 0;
+        wadr <= wadr;
+    end
+
+end
+
+//Create 7:128 Decoder to create address system for writing to internal nodes
+//Result is a 1 hot signal, where the index that includes the 1 corresponds to the internal_node that will be written to.
+always @(*) begin 
+
+ for (int q = 0; q < 128; q++) begin
+        if (q == wadr) begin
+            one_hot_address_en[q] = 1'b1; //TODO: Does this synthesize well?
         end
         else begin
+             one_hot_address_en[q] = 1'b0;
         end
-      end
     end
-  end
 
-
-endmodule // GcdUnitCtrlRTL_0x29124399ca008c5e
-`default_nettype wire
-
-//-----------------------------------------------------------------------------
-// RegRst_0x9f365fdf6c8998a
-//-----------------------------------------------------------------------------
-// dtype: 2
-// reset_value: 0
-// dump-vcd: False
-// verilator-xinit: zeros
-`default_nettype none
-module RegRst_0x9f365fdf6c8998a
-(
-  input  wire [   0:0] clk,
-  input  wire [   1:0] in_,
-  output reg  [   1:0] out,
-  input  wire [   0:0] reset
-);
-
-  // localparam declarations
-  localparam reset_value = 0;
+end
 
 
 
-  // PYMTL SOURCE:
-  //
-  // @s.posedge_clk
-  // def seq_logic():
-  //       if s.reset:
-  //         s.out.next = reset_value
-  //       else:
-  //         s.out.next = s.in_
 
-  // logic for seq_logic()
-  always @ (posedge clk) begin
-    if (reset) begin
-      out <= reset_value;
+// Generate the internal kd tree
+
+reg [PATCH_WIDTH-1:0] level_patches [7:0]; //For storing patch
+ wire [PATCH_WIDTH-1:0] level_patches_storage [7:0]; //For storing patch
+reg level_valid [63:0][7:0]; //for storing valid signals
+wire level_valid_storage [63:0][7:0]; //for storing valid signals
+
+ assign level_patches_storage[0] = patch_in;
+ 
+
+
+always @(*) begin
+    
+    level_valid[0][0] = 255'b1;
+    level_patches[0] = patch_in;
+
+end
+ 
+ 
+ 
+genvar i, j;
+
+generate 
+    
+   for (i = 0; i < 6; i = i +1) begin
+
+        // wire [2*(2**i)] valid_output;
+        //Fan out like a tree (TODO: Check that 2**i doesn't cause synthesis problems)
+      
+        for (j =0; j < (2**i); j = j +1 ) begin
+         
+      
+
+            wire vl;
+            wire vr;
+
+         //((i * (2**i)) + j) i * (number of iterations of j)+ j //Keep track of one_hot_address_en
+         
+            internal_node
+            #(
+            .DATA_WIDTH(PATCH_WIDTH),
+            .STORAGE_WIDTH(INTERNAL_WIDTH)
+            )
+            node
+            (
+            .clk(clk),
+            .rst_n(rst_n),
+             .wen(wen && one_hot_address_en[(((2**i)) + j-1)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
+            .valid(level_valid[j][i]),
+            .wdata(sender_data), //writing mechanics are NOT pipelined
+            .patch_in(level_patches[i]),
+            .patch_out(level_patches_storage[i]), //TODO REMOVE this, we don't need to store this at the internal node level
+            .valid_left(level_valid_storage[j*2][i]),
+            .valid_right(level_valid_storage[(j*2)+1][i])
+            );
+
+        //  assign valid_output[(j*2)+1:(j*2)] = vl;
+        //  assign valid_output[(j*2)+2:(j*2)+1] = vr;
+      
+            
+        end
+
+
+
+        
+        //Create register per depth that holds current patch and valids
+
+        always @ (posedge clk) begin
+
+            if (rst_n == 0) begin
+                level_patches[i+1] <= 0;
+                 for (int r = 0; r < 64; r++) begin
+                     level_valid[r][i+1] = 1'b0;
+                 end
+             
+            end
+            else begin
+                level_patches[i+1] <= level_patches_storage[i];
+                //level_valid[i+1] <= level_valid[i];
+                 for (int r = 0; r < 64; r++) begin
+                    level_valid[r][i+1] = level_valid_storage[r][i];
+                 end
+            end
+
+        end
+
+        
     end
-    else begin
-      out <= in_;
+
+
+endgenerate
+
+
+//From the last row, determine the leaf index
+//Algo source: https://stackoverflow.com/a/62776453
+
+always @(*) begin
+
+    leaf_index = 0;
+ for (int i = 0; i < 64; i++) begin
+        if (level_valid[i][6] == 1'b1) begin
+          leaf_index = i;
+        end
     end
-  end
 
 
-endmodule // RegRst_0x9f365fdf6c8998a
-`default_nettype wire
+end
 
-//-----------------------------------------------------------------------------
-// GcdUnitDpathRTL_0x29124399ca008c5e
-//-----------------------------------------------------------------------------
-// dump-vcd: False
-// verilator-xinit: zeros
-`default_nettype none
-module GcdUnitDpathRTL_0x29124399ca008c5e
+endmodule
+
+
+
+/*
+ A module for an internal node of a KD-Tree
+ A set of these nodes will be instantiated together to make an actual tree,
+ this is a physical description of the node of the tree. 
+
+  Author: Chris Calloway, cmc2374@stanford.edu
+*/
+
+
+module internal_node
+#(
+  parameter DATA_WIDTH = 55,
+  parameter STORAGE_WIDTH = 22
+)
 (
-  input  wire [   1:0] a_mux_sel,
-  input  wire [   0:0] a_reg_en,
-  input  wire [   0:0] b_mux_sel,
-  input  wire [   0:0] b_reg_en,
-  input  wire [   0:0] clk,
-  output wire [   0:0] is_a_lt_b,
-  output wire [   0:0] is_b_zero,
-  input  wire [  15:0] req_msg_a,
-  input  wire [  15:0] req_msg_b,
-  input  wire [   0:0] reset,
-  output wire [  15:0] resp_msg
-);
+  input clk,
+  input rst_n,
+  input wen, //Determined by FSM, reciever enq, and DECODER from KD Tree
+  input valid,
+  input [STORAGE_WIDTH -1 : 0] wdata,
+  input [DATA_WIDTH - 1 : 0] patch_in,
+  output [DATA_WIDTH - 1 : 0] patch_out, //Same patch, but we will be pipeling so it will be useful to adopt this input/ouput scheme
+  output valid_left,
+  output valid_right
 
-  // wire declarations
-  wire   [  15:0] sub_out;
-  wire   [  15:0] b_reg_out;
-
-
-  // a_reg temporaries
-  wire   [   0:0] a_reg$reset;
-  wire   [  15:0] a_reg$in_;
-  wire   [   0:0] a_reg$clk;
-  wire   [   0:0] a_reg$en;
-  wire   [  15:0] a_reg$out;
-
-  RegEn_0x68db79c4ec1d6e5b a_reg
-  (
-    .reset ( a_reg$reset ),
-    .in_   ( a_reg$in_ ),
-    .clk   ( a_reg$clk ),
-    .en    ( a_reg$en ),
-    .out   ( a_reg$out )
-  );
-
-  // a_lt_b temporaries
-  wire   [   0:0] a_lt_b$reset;
-  wire   [   0:0] a_lt_b$clk;
-  wire   [  15:0] a_lt_b$in0;
-  wire   [  15:0] a_lt_b$in1;
-  wire   [   0:0] a_lt_b$out;
-
-  LtComparator_0x422b1f52edd46a85 a_lt_b
-  (
-    .reset ( a_lt_b$reset ),
-    .clk   ( a_lt_b$clk ),
-    .in0   ( a_lt_b$in0 ),
-    .in1   ( a_lt_b$in1 ),
-    .out   ( a_lt_b$out )
-  );
-
-  // b_zero temporaries
-  wire   [   0:0] b_zero$reset;
-  wire   [  15:0] b_zero$in_;
-  wire   [   0:0] b_zero$clk;
-  wire   [   0:0] b_zero$out;
-
-  ZeroComparator_0x422b1f52edd46a85 b_zero
-  (
-    .reset ( b_zero$reset ),
-    .in_   ( b_zero$in_ ),
-    .clk   ( b_zero$clk ),
-    .out   ( b_zero$out )
-  );
-
-  // a_mux temporaries
-  wire   [   0:0] a_mux$reset;
-  wire   [  15:0] a_mux$in_$000;
-  wire   [  15:0] a_mux$in_$001;
-  wire   [  15:0] a_mux$in_$002;
-  wire   [   0:0] a_mux$clk;
-  wire   [   1:0] a_mux$sel;
-  wire   [  15:0] a_mux$out;
-
-  Mux_0x683fa1a418b072c9 a_mux
-  (
-    .reset   ( a_mux$reset ),
-    .in_$000 ( a_mux$in_$000 ),
-    .in_$001 ( a_mux$in_$001 ),
-    .in_$002 ( a_mux$in_$002 ),
-    .clk     ( a_mux$clk ),
-    .sel     ( a_mux$sel ),
-    .out     ( a_mux$out )
-  );
-
-  // b_mux temporaries
-  wire   [   0:0] b_mux$reset;
-  wire   [  15:0] b_mux$in_$000;
-  wire   [  15:0] b_mux$in_$001;
-  wire   [   0:0] b_mux$clk;
-  wire   [   0:0] b_mux$sel;
-  wire   [  15:0] b_mux$out;
-
-  Mux_0xdd6473406d1a99a b_mux
-  (
-    .reset   ( b_mux$reset ),
-    .in_$000 ( b_mux$in_$000 ),
-    .in_$001 ( b_mux$in_$001 ),
-    .clk     ( b_mux$clk ),
-    .sel     ( b_mux$sel ),
-    .out     ( b_mux$out )
-  );
-
-  // sub temporaries
-  wire   [   0:0] sub$reset;
-  wire   [   0:0] sub$clk;
-  wire   [  15:0] sub$in0;
-  wire   [  15:0] sub$in1;
-  wire   [  15:0] sub$out;
-
-  Subtractor_0x422b1f52edd46a85 sub
-  (
-    .reset ( sub$reset ),
-    .clk   ( sub$clk ),
-    .in0   ( sub$in0 ),
-    .in1   ( sub$in1 ),
-    .out   ( sub$out )
-  );
-
-  // b_reg temporaries
-  wire   [   0:0] b_reg$reset;
-  wire   [  15:0] b_reg$in_;
-  wire   [   0:0] b_reg$clk;
-  wire   [   0:0] b_reg$en;
-  wire   [  15:0] b_reg$out;
-
-  RegEn_0x68db79c4ec1d6e5b b_reg
-  (
-    .reset ( b_reg$reset ),
-    .in_   ( b_reg$in_ ),
-    .clk   ( b_reg$clk ),
-    .en    ( b_reg$en ),
-    .out   ( b_reg$out )
-  );
-
-  // signal connections
-  assign a_lt_b$clk    = clk;
-  assign a_lt_b$in0    = a_reg$out;
-  assign a_lt_b$in1    = b_reg$out;
-  assign a_lt_b$reset  = reset;
-  assign a_mux$clk     = clk;
-  assign a_mux$in_$000 = req_msg_a;
-  assign a_mux$in_$001 = sub_out;
-  assign a_mux$in_$002 = b_reg_out;
-  assign a_mux$reset   = reset;
-  assign a_mux$sel     = a_mux_sel;
-  assign a_reg$clk     = clk;
-  assign a_reg$en      = a_reg_en;
-  assign a_reg$in_     = a_mux$out;
-  assign a_reg$reset   = reset;
-  assign b_mux$clk     = clk;
-  assign b_mux$in_$000 = a_reg$out;
-  assign b_mux$in_$001 = req_msg_b;
-  assign b_mux$reset   = reset;
-  assign b_mux$sel     = b_mux_sel;
-  assign b_reg$clk     = clk;
-  assign b_reg$en      = b_reg_en;
-  assign b_reg$in_     = b_mux$out;
-  assign b_reg$reset   = reset;
-  assign b_reg_out     = b_reg$out;
-  assign b_zero$clk    = clk;
-  assign b_zero$in_    = b_reg$out;
-  assign b_zero$reset  = reset;
-  assign is_a_lt_b     = a_lt_b$out;
-  assign is_b_zero     = b_zero$out;
-  assign resp_msg      = sub$out;
-  assign sub$clk       = clk;
-  assign sub$in0       = a_reg$out;
-  assign sub$in1       = b_reg$out;
-  assign sub$reset     = reset;
-  assign sub_out       = sub$out;
-
-
-
-endmodule // GcdUnitDpathRTL_0x29124399ca008c5e
-`default_nettype wire
-
-//-----------------------------------------------------------------------------
-// RegEn_0x68db79c4ec1d6e5b
-//-----------------------------------------------------------------------------
-// dtype: 16
-// dump-vcd: False
-// verilator-xinit: zeros
-`default_nettype none
-module RegEn_0x68db79c4ec1d6e5b
-(
-  input  wire [   0:0] clk,
-  input  wire [   0:0] en,
-  input  wire [  15:0] in_,
-  output reg  [  15:0] out,
-  input  wire [   0:0] reset
 );
 
 
+reg [2:0] idx;
+reg signed [10: 0] median; 
+reg signed [10: 0] sliced_patch;
+ 
+ 
 
-  // PYMTL SOURCE:
-  //
-  // @s.posedge_clk
-  // def seq_logic():
-  //       if s.en:
-  //         s.out.next = s.in_
+wire comparison;
 
-  // logic for seq_logic()
-  always @ (posedge clk) begin
-    if (en) begin
-      out <= in_;
+//Wdata: 1st 11 bits is Index (which can slice to the  3 LSB bits) since we gave 5 indeces, and 5 < 2^3.
+// 2nd 11 bits are the Median, for which we must store the entire 11 bits
+
+//IDX Storage
+always @ (clk) begin
+
+    if (rst_n == 0) begin
+        idx <= 3'b111; //-1 is an invalid index, this by default we know this to be untrue
+    end
+    else if (wen) begin
+        idx <= wdata[2:0]; //Get 3 LSB
     end
     else begin
+        idx <= idx; //No change / persist in memory 
     end
-  end
+
+end
 
 
-endmodule // RegEn_0x68db79c4ec1d6e5b
-`default_nettype wire
+//Median Storage
+always @ (clk) begin
 
-//-----------------------------------------------------------------------------
-// LtComparator_0x422b1f52edd46a85
-//-----------------------------------------------------------------------------
-// nbits: 16
-// dump-vcd: False
-// verilator-xinit: zeros
-`default_nettype none
-module LtComparator_0x422b1f52edd46a85
-(
-  input  wire [   0:0] clk,
-  input  wire [  15:0] in0,
-  input  wire [  15:0] in1,
-  output reg  [   0:0] out,
-  input  wire [   0:0] reset
-);
+    if (rst_n == 0) begin
+        median <= 0; //0 is an urealistic median, this by default we (likely) know this to be untrue. The -1 idx is the true debug test
+    end
+    else if (wen) begin
+        median <= wdata[21:11]; //Get Median
+    end
+    else begin
+        median <= median; //No change / persist in memory 
+    end
 
+end
 
-
-  // PYMTL SOURCE:
-  //
-  // @s.combinational
-  // def comb_logic():
-  //       s.out.value = s.in0 < s.in1
-
-  // logic for comb_logic()
-  always @ (*) begin
-    out = (in0 < in1);
-  end
+//Slice Component to get the proper value from the incoming patch based on stored dimension.
+ //NOTE: some testbenches have this order flipped (think endianess) You may need to flip the order of these case statements
+always @(*) begin 
+    case(idx)
+       3'b000 :   sliced_patch = patch_in[10:0];
+       3'b001 :   sliced_patch = patch_in[21:11];
+       3'b010 :   sliced_patch = patch_in[32:22];
+       3'b011 :   sliced_patch = patch_in[43:33];
+       3'b100 :   sliced_patch = patch_in[54:44];
+       default :  sliced_patch = 11'b0;
+    endcase 
+end
 
 
-endmodule // LtComparator_0x422b1f52edd46a85
-`default_nettype wire
+assign comparison = (sliced_patch < median);
 
-//-----------------------------------------------------------------------------
-// ZeroComparator_0x422b1f52edd46a85
-//-----------------------------------------------------------------------------
-// nbits: 16
-// dump-vcd: False
-// verilator-xinit: zeros
-`default_nettype none
-module ZeroComparator_0x422b1f52edd46a85
-(
-  input  wire [   0:0] clk,
-  input  wire [  15:0] in_,
-  output reg  [   0:0] out,
-  input  wire [   0:0] reset
-);
+assign valid_left = comparison && valid;
+assign valid_right = (!comparison) && valid;
+assign patch_out = patch_in;
 
 
 
-  // PYMTL SOURCE:
-  //
-  // @s.combinational
-  // def comb_logic():
-  //       s.out.value = s.in_ == 0
-
-  // logic for comb_logic()
-  always @ (*) begin
-    out = (in_ == 0);
-  end
-
-
-endmodule // ZeroComparator_0x422b1f52edd46a85
-`default_nettype wire
-
-//-----------------------------------------------------------------------------
-// Mux_0x683fa1a418b072c9
-//-----------------------------------------------------------------------------
-// dtype: 16
-// nports: 3
-// dump-vcd: False
-// verilator-xinit: zeros
-`default_nettype none
-module Mux_0x683fa1a418b072c9
-(
-  input  wire [   0:0] clk,
-  input  wire [  15:0] in_$000,
-  input  wire [  15:0] in_$001,
-  input  wire [  15:0] in_$002,
-  output reg  [  15:0] out,
-  input  wire [   0:0] reset,
-  input  wire [   1:0] sel
-);
-
-  // localparam declarations
-  localparam nports = 3;
-
-
-  // array declarations
-  wire   [  15:0] in_[0:2];
-  assign in_[  0] = in_$000;
-  assign in_[  1] = in_$001;
-  assign in_[  2] = in_$002;
-
-  // PYMTL SOURCE:
-  //
-  // @s.combinational
-  // def comb_logic():
-  //       assert s.sel < nports
-  //       s.out.v = s.in_[ s.sel ]
-
-  // logic for comb_logic()
-  always @ (*) begin
-    out = in_[sel];
-  end
-
-
-endmodule // Mux_0x683fa1a418b072c9
-`default_nettype wire
-
-//-----------------------------------------------------------------------------
-// Mux_0xdd6473406d1a99a
-//-----------------------------------------------------------------------------
-// dtype: 16
-// nports: 2
-// dump-vcd: False
-// verilator-xinit: zeros
-`default_nettype none
-module Mux_0xdd6473406d1a99a
-(
-  input  wire [   0:0] clk,
-  input  wire [  15:0] in_$000,
-  input  wire [  15:0] in_$001,
-  output reg  [  15:0] out,
-  input  wire [   0:0] reset,
-  input  wire [   0:0] sel
-);
-
-  // localparam declarations
-  localparam nports = 2;
-
-
-  // array declarations
-  wire   [  15:0] in_[0:1];
-  assign in_[  0] = in_$000;
-  assign in_[  1] = in_$001;
-
-  // PYMTL SOURCE:
-  //
-  // @s.combinational
-  // def comb_logic():
-  //       assert s.sel < nports
-  //       s.out.v = s.in_[ s.sel ]
-
-  // logic for comb_logic()
-  always @ (*) begin
-    out = in_[sel];
-  end
-
-
-endmodule // Mux_0xdd6473406d1a99a
-`default_nettype wire
-
-//-----------------------------------------------------------------------------
-// Subtractor_0x422b1f52edd46a85
-//-----------------------------------------------------------------------------
-// nbits: 16
-// dump-vcd: False
-// verilator-xinit: zeros
-`default_nettype none
-module Subtractor_0x422b1f52edd46a85
-(
-  input  wire [   0:0] clk,
-  input  wire [  15:0] in0,
-  input  wire [  15:0] in1,
-  output reg  [  15:0] out,
-  input  wire [   0:0] reset
-);
-
-
-
-  // PYMTL SOURCE:
-  //
-  // @s.combinational
-  // def comb_logic():
-  //       s.out.value = s.in0 - s.in1
-
-  // logic for comb_logic()
-  always @ (*) begin
-    out = (in0-in1);
-  end
-
-
-endmodule // Subtractor_0x422b1f52edd46a85
-`default_nettype wire
-
+endmodule

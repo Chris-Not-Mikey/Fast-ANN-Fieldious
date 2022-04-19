@@ -27,14 +27,14 @@ def construct():
 
   parameters = {
     'construct_path' : __file__,
-    'design_name'    : 'GcdUnit',
-    'clock_period'   : 10.0,
+    'design_name'    : 'internal_node_tree',
+    'clock_period'   : 6.66666667,
     'adk'            : adk_name,
     'adk_view'       : adk_view,
     'topographical'  : True,
-    'testbench_name' : 'GcdUnitTb',
-    'saif_instance'  : 'GcdUnitTb/GcdUnit_inst',
-    'dut_name'       : 'GcdUnit_inst'
+    'testbench_name' : 'internal_node_tb',
+    'saif_instance'  : 'internal_node_tb/dut',
+    'dut_name'       : 'dut'
   }
 
   #-----------------------------------------------------------------------

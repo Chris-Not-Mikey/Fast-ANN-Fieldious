@@ -27,7 +27,7 @@ def construct():
 
   parameters = {
     'construct_path' : __file__,
-    'design_name'    : 'internal_node',
+    'design_name'    : 'internal_node_tree',
     'clock_period'   : 6.66666667,
     'adk'            : adk_name,
     'adk_view'       : adk_view,

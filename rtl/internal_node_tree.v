@@ -124,6 +124,10 @@ generate
 
         // wire [2*(2**i)] valid_output;
         //Fan out like a tree (TODO: Check that 2**i doesn't cause synthesis problems)
+    
+       //NEW! We do patch pipeling in the outer loop. See the diagram of how the patch is moved through the registers
+      // For more clarity
+       level_patches_storage[i]
       
         for (j =0; j < (2**i); j = j +1 ) begin
          
@@ -147,7 +151,7 @@ generate
             .valid(level_valid[j][i]),
             .wdata(sender_data), //writing mechanics are NOT pipelined
             .patch_in(level_patches[i]),
-            .patch_out(level_patches_storage[i]), //TODO REMOVE this, we don't need to store this at the internal node level
+            .patch_out(), //TODO REMOVE this, we don't need to store this at the internal node level
             .valid_left(level_valid_storage[j*2][i]),
             .valid_right(level_valid_storage[(j*2)+1][i])
             );

@@ -14,6 +14,8 @@ module internal_node_tb;
   wire [`DATA_WIDTH - 1 : 0] patch_out; //Same patch, but we will be pipeling so it will be useful to adopt this input/ouput scheme
   wire valid_left;
   wire valid_right;
+    wire valid_left_two;
+  wire valid_right_two;
 
 
   always #10 clk =~clk;
@@ -28,11 +30,16 @@ module internal_node_tb;
   .rst_n(rst_n),
   .wen(wen), //Determined by FSM, reciever enq, and DECODER from KD Tree
   .valid(valid),
+  .valid_two(valid),
   .wdata(wdata),
   .patch_in(patch_in),
+  .patch_in_two(patch_in),
   .patch_out(patch_out), //Same patch, but we will be pipeling so it will be useful to adopt this input/ouput scheme
   .valid_left(valid_left),
-  .valid_right(valid_right)
+  .valid_right(valid_right),
+   .valid_left_two(valid_left_two),
+  .valid_right_two(valid_right_two)
+    
   );
 
 

@@ -100,7 +100,6 @@ endmodule
  A module for an register based tree of internal node of a KD-Tree
  A set of these nodes will be instantiated together to make an actual tree,
  this is a physical description of the node of the tree. 
-
   Author: Chris Calloway, cmc2374@stanford.edu
 */
 
@@ -197,7 +196,7 @@ end
 // Generate the internal kd tree
 
 reg [PATCH_WIDTH-1:0] level_patches [7:0]; //For storing patch
-wire [PATCH_WIDTH-1:0] level_patches_storage [7:0]; //For storing patch
+ wire [PATCH_WIDTH-1:0] level_patches_storage [7:0]; //For storing patch
 reg level_valid [63:0][7:0]; //for storing valid signals
 wire level_valid_storage [63:0][7:0]; //for storing valid signals
 
@@ -222,11 +221,14 @@ generate
 
         // wire [2*(2**i)] valid_output;
         //Fan out like a tree (TODO: Check that 2**i doesn't cause synthesis problems)
+    
+       //NEW! We do patch pipeling in the outer loop. See the diagram of how the patch is moved through the registers
+      // For more clarity
+      //level_patches_storage[i] = level_patches[i];
       
         for (j =0; j < (2**i); j = j +1 ) begin
          
-
-
+     
          //((i * (2**i)) + j) i * (number of iterations of j)+ j //Keep track of one_hot_address_en
          
             internal_node
@@ -242,11 +244,10 @@ generate
             .valid(level_valid[j][i]),
             .wdata(sender_data), //writing mechanics are NOT pipelined
             .patch_in(level_patches[i]),
-            .patch_out(level_patches_storage[i]), //TODO REMOVE this, we don't need to store this at the internal node level
+            .patch_out(), //TODO REMOVE this, we don't need to store this at the internal node level
             .valid_left(level_valid_storage[j*2][i]),
             .valid_right(level_valid_storage[(j*2)+1][i])
             );
-
 
         //  assign valid_output[(j*2)+1:(j*2)] = vl;
         //  assign valid_output[(j*2)+2:(j*2)+1] = vr;
@@ -269,7 +270,7 @@ generate
              
             end
             else begin
-                level_patches[i+1] <= level_patches_storage[i];
+                level_patches[i+1] <= level_patches[i];
                 //level_valid[i+1] <= level_valid[i];
                  for (int r = 0; r < 64; r++) begin
                     level_valid[r][i+1] = level_valid_storage[r][i];

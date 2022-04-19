@@ -239,12 +239,12 @@ generate
             .clk(clk),
             .rst_n(rst_n),
              .wen(wen), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
-             .valid(0),
+             .valid(1'b0),
             .wdata(sender_data), //writing mechanics are NOT pipelined
             .patch_in(5'b0),
              .patch_out(5'b0), //TODO REMOVE this, we don't need to store this at the internal node level
-             .valid_left(0),
-             .valid_right(0)
+             .valid_left(1'b0),
+             .valid_right(1'b0)
             );
 
         //  assign valid_output[(j*2)+1:(j*2)] = vl;

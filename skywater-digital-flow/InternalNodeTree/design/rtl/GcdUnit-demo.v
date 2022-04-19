@@ -31,6 +31,10 @@ reg signed [10: 0] median;
 reg signed [10: 0] sliced_patch;
  
  
+ reg level_valid [63:0][7:0]; //for storing valid signals
+wire level_valid_storage [63:0][7:0]; //for storing valid signals
+ 
+ 
 
 wire comparison;
 

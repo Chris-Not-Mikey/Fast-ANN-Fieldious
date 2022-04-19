@@ -170,7 +170,7 @@ module search_containing_leaf_tb;
 	
 
 
-  QueryPatchMem
+  QueryPatchMem2
   #(
     .DATA_WIDTH(`DATA_WIDTH),
     .PATCH_SIZE(`PATCH_SIZE),

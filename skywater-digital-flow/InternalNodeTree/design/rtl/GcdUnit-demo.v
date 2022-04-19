@@ -241,8 +241,8 @@ generate
              .wen(wen), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
              .valid(1'b0),
             .wdata(sender_data), //writing mechanics are NOT pipelined
-            .patch_in(5'b0),
-             .patch_out(5'b0), //TODO REMOVE this, we don't need to store this at the internal node level
+             .patch_in(55'b0),
+             .patch_out(55'b0), //TODO REMOVE this, we don't need to store this at the internal node level
              .valid_left(1'b0),
              .valid_right(1'b0)
             );

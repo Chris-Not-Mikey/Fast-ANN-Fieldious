@@ -17,8 +17,9 @@ outputs:
   - sky130_sram_1kbyte_1rw1r_32x256_8.v
   - sky130_sram_1kbyte_1rw1r_32x256_8.lef
   - sky130_sram_1kbyte_1rw1r_32x256_8_TT_1p8V_25C.lib
-  - sky130_sram_1kbyte_1rw1r_32x256_8_TT_1p8V_25C.db
   - sky130_sram_1kbyte_1rw1r_32x256_8.gds
+  
+  #- sky130_sram_1kbyte_1rw1r_32x256_8_TT_1p8V_25C.db
 
 #-------------------------------------------------------------------------
 # Commands
@@ -38,6 +39,6 @@ commands:
   - cp $SRAM_PATH/sky130_sram_1kbyte_1rw1r_32x256_8/sky130_sram_1kbyte_1rw1r_32x256_8.lef             outputs/sky130_sram_1kbyte_1rw1r_32x256_8.lef
   - cp $SRAM_PATH/sky130_sram_1kbyte_1rw1r_32x256_8/sky130_sram_1kbyte_1rw1r_32x256_8_TT_1p8V_25C.lib outputs/sky130_sram_1kbyte_1rw1r_32x256_8_TT_1p8V_25C.lib
   - cp $SRAM_PATH/sky130_sram_1kbyte_1rw1r_32x256_8/sky130_sram_1kbyte_1rw1r_32x256_8.gds             outputs/sky130_sram_1kbyte_1rw1r_32x256_8.gds
-  - cp $SRAM_PATH/sky130_sram_1kbyte_1rw1r_32x256_8/sky130_sram_1kbyte_1rw1r_32x256_8_TT_1p8V_25C.db  outputs/sky130_sram_1kbyte_1rw1r_32x256_8_TT_1p8V_25C.db
+  #- cp $SRAM_PATH/sky130_sram_1kbyte_1rw1r_32x256_8/sky130_sram_1kbyte_1rw1r_32x256_8_TT_1p8V_25C.db  outputs/sky130_sram_1kbyte_1rw1r_32x256_8_TT_1p8V_25C.db
 
   - sed -i '/SHAPE ABUTMENT/d' outputs/sky130_sram_1kbyte_1rw1r_32x256_8.lef

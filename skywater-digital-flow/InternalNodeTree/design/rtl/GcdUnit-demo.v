@@ -283,7 +283,7 @@ generate
             .valid(level_valid[j][i]),
             .wdata(sender_data), //writing mechanics are NOT pipelined
             .patch_in(level_patches[i]),
-            .patch_in_two(level_patches_two[i])
+             .patch_in_two(level_patches_two[i]),
             .patch_out(), //TODO REMOVE this, we don't need to store this at the internal node level
             .valid_left(level_valid_storage[j*2][i]),
             .valid_right(level_valid_storage[(j*2)+1][i])

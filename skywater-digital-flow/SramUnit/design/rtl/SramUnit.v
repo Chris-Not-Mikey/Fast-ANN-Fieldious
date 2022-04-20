@@ -2,6 +2,7 @@
 // SramUnit
 //-----------------------------------------------------------------------------
 
+`default_nettype none
 module SramUnit #(
   parameter NUM_WMASKS = 4,
   parameter DATA_WIDTH = 32,

@@ -286,7 +286,7 @@ generate
              .patch_in_two(level_patches_two[i]),
             .patch_out(), //TODO REMOVE this, we don't need to store this at the internal node level
             .valid_left(level_valid_storage[j*2][i]),
-            .valid_right(level_valid_storage[(j*2)+1][i])
+             .valid_right(level_valid_storage[(j*2)+1][i]),
             .valid_left_two(level_valid_storage_two[j*2][i]),
             .valid_right_two(level_valid_storage_two[(j*2)+1][i])
             );

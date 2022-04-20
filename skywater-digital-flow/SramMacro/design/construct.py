@@ -27,7 +27,7 @@ def construct():
 
   parameters = {
     'construct_path' : __file__,
-    'design_name'    : 'sram_1kbyte_1rw1r',
+    'design_name'    : 'sky130_sram_1kbyte_1rw1r_32x256_8',
     'clock_period'   : 6.66666667,
     'adk'            : adk_name,
     'adk_view'       : adk_view,

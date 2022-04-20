@@ -245,6 +245,7 @@ wire level_valid_storage_two [63:0][7:0]; //for storing valid signals
 always @(*) begin
     
     level_valid[0][0] = 255'b1;
+    level_valid_two[0][0] = 255'b1;
     level_patches[0] = patch_in;
     level_patches_two[0] = patch_in_two;
 
@@ -279,14 +280,15 @@ generate
             (
             .clk(clk),
             .rst_n(rst_n),
-             .wen(wen && one_hot_address_en[(((2**i)) + j-1)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
+            .wen(wen && one_hot_address_en[(((2**i)) + j-1)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
             .valid(level_valid[j][i]),
+            .valid_two(level_valid_two[j][i]),
             .wdata(sender_data), //writing mechanics are NOT pipelined
             .patch_in(level_patches[i]),
-             .patch_in_two(level_patches_two[i]),
+            .patch_in_two(level_patches_two[i]),
             .patch_out(), //TODO REMOVE this, we don't need to store this at the internal node level
             .valid_left(level_valid_storage[j*2][i]),
-             .valid_right(level_valid_storage[(j*2)+1][i]),
+            .valid_right(level_valid_storage[(j*2)+1][i]),
             .valid_left_two(level_valid_storage_two[j*2][i]),
             .valid_right_two(level_valid_storage_two[(j*2)+1][i])
             );
@@ -306,6 +308,7 @@ generate
 
             if (rst_n == 0) begin
                 level_patches[i+1] <= 0;
+             level_patches_two[i+1] <= 0 ;
                  for (int r = 0; r < 64; r++) begin
                      level_valid[r][i+1] = 1'b0;
                       level_valid_two[r][i+1] = 1'b0;
@@ -314,6 +317,7 @@ generate
             end
             else begin
                 level_patches[i+1] <= level_patches[i];
+                level_patches_two[i+1] <= level_patches_two[i];
                 //level_valid[i+1] <= level_valid[i];
                  for (int r = 0; r < 64; r++) begin
                     level_valid[r][i+1] = level_valid_storage[r][i];

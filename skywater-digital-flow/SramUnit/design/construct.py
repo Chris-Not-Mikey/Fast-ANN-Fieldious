@@ -22,7 +22,7 @@ def construct():
   # Parameters
   #-----------------------------------------------------------------------
   
-  adk_name = 'skywater-130nm-adk-open_pdks'
+  adk_name = 'skywater-130nm-adk'
   adk_view = 'view-standard'
 
   parameters = {

@@ -105,7 +105,7 @@ module internal_node_tree_tb;
     
 //   );
 
-SyncFIFO #(`DATA_WIDTH, 16, 4)
+SyncFIFO #(11, 16, 4)
   dut (
    
     .sCLK(wclk),

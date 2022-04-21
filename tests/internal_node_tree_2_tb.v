@@ -138,7 +138,7 @@ SyncFIFO #(`DATA_WIDTH, 16, 4)
   .patch_en(patch_en),
   .patch_two_en(patch_two_en),
   .patch_in(patch_in),
-   .patch_two_in(patch_two_in),
+   .patch_in_two(patch_two_in),
   .leaf_index(leaf_index),
   .leaf_index_two(leaf_index_two),
   .receiver_en(leaf_en),
@@ -169,11 +169,13 @@ end
     rst_n <= 0;
     wdata <= 0;
     patch_in <= 0;
+    patch_two_in <= 0;
     fsm_enable <= 0;
     sender_enable <= 0;
     receiver_full_n <=0;
     invalid <= 0;
     patch_en <=0;
+    patch_two_en <=0;
     change_fetch_width <= 0;
    input_fetch_width <= 3'd2;
 

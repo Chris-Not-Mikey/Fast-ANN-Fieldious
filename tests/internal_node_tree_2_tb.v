@@ -1,6 +1,6 @@
 `define DATA_WIDTH 22
 `define STORAGE_WIDTH 22
-`define ADDRESS_WIDTH 8
+`define ADDRESS_WIDTH 6
 `define DSIZE 11
 `define ASIZE 4
 `define FETCH_WIDTH 6
@@ -14,7 +14,7 @@ module internal_node_tree_tb;
 
 
   wire fifo_deq;
-  wire [`FETCH_WIDTH * `DSIZE - 1 : 0] receiver_din;
+  wire [21 : 0] receiver_din;
   reg receiver_full_n;
   wire receiver_enq;
 
@@ -127,8 +127,8 @@ SyncFIFO #(`DATA_WIDTH, 16, 4)
   internal_node_tree
   #(
    .INTERNAL_WIDTH(`STORAGE_WIDTH),
-   .PATCH_WIDTH(`DATA_WIDTH),
-   .ADDRESS_WIDTH(`ADDRESS_WIDTH)
+   .PATCH_WIDTH(55),
+   .ADDRESS_WIDTH(6)
   ) tree_dut (
   .clk(clk),
   .rst_n(rst_n),

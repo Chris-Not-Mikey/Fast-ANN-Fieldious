@@ -29,17 +29,17 @@ module internal_node_tree_tb;
 
 
   reg [`STORAGE_WIDTH -1 : 0] sender_data;
-  reg [`DATA_WIDTH - 1 : 0] patch_in;
-  reg [`DATA_WIDTH - 1 : 0] patch_two_in;
+	reg [54 : 0] patch_in;
+	reg [54 : 0] patch_two_in;
 
  
 
 
   // Async Fifo Stuff
-  logic [`DSIZE-1:0] rdata;
+	logic [10:0] rdata;
   logic wfull;
   logic rempty;
-  logic [`DSIZE-1:0] wdata;
+	logic [10:0] wdata;
   logic winc, wclk, wrst_n;
   logic rinc, rrst_n;
 	
@@ -73,7 +73,7 @@ module internal_node_tree_tb;
 
   aggregator
   #(
-    .DATA_WIDTH(`DSIZE),
+    .DATA_WIDTH(11),
     .FETCH_WIDTH(`FETCH_WIDTH)
   ) aggregator_inst
   (

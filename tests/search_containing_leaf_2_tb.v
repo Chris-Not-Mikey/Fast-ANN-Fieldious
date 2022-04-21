@@ -209,9 +209,9 @@ module search_containing_leaf_tb;
   .patch_in(rpatch0),
   .patch_in_two(rpatch0),
   .leaf_index(leaf_index),
-    leaf_index_two(leaf_index_two),
-   .receiver_en(leaf_en),
-   .receiver_two_en(leaf_two_en)
+  .leaf_index_two(leaf_index_two),
+  .receiver_en(leaf_en),
+  .receiver_two_en(leaf_two_en)
 	  
   );
 

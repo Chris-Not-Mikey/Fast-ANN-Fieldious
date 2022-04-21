@@ -489,13 +489,9 @@ end
 	    read_latency_counter <= read_latency_counter + 1;
 	    
 	    csb0 <= 0;
-
-     if (read_latency_counter == 3'b01) begin
-        csb1 <= 1'b0;
-      end
-      else begin
-         csb1 <= 1'b1;
-      end
+            csb1 <= 1'b0;
+    
+  
 
 	    
 	    web0 <= 1'b1;

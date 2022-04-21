@@ -191,7 +191,7 @@ end
     receiver_full_n <=1;
     fsm_enable <= 1;
 	   
-    #10400
+    #11400
     fsm_enable <= 0; //Turn off to stop overwriting data
     patch_en <= 1;
     patch_in <= 55'b0000000001100000000011000000000110000000000100000000011;

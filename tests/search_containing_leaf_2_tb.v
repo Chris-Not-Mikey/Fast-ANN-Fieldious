@@ -489,7 +489,15 @@ end
 	    read_latency_counter <= read_latency_counter + 1;
 	    
 	    csb0 <= 0;
-	    csb1 <= 0;
+
+      if (read_latency_counter == 3'b10) begin
+        csb1 <= 1'b0;
+      end
+      else begin
+         csb1 <= 1'b1;
+      end
+
+	    
 	    web0 <= 1'b1;
 	   // $display("%t: received = %d", $time, rpatch0);
     end

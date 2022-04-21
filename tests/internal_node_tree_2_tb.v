@@ -185,7 +185,7 @@ end
    
 
     #40 rst_n <= 1;
-    change_fetch_width <= 1'b1;
+  
     wrst_n <= 1'b1;
     rrst_n <= 1'b1;
     receiver_full_n <=1;

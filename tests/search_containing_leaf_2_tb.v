@@ -207,7 +207,7 @@ module search_containing_leaf_tb;
   .patch_en(patch_en),
    .patch_two_en(patch_two_en),
   .patch_in(rpatch0),
-  .patch_in_two(rpatch0),
+  .patch_in_two(rpatch1),
   .leaf_index(leaf_index),
   .leaf_index_two(leaf_index_two),
   .receiver_en(leaf_en),
@@ -448,6 +448,7 @@ end
 		  //Stop writing, start reading (TOP LEVEL: Include counter register like this)
 		write_disable <= 1;
 		addr0 <= 0;
+    addr1 <= 0; //We will also be reading with addr1 (two read ports) so we set this up here
 		  ren <= 1;
 		  read_latency_counter <= 0;
 		  
@@ -495,6 +496,7 @@ end
 	
 
 	  addr0 <= addr0 + 1;
+    addr1 <= addr1 + 1;
           read_latency_counter <= 0;
 		 
 	  read_patch_counter <= read_patch_counter + 1;

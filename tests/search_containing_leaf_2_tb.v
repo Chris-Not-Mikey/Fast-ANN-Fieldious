@@ -490,7 +490,7 @@ end
 	    
 	    csb0 <= 0;
 
-      if (read_latency_counter == 3'b10) begin
+     if (read_latency_counter == 3'b01) begin
         csb1 <= 1'b0;
       end
       else begin
@@ -506,7 +506,7 @@ end
 	
 
 	  addr0 <= addr0 + 2;
-    addr1 <= addr1 + 2;
+          addr1 <= addr1 + 2;
           read_latency_counter <= 0;
 		 
 	  read_patch_counter <= read_patch_counter + 2; //read two patches at a time!

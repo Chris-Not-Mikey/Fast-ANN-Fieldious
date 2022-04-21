@@ -441,6 +441,7 @@ end
   if (receiver_enq && !write_disable && (i_o_state == 3'b1)) begin //If aggregated 5, write to RAM
       web0 <= 1'b1; //active low
       csb0 <= 0; //Must activate to write as well
+     csb1 <= 1'b0;
      
       write_latency_counter <= 0;
 	  
@@ -489,7 +490,7 @@ end
 	    read_latency_counter <= read_latency_counter + 1;
 	    
 	    csb0 <= 0;
-            csb1 <= 1'b0;
+          
     
   
 
@@ -510,7 +511,7 @@ end
 	 if (read_patch_counter != 0) begin
 		 
 	   patch_en <= 1; //Start streaming patches to Tree to get index
-     patch_two_en <= 1; //start second patch as well
+           patch_two_en <= 1; //start second patch as well
 		 
       //Even 5
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 

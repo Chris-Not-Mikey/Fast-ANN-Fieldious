@@ -82,8 +82,11 @@ module search_containing_leaf_tb;
 	
   //TREE stuff
   reg patch_en;
+  reg patch_two_en;
   wire [7 : 0] leaf_index;
+  wire [7 : 0] leaf_index_two;
   wire leaf_en;
+  wire leaf_two_en;
 	
 	
   //Wish bone stuff
@@ -202,13 +205,13 @@ module search_containing_leaf_tb;
   .sender_enable(receiver_enq),
   .sender_data(receiver_din[21:0]),
   .patch_en(patch_en),
-   .patch_two_en(1'b0),
+   .patch_two_en(patch_two_en),
   .patch_in(rpatch0),
-    .patch_in_two(rpatch0),
+  .patch_in_two(rpatch0),
   .leaf_index(leaf_index),
-    .leaf_index_two(),
+    leaf_index_two(leaf_index_two),
    .receiver_en(leaf_en),
-   .receiver_two_en()
+   .receiver_two_en(leaf_two_en)
 	  
   );
 
@@ -278,6 +281,7 @@ end
 	  patch_counter = 0;
 	  read_patch_counter = 0;
 	  patch_en = 0;
+    patch_two_en = 0;
 	  wish_bone_en = 0;
 
 	  
@@ -384,16 +388,16 @@ end
         fsm_enable <= 0;
         change_fetch_width <= 1;
         input_fetch_width <= 3'd4;
-	i_o_state <= i_o_state + 1;
-	fsm_rst_agg_n <= 0;
+	      i_o_state <= i_o_state + 1;
+	      fsm_rst_agg_n <= 0;
     end
     else if ((fifo_deq) && (rempty)) begin
         node_counter <= node_counter + 1;  
-	 fsm_rst_agg_n <= 1;
+	      fsm_rst_agg_n <= 1;
     end
 
     else begin
-	     node_counter <= node_counter;  
+	    node_counter <= node_counter;  
 	    fsm_rst_agg_n <= 1;
     end
 
@@ -498,6 +502,7 @@ end
 	 if (read_patch_counter != 0) begin
 		 
 	   patch_en <= 1; //Start streaming patches to Tree to get index
+     patch_two_en <= 1; //start second patch as well
 		 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
@@ -509,7 +514,7 @@ end
 	
 
 	     if (!$feof(expected_data_file)) begin
-	//	ren <= 0;
+	         //	ren <= 0;
 
             	//csb0 <= 0; //active low
      		assert(rpatch0 == hold_expected);

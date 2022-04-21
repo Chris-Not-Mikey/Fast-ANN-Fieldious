@@ -432,7 +432,8 @@ always @ (posedge write_clock) begin
 end
 
 	
-  reg [54:0] hold_expected;
+  reg [54:0] hold_expected; //for even patches
+  reg [54:0] hold_expected_two; //for odd patches
 
   //RAM and check
   always @ (posedge clk) begin
@@ -447,8 +448,8 @@ end
 		  
 		  //Stop writing, start reading (TOP LEVEL: Include counter register like this)
 		write_disable <= 1;
-		addr0 <= 0;
-    addr1 <= 0; //We will also be reading with addr1 (two read ports) so we set this up here
+		addr0 <= 0; //Read even addresses
+    addr1 <= 1; //We will also be reading (odd addresses) with addr1 (two read ports) so we set this up here 
 		  ren <= 1;
 		  read_latency_counter <= 0;
 		  
@@ -496,22 +497,30 @@ end
 	 else if (ren && (read_latency_counter == 3'b11)) begin 
 	
 
-	  addr0 <= addr0 + 1;
-    addr1 <= addr1 + 1;
+	  addr0 <= addr0 + 2;
+    addr1 <= addr1 + 2;
           read_latency_counter <= 0;
 		 
-	  read_patch_counter <= read_patch_counter + 1;
+	  read_patch_counter <= read_patch_counter + 2; //read two patches at a time!
 		 //The first patch contains garbadge values, so we simply flush it out)
 	 if (read_patch_counter != 0) begin
 		 
 	   patch_en <= 1; //Start streaming patches to Tree to get index
      patch_two_en <= 1; //start second patch as well
 		 
+      //Even 5
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
-            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
+      expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[43:33]); 
-            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
+      expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
+
+      //Odd 5
+      expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected_two[10:0]); 
+	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected_two[21:11]); 
+      expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected_two[32:22]); 
+	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected_two[43:33]); 
+      expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected_two[54:44]); 
 		 
 		 
 	
@@ -527,6 +536,14 @@ end
 		    $display("%t: received = %d, expected = %d", $time, rpatch0[32:22], hold_expected[32:22]);
 		    $display("%t: received = %d, expected = %d", $time, rpatch0[43:33], hold_expected[43:33]);
 		    $display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);
+
+        assert(rpatch1 == hold_expected_two);
+		    $display("%t: received = %d, expected = %d", $time, rpatch1, hold_expected_two);
+		    $display("%t: received = %d, expected = %d", $time, rpatch1[10:0], hold_expected_two[10:0]);
+		    $display("%t: received = %d, expected = %d", $time, rpatch1[21:11], hold_expected_two[21:11]);
+		    $display("%t: received = %d, expected = %d", $time, rpatch1[32:22], hold_expected_two[32:22]);
+		    $display("%t: received = %d, expected = %d", $time, rpatch1[43:33], hold_expected_two[43:33]);
+		    $display("%t: received = %d, expected = %d", $time, rpatch1[54:44], hold_expected_two[54:44]);
 
 
 

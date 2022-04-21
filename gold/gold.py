@@ -49,6 +49,10 @@ def top_to_bottom(tree, patch):
     # Once at the leaf, find best index
 
     leaf_index = subtree.data.leaf_count
+
+
+
+
     smallest_dist = inf
     index = 0
 
@@ -634,28 +638,27 @@ def compute_all_distances_find_best_new(candidate, point, _pca_model):
     dist = inf
     best_node = None
     best_five = []
+    # print(candidate)
+    # print("entering loop")
 
+    current_idx = []
     
     for cand in candidate:
 
        # current_dist = numpy.linalg.norm(cand[2].data.best_dim - point2)
 
         current_dist, idx = compute_distance(cand[2].data, point2)
-
-        for q in best_dists:
-            if int(q[0]) == int(current_dist): #No duplicates
-                continue
-     
+        # print(current_dist)
+        # print(idx)
         #best_five = sorted(best_five)
-        best_five.sort(key=lambda x: x[0])
 
-        if len(best_five) < 4: #change to 4
-
-        
-        
+        if len(best_five) < 4 and idx not in current_idx: #change to 4
+ 
+       
             best_five.append([current_dist, idx, cand[2]])
             #best_five = sorted(best_five)
             best_five.sort(key=lambda x: x[0])
+            current_idx.append(idx)
 
         else:
             for comp in best_five:
@@ -663,14 +666,25 @@ def compute_all_distances_find_best_new(candidate, point, _pca_model):
                 # If calcuated distance is better than one of the current candidates
                 if current_dist < comp[0]:
 
+                    #print("Inner loop start")
+                    add = True
+                    for qqq in best_five:
 
-                    #best_five = sorted(best_five)
-                    best_five.sort(key=lambda x: x[0])
-                    best_five.pop()
-                    best_five.append([current_dist, idx, cand[2]])
-                    #best_five = sorted(best_five)
-                    best_five.sort(key=lambda x: x[0])
+                        if idx == qqq[1]:
+                            add = False
+                   
+
+                 
+
+                    if add:
+                        #best_five = sorted(best_five)
+                        best_five.sort(key=lambda x: x[0])
+                        best_five.pop()
+                        best_five.append([current_dist, idx, cand[2]])
+                        #best_five = sorted(best_five)
+                        best_five.sort(key=lambda x: x[0])
                     break
+                    
 
         if current_dist < dist:
             dist = current_dist
@@ -1269,15 +1283,28 @@ if __name__ == "__main__":
 
 
     #Experiment with using ints instead
+
+    f_patches = open("patches.txt", "w")
     for patchRound in patches_a_reduced:
 
         patchRound[0] = round(patchRound[0])
+        patch_str = str(int(patchRound[0])) + "\n"
+        f_patches.write(patch_str)
         patchRound[1] = round(patchRound[1])
+        patch_str = str(int(patchRound[1])) + "\n"
+        f_patches.write(patch_str)
         patchRound[2] = round(patchRound[2])
+        patch_str = str(int(patchRound[2])) + "\n"
+        f_patches.write(patch_str)
         patchRound[3] = round(patchRound[3])
+        patch_str = str(int(patchRound[3])) + "\n"
+        f_patches.write(patch_str)
         patchRound[4] = round(patchRound[4])
+        patch_str = str(int(patchRound[4])) + "\n"
+        f_patches.write(patch_str)
 
 
+    f_patches.close()
 
     nn_indices = []
     nn_distances = []
@@ -1293,6 +1320,8 @@ if __name__ == "__main__":
     # Top to Bottom Traversal
     # TODO: Make query from scratch
     count = 0
+
+    f_top_bottom_leaf_idx = open("topToBottomLeafIndex.txt", "w")
     for patchA in patches_a_reduced:
 
         nn_best_dists = []
@@ -1300,12 +1329,22 @@ if __name__ == "__main__":
         # TODO: Report best 5 (k) results
         index, nn_best_dists, leaf_index  = top_to_bottom(tree, patchA)
 
+        leaf_index_str = str(int(leaf_index)) + "\n"
+        f_top_bottom_leaf_idx.write(leaf_index_str)
+
+
+        # print(index)
+        # print(leaf_index)
+        # print(patchA)
+   
 
         nn_indices.append(index)
     
 
         # nn_best_dists = sorted(nn_best_dists)
         nn_row_storage.append(nn_best_dists)
+
+    f_top_bottom_leaf_idx.close()
 
 
     patches_a_reconst = patches_b[nn_indices]
@@ -1347,10 +1386,10 @@ if __name__ == "__main__":
         best_leaves = []
 
         #TODO: Add in to bring in top to bottom results
-        for j in range(4): #Changed to 4
+        # for j in range(4): #Changed to 4
 
-            best_dists.append(nn_row_storage[row_idx_counter][j])
-            #print(nn_row_storage[row_idx_counter][j])
+        #     best_dists.append(nn_row_storage[row_idx_counter][j])
+        #     #print(nn_row_storage[row_idx_counter][j])
         
 
         #Determine the best 5 among all the nodes
@@ -1403,6 +1442,7 @@ if __name__ == "__main__":
         best_dists.sort(key=lambda x: x[0])
         row_storage.append(best_dists)
 
+
       
         # These are the guesses that will actually count toward the score
         nn_full_indices.append(best_idx)
@@ -1416,9 +1456,12 @@ if __name__ == "__main__":
      
     f_exact_row.close()
 
+
+
     # # # Process Rows on remaning rows (Main Algo)
    
     f_process_row = open("processRowBestIndex.txt", "w")
+    f_propgationLeafIndex = open("propagationLeafIndex.txt", "w")
     for patchA3 in patches_a_reduced[26:]:
 
 
@@ -1428,48 +1471,74 @@ if __name__ == "__main__":
 
 
         # Look at candidates in the row above
-        candidates = row_storage[(row_idx_counter%row_size)]    
+        candidates = row_storage[(row_idx_counter%row_size)]    #these are leaves we use to find the propagation leaves
+
+
+        #Write leaf indices
+        leaf_index_str = str(candidates[0][2].data.leaf_count) + "\n"
+        f_propgationLeafIndex.write(leaf_index_str)
+        leaf_index_str = str(candidates[1][2].data.leaf_count) + "\n"
+        f_propgationLeafIndex.write(leaf_index_str)
+        leaf_index_str = str(candidates[2][2].data.leaf_count) + "\n"
+        f_propgationLeafIndex.write(leaf_index_str)
+        leaf_index_str = str(candidates[3][2].data.leaf_count) + "\n"
+        f_propgationLeafIndex.write(leaf_index_str)
+      
+    
 
 
         # Better Propagation (Doesn't actually help)
         better = []
-        for prop in range(1):
+        # for prop in range(1):
 
-            prop_index = int(candidates[prop][1] + row_size)
+        #     prop_index = int(candidates[prop][1] + row_size)
 
 
-            if prop_index >= 494:
-                continue
+        #     if prop_index >= 494:
+        #         continue
 
-            for tt in range(4):
+        #     for tt in range(4):
      
-               add = True
-               for q in candidates:
-                   if int(q[0]) == int(nn_row_storage[prop_index][tt][0]):
-                       add = False
+        #        add = True
+        #        for q in candidates:
+        #            if int(q[0]) == int(nn_row_storage[prop_index][tt][0]):
+        #                add = False
                         
-               if add:
-                candidates.append(nn_row_storage[prop_index][tt])
+        #        if add:
+        #         better.append(nn_row_storage[prop_index][tt])
 
         
 
         # Add candidates from top to bottom traversal  on current row/index
         # TODO: Add back in
         for t in range(4):  #Change to 4
-            add = True
+        
             # for qq in candidates:
             #     if int(qq[0]) == int(nn_row_storage[row_idx_counter][t][0]):
             #         add = False
+
+            vals = []
+            for d_test in candidates:
+                vals.append(d_test[1])
                         
-            if add:
+            #print(nn_row_storage[row_idx_counter][t][1] )
+            if nn_row_storage[row_idx_counter][t][1] not in vals:
+               
+                #print(vals)
                 candidates.append(nn_row_storage[row_idx_counter][t])
+
             
- 
+            
+
         # Find the best 5 of these reuslts   
 
         #Best 5 is a misnomer, it is actually best 4 now (My fault for the poor variable name ~Chris)
         dist, best_node, best_five = compute_all_distances_find_best_new(candidates, patchA3, _pca_model)
 
+
+        #print("best 4")
+    
+    
         best_indexes = []
         for ix in best_five:
             
@@ -1496,6 +1565,7 @@ if __name__ == "__main__":
        
 
 
+    f_propgationLeafIndex.close()
     f_process_row.close()
     # # Compute final score
     patches_a_reconst = patches_b[nn_full_indices]
@@ -1522,21 +1592,6 @@ if __name__ == "__main__":
     cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))
 
 
-
-
-
-    
-
-
-
-    
-
-
-  
-
-
-
-    
 
 
     

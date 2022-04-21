@@ -319,7 +319,7 @@ end
  
     //Into FIFO
 	  if (wrst_n) begin
-	    stall <= 5;
+	    stall <= 20 % 2;
 	    receiver_full_n <= 1;
 	    if (fifo_enq) begin
 	       //scan_file = $fscanf(data_file, "%d\n", captured_data); 

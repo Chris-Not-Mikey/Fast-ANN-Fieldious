@@ -1,4 +1,4 @@
-`define DATA_WIDTH 55
+`define DATA_WIDTH 22
 `define STORAGE_WIDTH 22
 `define ADDRESS_WIDTH 8
 `define DSIZE 11

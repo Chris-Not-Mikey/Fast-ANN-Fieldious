@@ -333,12 +333,16 @@ end
     csb1 = 1; //Read
     addr1 = 0;
 	  
-	  
+	 
+    //Wishbone stuff  
     #600
      wb_mode = 0;
+	  rst_n = 1'b1;
 
-
-    #20 
+	  
+	  
+    //Normal I/O stuff
+    #20
     wb_mode = 0;
     wbs_dat_i = 32'b000000000100;
     wbs_we_i = 0;

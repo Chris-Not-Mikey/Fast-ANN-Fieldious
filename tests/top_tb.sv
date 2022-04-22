@@ -61,6 +61,7 @@ module top_tb();
 
     integer scan_file;
     integer expected_idx_data_file;
+    integer received_idx_data_file;
     integer int_nodes_data_file;
     integer leaves_data_file;
     integer query_data_file;
@@ -193,10 +194,13 @@ module top_tb();
         end
         @(negedge io_clk) out_fifo_deq = 1'b0;
 
+        received_idx_data_file = $fopen("received_idx.txt", "w");
         for(int i=0; i<NUM_QUERYS; i=i+1) begin
+            $fwrite(received_idx_data_file, "%d\n", received_idx[i]);
             if (expected_idx[i] != received_idx[i])
                 $display("mismatch %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
         end
+
 
         #200;
         $finish;

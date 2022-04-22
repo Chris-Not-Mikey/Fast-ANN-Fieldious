@@ -11,7 +11,7 @@ module internal_node_tree
   parameter INTERNAL_WIDTH = 22,
   parameter PATCH_WIDTH = 55,
   parameter ADDRESS_WIDTH = 8,
-  parameter WB_ADDRESS_OFFSET = 493
+  parameter WB_ADDRESS_OFFSET = 495
 )
 (
   input clk,

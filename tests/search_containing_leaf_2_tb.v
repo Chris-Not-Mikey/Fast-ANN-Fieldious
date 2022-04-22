@@ -318,6 +318,7 @@ end
 	  wb_rst_i = 0;
 	  wbs_dat_i = 0;
 	  wbs_adr_i = 0;
+	  wb_mode = 0;
 	 
 
 	  
@@ -335,7 +336,7 @@ end
 
 
     #100 
-    wish_bone_en = 1;
+    wb_mode = 1;
     wbs_dat_i = 32'b000000000100;
     wbs_we_i = 1;
 	  
@@ -356,7 +357,7 @@ end
 
     //Write to internal Tree
     #40 rst_n <= 1;
-     wish_bone_en = 0;
+     wb_mode = 0;
 	    wbs_we_i = 0;
     input_fetch_width = 3'd1;
     change_fetch_width <= 1'b1;

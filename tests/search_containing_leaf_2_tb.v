@@ -334,7 +334,7 @@ end
     addr1 = 0;
 
 
-    #100 
+    #20 
     wb_mode = 0;
     wbs_dat_i = 32'b000000000100;
     wbs_we_i = 0;
@@ -346,19 +346,12 @@ end
     change_fetch_width = 1;
 	   wbs_adr_i = 32'd495;
     
-    #200
+    #20
     wbs_dat_i = 32'b100000001100;
     change_fetch_width = 0;
 
 
-   
-	  
-	  
-    #200
-    wb_mode = 0;
-    wbs_we_i = 0;
-	  
-    #20
+  
     fifo_valid <=1;
 
 

@@ -376,9 +376,6 @@ end
     
     #20
     change_fetch_width = 0;
-   
-
-  
     fifo_valid <=1;
 
 
@@ -460,6 +457,10 @@ end
         input_fetch_width <= 3'd4;
 	      i_o_state <= i_o_state + 1;
 	      fsm_rst_agg_n <= 0;
+	 wb_mode <= 1; //Read what is is in secon address via wishbone
+	   wbs_adr_i <= 32'd496;
+	   wbs_dat_i <= 32'b000000000000;
+	   
     end
     else if ((fifo_deq) && (rempty)) begin
         node_counter <= node_counter + 1;  

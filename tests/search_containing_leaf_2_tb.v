@@ -458,7 +458,7 @@ end
 	      i_o_state <= i_o_state + 1;
 	      fsm_rst_agg_n <= 0;
 	 wb_mode <= 1; //Read what is is in secon address via wishbone
-	   wbs_adr_i <= 32'd496;
+	   wbs_adr_i <= 32'd497;
 	   wbs_dat_i <= 32'b100000000000;
 	   
     end

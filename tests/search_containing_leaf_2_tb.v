@@ -336,28 +336,40 @@ end
 	 
     //Wishbone stuff  
     #600
-     wb_mode = 0;
-	  rst_n = 1'b1;
+     wb_mode = 1;
+    rst_n = 1'b1;
+    wbs_dat_i = 32'b000000000100;
+        wbs_we_i = 1;
+    wbs_adr_i = 32'd495;
+    #200
+	  
+    wbs_dat_i = 32'b100000001100;
+	  
+    #200
+    wbs_we_i = 0;
+
+
+
+
+    
 
 	  
 	  
     //Normal I/O stuff
     #20
     wb_mode = 0;
-    wbs_dat_i = 32'b000000000100;
-    wbs_we_i = 0;
+
 	  
     receiver_full_n <= 1;
     wrst_n = 1'b1;
     rst_n = 1'b1;
     fsm_rst_agg_n =  1'b1;
     change_fetch_width = 1;
-	   wbs_adr_i = 32'd495;
+	 
     
     #20
-    wbs_dat_i = 32'b100000001100;
     change_fetch_width = 0;
-
+   
 
   
     fifo_valid <=1;

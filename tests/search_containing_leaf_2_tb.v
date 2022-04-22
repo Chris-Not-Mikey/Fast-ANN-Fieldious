@@ -135,7 +135,6 @@ module search_containing_leaf_tb;
   
   always #6.66666667 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
   always #20 wclk =~wclk;
-	
   always #100 wbclk = ~wbclk; //Clock for wishbone
 	
 	
@@ -464,7 +463,7 @@ always @ (posedge write_clock) begin
 	  if (wrst_n) begin
 	    stall <= 20 % 2;
 	    receiver_full_n <= 1;
-	    if (fifo_enq) begin
+		  if (fifo_enq && !wb_mode) begin
 	       //scan_file = $fscanf(data_file, "%d\n", captured_data); 
 		    
 

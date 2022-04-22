@@ -126,7 +126,7 @@ assign valid_right_two = (!comparison_two) && valid_two;
 
 assign patch_out = patch_in; //deprecated
 
-assign rdata = {median, 8'b0, idx} //fill to 22 in width
+assign rdata = {median, 8'b0, idx}; //fill to 22 in width
 
 
 

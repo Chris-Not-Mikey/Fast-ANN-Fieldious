@@ -11,7 +11,7 @@ module internal_node_tree
   parameter INTERNAL_WIDTH = 22,
   parameter PATCH_WIDTH = 55,
   parameter ADDRESS_WIDTH = 8,
-  parameter WB_ADDRESS_OFFSET = 494
+  parameter WB_ADDRESS_OFFSET = 493
 )
 (
   input clk,
@@ -42,7 +42,9 @@ module internal_node_tree
 
 );
 
+wire wen;
 
+assign wen = fsm_enable && sender_enable && (!wb_mode);
 
 
 //Wishbone interface
@@ -50,7 +52,8 @@ module internal_node_tree
 reg [INTERNAL_WIDTH-1:0] rdata_storage [63:0]; //For index and median read from tree
 
 reg [INTERNAL_WIDTH - 1 : 0]  write_data;
-reg wen;
+
+reg wb_wen;
 reg [31:0] wb_out;
 reg ack;
 wire signed [31:0] wb_addr; //Will only use top 6 bits of this
@@ -73,15 +76,13 @@ always @(*) begin
 
            if (wbs_dat_i[11] == 1'b0) begin
                 write_data[10:0] = wbs_dat_i[10:0]; //if index is 0
-                wen = 1'b0;
+                wb_wen = 1'b0;
                 ack = 1'b0;
-
-        
 
             end
             else begin
                 write_data[21:11] = wbs_dat_i[10:0]; //second half
-                wen = 1'b1; //written all data so set wen
+                wb_wen = 1'b1; //written all data so set wen
 
                 ack = 1'b1;
             
@@ -114,7 +115,7 @@ always @(*) begin
     //Normal I/O mode
     else begin 
         write_data = sender_data;
-        wen = fsm_enable && sender_enable;
+       
     end
 
 end
@@ -268,7 +269,7 @@ generate
             (
             .clk(clk),
             .rst_n(rst_n),
-            .wen(wen && one_hot_address_en[(((2**i)) + j-1)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
+            .wen((wen || wb_wen ) && one_hot_address_en[(((2**i)) + j-1)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
             .valid(level_valid[j][i]),
             .valid_two(level_valid_two[j][i]),
             .wdata(write_data), //writing mechanics are NOT pipelined

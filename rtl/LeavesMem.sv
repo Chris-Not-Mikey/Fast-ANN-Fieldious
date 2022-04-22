@@ -14,12 +14,12 @@ module LeavesMem
     input logic [LEAF_SIZE-1:0]                         web0,
     input logic [LEAF_ADDRW-1:0]                        addr0,
     input logic [PATCH_SIZE*DATA_WIDTH+IDX_WIDTH-1:0]   wleaf0,
-    output logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]      rleaf_data0 [LEAF_SIZE-1:0],
-    output logic [IDX_WIDTH-1:0]                        rleaf_idx0 [LEAF_SIZE-1:0],
+    output logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]      rpatch_data0 [LEAF_SIZE-1:0],
+    output logic [IDX_WIDTH-1:0]                        rpatch_idx0 [LEAF_SIZE-1:0],
     input logic                                         csb1,
     input logic [LEAF_ADDRW-1:0]                        addr1,
-    output logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]      rleaf_data1 [LEAF_SIZE-1:0],
-    output logic [IDX_WIDTH-1:0]                        rleaf_idx1 [LEAF_SIZE-1:0]
+    output logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]      rpatch_data1 [LEAF_SIZE-1:0],
+    output logic [IDX_WIDTH-1:0]                        rpatch_idx1 [LEAF_SIZE-1:0]
 );
 
     logic [7:0] ram_addr0;
@@ -36,7 +36,7 @@ module LeavesMem
         sram_1kbyte_1rw1r
         #(
             .DATA_WIDTH(64), // round(PATCH_SIZE * DATA_WIDTH)
-            .LEAF_ADDRW(8),
+            .ADDR_WIDTH(8),
             .RAM_DEPTH(256) // NUM_LEAVES
         ) ram_patch_inst (
             .clk0(clk),
@@ -51,10 +51,10 @@ module LeavesMem
             .dout1(rdata1[i])
         );
 
-        assign rleaf_data0[i] = rdata0[i][PATCH_SIZE*DATA_WIDTH-1:0];
-        assign rleaf_idx0[i] = rdata0[i][63:PATCH_SIZE*DATA_WIDTH];
-        assign rleaf_data1[i] = rdata1[i][PATCH_SIZE*DATA_WIDTH-1:0];
-        assign rleaf_idx1[i] = rdata1[i][63:PATCH_SIZE*DATA_WIDTH];
+        assign rpatch_data0[i] = rdata0[i][PATCH_SIZE*DATA_WIDTH-1:0];
+        assign rpatch_idx0[i] = rdata0[i][63:PATCH_SIZE*DATA_WIDTH];
+        assign rpatch_data1[i] = rdata1[i][PATCH_SIZE*DATA_WIDTH-1:0];
+        assign rpatch_idx1[i] = rdata1[i][63:PATCH_SIZE*DATA_WIDTH];
     end
     endgenerate
 

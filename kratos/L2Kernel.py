@@ -7,6 +7,7 @@ class L2Kernel(Generator):
                  pca_size=5,
                  leaf_size=8,
                  patch_size=5,
+                 num_leaves=64,
                  row=30,
                  height=23):
         super().__init__("L2Kernel", False)
@@ -15,6 +16,7 @@ class L2Kernel(Generator):
         self.pca_size = pca_size
         self.leaf_size = leaf_size
         self.patch_size = patch_size
+        self.num_leaves = num_leaves
         self.row = row
         self.height = height
 
@@ -32,70 +34,96 @@ class L2Kernel(Generator):
                                        is_signed=True,
                                        packed=True,
                                        explicit_array=True)        
+        self._leaf_idx_in = self.input("leaf_idx_in", clog2(self.num_leaves))
 
         self._query_first_out = self.output("query_first_out", 1)
         self._query_last_out = self.output("query_last_out", 1)
         self._dist_valid = self.output("dist_valid", 1)
+        self._leaf_idx_out = self.output("leaf_idx_out", clog2(self.num_leaves))
 
+
+        # pipeline registers
         self._query_first_shft = self.var(f"query_first_shft", 5)
+        self._query_last_shft = self.var(f"query_last_shft", 5)
+        self._valid_shft = self.var(f"valid_shft", 5)
+
         @always_ff((posedge, "clk"), (negedge, "rst_n"))
-        def update_query_first_out(self):
+        def update_pipeline_shift(self):
             if ~self._rst_n:
                 self._query_first_shft = 0
-            else:
-                self._query_first_shft = concat(self._query_first_shft[self._query_first_shft.width - 2, 0], self._query_first_in)
-        self.add_code(update_query_first_out)
-        self.wire(self._query_first_out, self._query_first_shft[self._query_first_shft.width - 1])
-
-        self._query_last_shft = self.var(f"query_last_shft", 5)
-        @always_ff((posedge, "clk"), (negedge, "rst_n"))
-        def update_query_last_out(self):
-            if ~self._rst_n:
                 self._query_last_shft = 0
-            else:
-                self._query_last_shft = concat(self._query_last_shft[self._query_last_shft.width - 2, 0], self._query_last_in)
-        self.add_code(update_query_last_out)
-        self.wire(self._query_last_out, self._query_last_shft[self._query_last_shft.width - 1])
-
-        self._valid_shft = self.var(f"valid_shft", 5)
-        @always_ff((posedge, "clk"), (negedge, "rst_n"))
-        def update_valid(self):
-            if ~self._rst_n:
                 self._valid_shft = 0
             else:
+                self._query_first_shft = concat(self._query_first_shft[self._query_first_shft.width - 2, 0], self._query_first_in)
+                self._query_last_shft = concat(self._query_last_shft[self._query_last_shft.width - 2, 0], self._query_last_in)
                 self._valid_shft = concat(self._valid_shft[self._valid_shft.width - 2, 0], self._query_valid)
-        self.add_code(update_valid)
+        
+        self.add_code(update_pipeline_shift)
+        self.wire(self._query_first_out, self._query_first_shft[self._query_first_shft.width - 1])
+        self.wire(self._query_last_out, self._query_last_shft[self._query_last_shft.width - 1])
         self.wire(self._dist_valid, self._valid_shft[self._valid_shft.width - 1])
 
-        for i in range(leaf_size):
-            self._leaf_data = self.input(f"p{i}_leaf_data",
-                                        width=self.data_width,
-                                        size=self.pca_size,
-                                        is_signed=True,
-                                        packed=True,
-                                        explicit_array=True)
-            self._leaf_idx = self.input(f"p{i}_leaf_idx", self.idx_width)
-            self._l2_dist = self.output(f"p{i}_l2_dist", self.data_width)
-            self._idx = self.output(f"p{i}_idx", self.idx_width)
+        self._leaf_idx_r0 = self.var("leaf_idx_r0", clog2(self.num_leaves))
+        self._leaf_idx_r1 = self.var("leaf_idx_r1", clog2(self.num_leaves))
+        self._leaf_idx_r2 = self.var("leaf_idx_r2", clog2(self.num_leaves))
+        self._leaf_idx_r3 = self.var("leaf_idx_r3", clog2(self.num_leaves))
+        @always_ff((posedge, "clk"), (negedge, "rst_n"))
+        def update_leaf_idx(self):
+            if ~self._rst_n:
+                self._leaf_idx_r0 = 0
+                self._leaf_idx_r1 = 0
+                self._leaf_idx_r2 = 0
+                self._leaf_idx_r3 = 0
+                self._leaf_idx_out = 0
+            else:
+                if self._query_valid:
+                    self._leaf_idx_r0 = self._leaf_idx_in
+                if self._valid_shft[0]:
+                    self._leaf_idx_r1 = self._leaf_idx_r0
+                if self._valid_shft[1]:
+                    self._leaf_idx_r2 = self._leaf_idx_r1
+                if self._valid_shft[2]:
+                    self._leaf_idx_r3 = self._leaf_idx_r2
+                if self._valid_shft[3]:
+                    self._leaf_idx_out = self._leaf_idx_r3
+        self.add_code(update_leaf_idx)
 
-            self._leaf_idx_r0 = self.var(f"p{i}_leaf_idx_r0", self.idx_width)
-            self._leaf_idx_r1 = self.var(f"p{i}_leaf_idx_r1", self.idx_width)
-            self._leaf_idx_r2 = self.var(f"p{i}_leaf_idx_r2", self.idx_width)
-            self._leaf_idx_r3 = self.var(f"p{i}_leaf_idx_r3", self.idx_width)
+
+        # computation per patch
+        for i in range(leaf_size):
+            self._data = self.input(f"p{i}_data",
+                                    width=self.data_width,
+                                    size=self.pca_size,
+                                    is_signed=True,
+                                    packed=True,
+                                    explicit_array=True)
+            self._idx_in = self.input(f"p{i}_idx_in", self.idx_width)
+            self._l2_dist = self.output(f"p{i}_l2_dist", self.data_width)
+            self._idx_out = self.output(f"p{i}_idx_out", self.idx_width)
+
+            self._idx_r0 = self.var(f"p{i}_idx_r0", self.idx_width)
+            self._idx_r1 = self.var(f"p{i}_idx_r1", self.idx_width)
+            self._idx_r2 = self.var(f"p{i}_idx_r2", self.idx_width)
+            self._idx_r3 = self.var(f"p{i}_idx_r3", self.idx_width)
             @always_ff((posedge, "clk"), (negedge, "rst_n"))
             def update_idx(self):
                 if ~self._rst_n:
-                    self._leaf_idx_r0 = 0
-                    self._leaf_idx_r1 = 0
-                    self._leaf_idx_r2 = 0
-                    self._leaf_idx_r3 = 0
-                    self._idx = 0
+                    self._idx_r0 = 0
+                    self._idx_r1 = 0
+                    self._idx_r2 = 0
+                    self._idx_r3 = 0
+                    self._idx_out = 0
                 else:
-                    self._leaf_idx_r0 = self._leaf_idx
-                    self._leaf_idx_r1 = self._leaf_idx_r0
-                    self._leaf_idx_r2 = self._leaf_idx_r1
-                    self._leaf_idx_r3 = self._leaf_idx_r2
-                    self._idx = self._leaf_idx_r3
+                    if self._query_valid:
+                        self._idx_r0 = self._idx_in
+                    if self._valid_shft[0]:
+                        self._idx_r1 = self._idx_r0
+                    if self._valid_shft[1]:
+                        self._idx_r2 = self._idx_r1
+                    if self._valid_shft[2]:
+                        self._idx_r3 = self._idx_r2
+                    if self._valid_shft[3]:
+                        self._idx_out = self._idx_r3
             self.add_code(update_idx)
 
             self._patch_diff = self.var(f"p{i}_patch_diff",
@@ -110,7 +138,7 @@ class L2Kernel(Generator):
                         self._patch_diff[p] = 0
                 elif self._query_valid:
                     for p in range(self.pca_size):
-                        self._patch_diff[p] = self._query_patch[p] - self._leaf_data[p]
+                        self._patch_diff[p] = self._query_patch[p] - self._data[p]
             self.add_code(update_patch_diff)
 
             self._diff2 = self.var(f"p{i}_diff2", 
@@ -123,33 +151,23 @@ class L2Kernel(Generator):
                                             size=self.pca_size,
                                             is_signed=False,
                                             explicit_array=True)
-            self._diff2_overflow_p = self.var(f"p{i}_diff2_overflow_p", self.pca_size)
-            self._diff2_overflow = self.var(f"p{i}_diff2_overflow", 1)
             @always_comb
             def update_diff2(self):
                 for p in range(self.pca_size):
                     self._diff2[p] = self._patch_diff[p].extend(self.data_width * 2) * self._patch_diff[p].extend(self.data_width * 2)
-                    self._diff2_overflow_p[p] = unsigned(self._diff2[p][self.data_width*2-1, self.data_width]).r_or()
             
             @always_ff((posedge, "clk"), (negedge, "rst_n"))
             def update_diff2_unsigned(self):
                 if ~self._rst_n:
-                    self._diff2_overflow = 0
                     for p in range(self.pca_size):
                         self._diff2_unsigned[p] = 0
                 elif self._valid_shft[0]:
-                    self._diff2_overflow = self._diff2_overflow_p.r_or()
                     for p in range(self.pca_size):
                         # remove the sign bit
                         self._diff2_unsigned[p] = unsigned(self._diff2[p])
-                        # self._diff2_unsigned[p] = unsigned(self._diff2[p][self.data_width-1, 0])
             self.add_code(update_diff2)
             self.add_code(update_diff2_unsigned)
         
-            # these overflows just pipeline the multiplication overflow, not the actuall add overflow
-            self._add_tree0_overflow = self.var(f"p{i}_add_tree0_overflow", 1)
-            self._add_tree1_overflow = self.var(f"p{i}_add_tree1_overflow", 1)
-            self._add_tree2_overflow = self.var(f"p{i}_add_tree2_overflow", 1)
             self._add_tree0 = self.var(f"p{i}_add_tree0",
                                        width=self.data_width*2+1,
                                        size=3,
@@ -162,94 +180,34 @@ class L2Kernel(Generator):
             @always_ff((posedge, "clk"), (negedge, "rst_n"))
             def update_add_tree(self):
                 if ~self._rst_n:
-                    self._add_tree0_overflow = 0
-                    self._add_tree1_overflow = 0
-                    self._add_tree2_overflow = 0
                     self._add_tree0[0] = 0
                     self._add_tree0[1] = 0
                     self._add_tree0[2] = 0
                     self._add_tree1[0] = 0
                     self._add_tree1[1] = 0
                     self._add_tree2 = 0
-                    # self._l2_dist = 0
                 else:
                     if self._valid_shft[1]:
-                        self._add_tree0_overflow = self._diff2_overflow
                         self._add_tree0[0] = self._diff2_unsigned[0].extend(self.data_width * 2 + 1) + self._diff2_unsigned[1].extend(self.data_width * 2 + 1)
                         self._add_tree0[1] = self._diff2_unsigned[2].extend(self.data_width * 2 + 1) + self._diff2_unsigned[3].extend(self.data_width * 2 + 1)
                         self._add_tree0[2] = self._diff2_unsigned[4].extend(self.data_width * 2 + 1)
                     
                     if self._valid_shft[2]:
-                        self._add_tree1_overflow = self._add_tree0_overflow
                         self._add_tree1[0] = self._add_tree0[0].extend(self.data_width * 2 + 2) + self._add_tree0[1].extend(self.data_width * 2 + 2)
                         self._add_tree1[1] = self._add_tree0[2].extend(self.data_width * 2 + 2)
                     
                     if self._valid_shft[3]:
-                        self._add_tree2_overflow = self._add_tree1_overflow
                         self._add_tree2 = self._add_tree1[0].extend(self.data_width * 2 + 3) + self._add_tree1[1].extend(self.data_width * 2 + 3)
-                        # self._l2_dist = self._add_tree1[0] + self._add_tree1[1]
             self.add_code(update_add_tree)
             
             # detect add and multiplication overflow
-            self._final_overflow = self.var(f"p{i}_final_overflow", 1)
+            self._overflow = self.var(f"p{i}_overflow", 1)
             # empiracally determined that add_tree2[19, 9] provides good precisions
-            self.wire(self._final_overflow, self._add_tree2[self._add_tree2.width - 1, 20].r_or())
-            self.wire(self._l2_dist, ternary(self._final_overflow,
+            self.wire(self._overflow, self._add_tree2[self._add_tree2.width - 1, 19].r_or())
+            self.wire(self._l2_dist, ternary(self._overflow,
                                              const(pow(2, 11) - 1, 11),
-                                             self._add_tree2[19, 9]))
-                                            #  self._add_tree2[self.data_width - 1, 0]))
-            
-            
-            '''
-            # back up code if we want to use the correct mult bitwidth and then trunction, then correct add tree bitwidth
-            @always_comb
-            def update_diff2(self):
-                for p in range(self.pca_size):
-                    self._diff2[p] = self._patch_diff[p].extend(self.data_width * 2) * self._patch_diff[p].extend(self.data_width * 2)
-            @always_ff((posedge, "clk"), (negedge, "rst_n"))
-            def trunc_diff2_unsigned(self):
-                if ~self._rst_n:
-                    for p in range(self.pca_size):
-                        self._diff2[p] = 0
-                else:
-                    for p in range(self.pca_size):
-                        # remove the sign bit
-                        self._diff2[p] = unsigned(self._diff2[p][self.data_width * 2 - 2, self.data_width - 1])
-            self.add_code(update_diff2)
-            self.add_code(trunc_diff2_unsigned)
-        
-            self._add_tree0 = self.var(f"p{i}_add_tree0",
-                                       width=self.data_width + 1,
-                                       size=3,
-                                       explicit_array=True)
-            self._add_tree1 = self.var(f"p{i}_add_tree1",
-                                       width=self.data_width + 2,
-                                       size=2,
-                                       explicit_array=True)
-            self._add_tree2 = self.var(f"p{i}_add_tree2", self.data_width + 3)
-            self.wire(self._add_tree2, 
-                      self._add_tree1[0].extend(self.data_width + 3) 
-                      + self._add_tree1[1].extend(self.data_width + 3))
-            @always_ff((posedge, "clk"), (negedge, "rst_n"))
-            def update_add_tree(self):
-                if ~self._rst_n:
-                    self._add_tree0[0] = 0
-                    self._add_tree0[1] = 0
-                    self._add_tree0[2] = 0
-                    self._add_tree1[0] = 0
-                    self._add_tree1[1] = 0
-                else:
-                    self._add_tree0[0] = self._diff2[0].extend(self.data_width + 1) + self._diff2[1].extend(self.data_width + 1)
-                    self._add_tree0[1] = self._diff2[2].extend(self.data_width + 1) + self._diff2[3].extend(self.data_width + 1)
-                    self._add_tree0[2] = self._diff2[4].extend(self.data_width + 1)
-                    
-                    self._add_tree1[0] = self._add_tree0[0].extend(self.data_width + 2) + self._add_tree0[1].extend(self.data_width + 2)
-                    self._add_tree1[1] = self._add_tree0[2].extend(self.data_width + 2)
-                    
-                    self._l2_dist = self._add_tree2[self.data_width + 3 - 1, 3]
-            self.add_code(update_add_tree)
-            '''
-        
+                                             self._add_tree2[18, 8]))
+
 
 if __name__ == "__main__":
     db_dut = L2Kernel()

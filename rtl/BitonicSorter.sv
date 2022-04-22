@@ -8,44 +8,44 @@ module BitonicSorter (
   input logic [10:0] data_in_5,
   input logic [10:0] data_in_6,
   input logic [10:0] data_in_7,
-  input logic [8:0] idx_in_0,
-  input logic [8:0] idx_in_1,
-  input logic [8:0] idx_in_2,
-  input logic [8:0] idx_in_3,
-  input logic [8:0] idx_in_4,
-  input logic [8:0] idx_in_5,
-  input logic [8:0] idx_in_6,
-  input logic [8:0] idx_in_7,
+  input logic [14:0] idx_in_0,
+  input logic [14:0] idx_in_1,
+  input logic [14:0] idx_in_2,
+  input logic [14:0] idx_in_3,
+  input logic [14:0] idx_in_4,
+  input logic [14:0] idx_in_5,
+  input logic [14:0] idx_in_6,
+  input logic [14:0] idx_in_7,
   input logic rst_n,
   input logic valid_in,
   output logic [10:0] data_out_0,
   output logic [10:0] data_out_1,
   output logic [10:0] data_out_2,
   output logic [10:0] data_out_3,
-  output logic [8:0] idx_out_0,
-  output logic [8:0] idx_out_1,
-  output logic [8:0] idx_out_2,
-  output logic [8:0] idx_out_3,
+  output logic [14:0] idx_out_0,
+  output logic [14:0] idx_out_1,
+  output logic [14:0] idx_out_2,
+  output logic [14:0] idx_out_3,
   output logic valid_out
 );
 
 logic [10:0] stage0_data [7:0];
-logic [8:0] stage0_idx [7:0];
+logic [14:0] stage0_idx [7:0];
 logic stage0_valid;
 logic [10:0] stage1_data [7:0];
-logic [8:0] stage1_idx [7:0];
+logic [14:0] stage1_idx [7:0];
 logic stage1_valid;
 logic [10:0] stage2_data [7:0];
-logic [8:0] stage2_idx [7:0];
+logic [14:0] stage2_idx [7:0];
 logic stage2_valid;
 logic [10:0] stage3_data [3:0];
-logic [8:0] stage3_idx [3:0];
+logic [14:0] stage3_idx [3:0];
 logic stage3_valid;
 logic [10:0] stage4_data [3:0];
-logic [8:0] stage4_idx [3:0];
+logic [14:0] stage4_idx [3:0];
 logic stage4_valid;
 logic [10:0] stage5_data [3:0];
-logic [8:0] stage5_idx [3:0];
+logic [14:0] stage5_idx [3:0];
 logic stage5_valid;
 
 always_ff @(posedge clk, negedge rst_n) begin
@@ -53,7 +53,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     stage0_valid <= 1'h0;
     for (int unsigned p = 0; p < 8; p += 1) begin
         stage0_data[3'(p)] <= 11'h0;
-        stage0_idx[3'(p)] <= 9'h0;
+        stage0_idx[3'(p)] <= 15'h0;
       end
   end
   else begin
@@ -84,7 +84,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     stage1_valid <= 1'h0;
     for (int unsigned p = 0; p < 8; p += 1) begin
         stage1_data[3'(p)] <= 11'h0;
-        stage1_idx[3'(p)] <= 9'h0;
+        stage1_idx[3'(p)] <= 15'h0;
       end
   end
   else begin
@@ -115,7 +115,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     stage2_valid <= 1'h0;
     for (int unsigned p = 0; p < 8; p += 1) begin
         stage2_data[3'(p)] <= 11'h0;
-        stage2_idx[3'(p)] <= 9'h0;
+        stage2_idx[3'(p)] <= 15'h0;
       end
   end
   else begin
@@ -146,7 +146,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     stage3_valid <= 1'h0;
     for (int unsigned p = 0; p < 4; p += 1) begin
         stage3_data[2'(p)] <= 11'h0;
-        stage3_idx[2'(p)] <= 9'h0;
+        stage3_idx[2'(p)] <= 15'h0;
       end
   end
   else begin
@@ -169,7 +169,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     stage4_valid <= 1'h0;
     for (int unsigned p = 0; p < 4; p += 1) begin
         stage4_data[2'(p)] <= 11'h0;
-        stage4_idx[2'(p)] <= 9'h0;
+        stage4_idx[2'(p)] <= 15'h0;
       end
   end
   else begin
@@ -192,7 +192,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     stage5_valid <= 1'h0;
     for (int unsigned p = 0; p < 4; p += 1) begin
         stage5_data[2'(p)] <= 11'h0;
-        stage5_idx[2'(p)] <= 9'h0;
+        stage5_idx[2'(p)] <= 15'h0;
       end
   end
   else begin

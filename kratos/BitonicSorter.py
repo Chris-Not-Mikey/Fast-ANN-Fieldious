@@ -10,6 +10,7 @@ class BitonicSorter(Generator):
                  idx_width=9,
                  channel_num=8,
                  patch_size=5,
+                 num_leaves=64,
                  row=30,
                  height=23):
         super().__init__("BitonicSorter", False)
@@ -17,12 +18,14 @@ class BitonicSorter(Generator):
         self.idx_width = idx_width
         self.channel_num = channel_num
         self.patch_size = patch_size
+        self.num_leaves = num_leaves
         self.row = row
         self.height = height
 
         self.total_patches = (self.row - self.patch_size + 1) * (self.height - self.patch_size + 1)
         self.stages = clog2(self.channel_num)
         self.out_num = 4
+        self.leaf_addrw = clog2(self.num_leaves)
 
         # inputs
         self._clk = self.clock("clk")
@@ -33,7 +36,7 @@ class BitonicSorter(Generator):
         self._idx_in = []
         for i in range(self.channel_num):
             self._data_in.append(self.input(f"data_in_{i}", self.data_width))
-            self._idx_in.append(self.input(f"idx_in_{i}", self.idx_width))
+            self._idx_in.append(self.input(f"idx_in_{i}", self.leaf_addrw + self.idx_width))
 
         # outputs
         self._valid_out = self.output("valid_out", 1)
@@ -41,15 +44,7 @@ class BitonicSorter(Generator):
         self._idx_out = []
         for i in range(self.out_num):
             self._data_out.append(self.output(f"data_out_{i}", self.data_width))
-            self._idx_out.append(self.output(f"idx_out_{i}", self.idx_width))
-        # self._data_out = self.output("data_out",
-        #                              width=self.data_width,
-        #                              size=self.out_num,
-        #                              explicit_array=True)
-        # self._idx_out = self.output("idx_out",
-        #                                 width=self.idx_width,
-        #                                 size=self.out_num,
-        #                                 explicit_array=True)
+            self._idx_out.append(self.output(f"idx_out_{i}", self.leaf_addrw + self.idx_width))
 
         # pipeline stages
         self._stage0_valid = self.var("stage0_valid", 1)
@@ -58,7 +53,7 @@ class BitonicSorter(Generator):
                                      size=self.channel_num,
                                      explicit_array=True)
         self._stage0_idx = self.var("stage0_idx",
-                                        width=self.idx_width,
+                                        width=self.leaf_addrw + self.idx_width,
                                         size=self.channel_num,
                                         explicit_array=True)
         @always_ff((posedge, "clk"), (negedge, "rst_n"))
@@ -96,7 +91,7 @@ class BitonicSorter(Generator):
                                      size=self.channel_num,
                                      explicit_array=True)
         self._stage1_idx = self.var("stage1_idx",
-                                        width=self.idx_width,
+                                        width=self.leaf_addrw + self.idx_width,
                                         size=self.channel_num,
                                         explicit_array=True)
         @always_ff((posedge, "clk"), (negedge, "rst_n"))
@@ -134,7 +129,7 @@ class BitonicSorter(Generator):
                                      size=self.channel_num,
                                      explicit_array=True)
         self._stage2_idx = self.var("stage2_idx",
-                                        width=self.idx_width,
+                                        width=self.leaf_addrw + self.idx_width,
                                         size=self.channel_num,
                                         explicit_array=True)
         @always_ff((posedge, "clk"), (negedge, "rst_n"))
@@ -172,7 +167,7 @@ class BitonicSorter(Generator):
                                      size=self.out_num,
                                      explicit_array=True)
         self._stage3_idx = self.var("stage3_idx",
-                                        width=self.idx_width,
+                                        width=self.leaf_addrw + self.idx_width,
                                         size=self.out_num,
                                         explicit_array=True)
         @always_ff((posedge, "clk"), (negedge, "rst_n"))
@@ -210,7 +205,7 @@ class BitonicSorter(Generator):
                                      size=self.out_num,
                                      explicit_array=True)
         self._stage4_idx = self.var("stage4_idx",
-                                        width=self.idx_width,
+                                        width=self.leaf_addrw + self.idx_width,
                                         size=self.out_num,
                                         explicit_array=True)
         @always_ff((posedge, "clk"), (negedge, "rst_n"))
@@ -240,7 +235,7 @@ class BitonicSorter(Generator):
                                      size=self.out_num,
                                      explicit_array=True)
         self._stage5_idx = self.var("stage5_idx",
-                                        width=self.idx_width,
+                                        width=self.leaf_addrw + self.idx_width,
                                         size=self.out_num,
                                         explicit_array=True)
         @always_ff((posedge, "clk"), (negedge, "rst_n"))

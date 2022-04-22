@@ -64,7 +64,7 @@ assign wb_addr = wbs_adr_i - WB_ADDRESS_OFFSET;
  
 
 
- assign wbs_dat_o = {21'b0,wb_out};
+ assign wbs_dat_o = {21'b0, wb_out[10:0]};
 
 
 always @(*) begin 
@@ -101,7 +101,7 @@ always @(*) begin
 
             end
             else begin
-                wb_out[21:11] = rdata_storage[wb_addr[5:0]][21:11]; //read address is same as write address
+                wb_out[10:0] = rdata_storage[wb_addr[5:0]][21:11]; //read address is same as write address
                 ack = 1'b1;
             
             end

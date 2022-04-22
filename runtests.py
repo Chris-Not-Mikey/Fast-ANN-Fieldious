@@ -28,7 +28,7 @@ def run_process(call_arr):
     if (verbose):
         print(process.stdout)
 
-    if "Failed" in process.stdout or "failed" in process.stdout or "Error" in process.stdout or "error" in process.stdout:
+    if "Failed" in process.stdout or "failed" in process.stdout or "Error" in process.stdout or "error" in process.stdout or "mismatch" in process.stdout:
         print(CRED + "Test failed\n" + CEND)
         print(process.stdout)
         return 0
@@ -173,6 +173,9 @@ def test_full_test_tb():
     print("Running test_full_test_tb")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/full_test_tb.v', 'rtl/QueryPatchMem.v',  'rtl/aggregator.v', 'rtl/SyncFIFO.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v', 'rtl/internal_node.v', 'rtl/internal_node_tree.v', 'rtl/LeavesMem.sv', 'rtl/sram_1kbyte_1rw1r.v'])
 
+def test_top_tb():
+    print("Running test_top_tb")
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/top_tb.sv', 'rtl/top.sv', 'rtl/QueryPatchMem.v',  'rtl/aggregator.v', 'rtl/sram_1kbyte_1rw1r.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v', 'rtl/internal_node.v', 'rtl/internal_node_tree.v', 'rtl/LeavesMem.sv', 'rtl/BitonicSorter.sv', 'rtl/kBestArrays.sv', 'rtl/L2Kernel.sv', 'rtl/MainFSM.sv', 'rtl/RunningMin.sv', 'rtl/SyncFIFO.v'])
 
 
 

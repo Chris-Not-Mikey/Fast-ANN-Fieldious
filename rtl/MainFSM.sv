@@ -146,6 +146,7 @@ module MainFSM #(
         k0_query_last_in = '0;
         k0_query_patch = '0;
         best_arr_csb1 = {K{1'b1}};
+        best_arr_addr1 = '0;
         
         counter_en = '0;
         counter_in = '0;
@@ -567,7 +568,6 @@ module MainFSM #(
         end
     end
     assign best_arr_addr0 = best_arr_addr_r;
-    assign best_arr_addr1 = best_arr_addr_r;
     
     // used to store propagated leaves
     always_ff @(posedge clk, negedge rst_n) begin

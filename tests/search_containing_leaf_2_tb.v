@@ -332,6 +332,10 @@ end
     wpatch0 = 0;
     csb1 = 1; //Read
     addr1 = 0;
+	  
+	  
+    #600
+     wb_mode = 0;
 
 
     #20 

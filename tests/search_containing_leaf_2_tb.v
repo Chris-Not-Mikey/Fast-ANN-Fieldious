@@ -311,6 +311,13 @@ end
 	  patch_en = 0;
     patch_two_en = 0;
 	  wish_bone_en = 0;
+	  
+	  
+	  //wish bone
+	  wbs_we_i = 0;
+	  wb_rst_i = 0;
+	  wbs_dat_i = 0;
+	  wbs_adr_i = 0;
 
 	  
     //Agg
@@ -333,6 +340,7 @@ end
     rst_n = 1'b1;
     fsm_rst_agg_n =  1'b1;
     change_fetch_width = 1;
+	   wbs_adr_i = 32'd495;
     
     #20
     change_fetch_width = 0;

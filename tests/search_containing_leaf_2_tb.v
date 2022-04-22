@@ -115,6 +115,22 @@ module search_containing_leaf_tb;
   integer               expected_data_file    ; // file handler
   integer               expected_scan_file    ; // file handler
   logic   signed [`DSIZE-1:0] expected_captured_data;
+
+
+
+
+  //wishbone stuff
+  reg wb_mode;
+  reg wb_rst_i; 
+  reg wbs_stb_i; 
+  reg wbs_cyc_i; 
+  reg wbs_we_i; 
+  reg [3:0] wbs_sel_i; 
+  reg [31:0] wbs_dat_i; 
+  reg [31:0] wbs_adr_i; 
+  reg wbs_ack_o; 
+  reg [31:0] wbs_dat_o;
+
      
   
   always #6.66666667 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
@@ -211,7 +227,19 @@ module search_containing_leaf_tb;
   .leaf_index(leaf_index),
   .leaf_index_two(leaf_index_two),
   .receiver_en(leaf_en),
-  .receiver_two_en(leaf_two_en)
+  .receiver_two_en(leaf_two_en),
+  .wb_mode(1'b0),
+  .wb_clk_i(wbclk), 
+  .wb_rst_i(wb_rst_i), 
+  .wbs_stb_i(wbs_stb_i), 
+  .wbs_cyc_i(wbs_cyc_i), 
+  .wbs_we_i(wbs_we_i), 
+  .wbs_sel_i(wbs_sel_i), 
+  .wbs_dat_i(wbs_dat_i), 
+  .wbs_adr_i(wbs_adr_i), 
+  .wbs_ack_o(wbs_ack_o), 
+  .wbs_dat_o(wbs_dat_o)
+	  
 	  
   );
 
@@ -441,7 +469,7 @@ end
   if (receiver_enq && !write_disable && (i_o_state == 3'b1)) begin //If aggregated 5, write to RAM
       web0 <= 1'b1; //active low
       csb0 <= 0; //Must activate to write as well
-     csb1 <= 1'b0;
+      csb1 <= 1'b0;
      
       write_latency_counter <= 0;
 	  
@@ -450,9 +478,9 @@ end
 		  //Stop writing, start reading (TOP LEVEL: Include counter register like this)
 		write_disable <= 1;
 		addr0 <= 0; //Read even addresses
-    addr1 <= 1; //We will also be reading (odd addresses) with addr1 (two read ports) so we set this up here 
-		  ren <= 1;
-		  read_latency_counter <= 0;
+    		addr1 <= 1; //We will also be reading (odd addresses) with addr1 (two read ports) so we set this up here 
+		ren <= 1;
+		read_latency_counter <= 0;
 		  
 		  
 	  end
@@ -491,9 +519,6 @@ end
 	    
 	    csb0 <= 0;
           
-    
-  
-
 	    
 	    web0 <= 1'b1;
 	   // $display("%t: received = %d", $time, rpatch0);

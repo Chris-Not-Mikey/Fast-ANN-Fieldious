@@ -10,7 +10,8 @@ module internal_node_tree
 #(
   parameter INTERNAL_WIDTH = 22,
   parameter PATCH_WIDTH = 55,
-  parameter ADDRESS_WIDTH = 8
+  parameter ADDRESS_WIDTH = 8,
+  parameter WB_ADDRESS_OFFSET = 494
 )
 (
   input clk,
@@ -25,9 +26,95 @@ module internal_node_tree
   output logic [ADDRESS_WIDTH - 1 : 0] leaf_index,
   output logic [ADDRESS_WIDTH - 1 : 0] leaf_index_two,
   output receiver_en,
-  output receiver_two_en
+  output receiver_two_en,
+    input wb_mode,
+    input wb_clk_i, 
+    input wb_rst_i, 
+    input wbs_stb_i, 
+    input wbs_cyc_i, 
+    input wbs_we_i, 
+    input [3:0] wbs_sel_i, 
+    input [31:0] wbs_dat_i, 
+    input [31:0] wbs_adr_i, 
+    output wbs_ack_o, 
+    output [31:0] wbs_dat_o
+
 
 );
+
+
+
+
+//Wishbone interface
+
+reg [STORAGE_WIDTH-1:0] rdata_storage [63:0]; //For index and median read from tree
+
+reg [INTERNAL_WIDTH - 1 : 0]  write_data;
+reg wen;
+reg [31:0] wb_out;
+wire signed [31:0] wb_addr; //Will only use top 6 bits of this
+
+assign wb_addr = wbs_adr_i - WB_ADDRESS_OFFSET;
+
+
+assign wbs_dat_o = wb_out;
+
+
+always @(*) begin 
+
+    if (wb_mode) begin
+
+
+        if (wbs_we_i) begin //active high wen
+
+            if wbs_dat_i[21] == 1'b0 begin
+                write_data[10:0] = wbs_dat_i[10:0]; //if index is 0
+                wen = 1'b0;
+                wbs_ack_o = 1'b0;
+
+        
+
+            end
+            else begin
+                write_data[21:11] = wbs_dat_i[10:0]; //second half
+                wen = 1'b1; //written all data so set wen
+
+                wbs_ack_o = 1'b1;
+            
+            end
+        end
+
+        //if not write, then read
+
+        else begin
+
+            if wbs_dat_i[21] == 1'b0 begin
+ 
+
+                wb_out[10:0] = rdata_storage[wb_addr[5:0]][10:0]; //read address is same as write address
+                wbs_ack_o = 1'b1;
+
+            end
+            else begin
+                wb_out[21:11] = rdata_storage[wb_addr[5:0]][21:11]; //read address is same as write address
+                wbs_ack_o = 1'b1;
+            
+            end
+
+        end
+
+
+
+
+    end
+    //Normal I/O mode
+    else begin 
+        write_data = sender_data;
+        wen = fsm_enable && sender_enable;
+    end
+
+end
+
  
 
 
@@ -36,14 +123,13 @@ reg [5:0] wadr; //Internal state holding current address to be read (2^6 interna
 reg  one_hot_address_en [63:0]; //TODO: Fix width on these
 wire [PATCH_WIDTH - 1 : 0] patch_out;
 
-wire wen;
-assign wen = fsm_enable && sender_enable;
+
  
 
  //Register for keeping track of whether output is valid (keeps track of pipelined inputs as well.
  // This handles the 6 cycle latency of this setup
- reg latency_track_reciever_en [5:0];
-  reg latency_track_reciever_two_en [5:0];
+reg latency_track_reciever_en [5:0];
+reg latency_track_reciever_two_en [5:0];
  
  always @ (posedge clk) begin
      if (rst_n == 0) begin
@@ -102,15 +188,26 @@ end
 //Result is a 1 hot signal, where the index that includes the 1 corresponds to the internal_node that will be written to.
 always @(*) begin 
 
- for (int q = 0; q < 128; q++) begin
-        if (q == wadr) begin
-            one_hot_address_en[q] = 1'b1; //TODO: Does this synthesize well?
+    for (int q = 0; q < 128; q++) begin
+
+        if (wb_mode) begin  //If in wishbone mode, this will read from the wb_addr
+            if (q == wb_addr) begin
+                one_hot_address_en[q] = 1'b1; 
+            end
+            else begin
+                one_hot_address_en[q] = 1'b0;
+            end
+
         end
         else begin
-             one_hot_address_en[q] = 1'b0;
+            if (q == wadr) begin
+                one_hot_address_en[q] = 1'b1; //TODO: Does this synthesize well?
+            end
+            else begin
+                one_hot_address_en[q] = 1'b0;
+            end
         end
     end
-
 end
 
 
@@ -124,6 +221,8 @@ reg level_valid [63:0][7:0]; //for storing valid signals
 reg level_valid_two [63:0][7:0]; //for storing valid signals
 wire level_valid_storage [63:0][7:0]; //for storing valid signals
 wire level_valid_storage_two [63:0][7:0]; //for storing valid signals
+
+
  
 
 
@@ -168,13 +267,14 @@ generate
             .wen(wen && one_hot_address_en[(((2**i)) + j-1)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
             .valid(level_valid[j][i]),
             .valid_two(level_valid_two[j][i]),
-            .wdata(sender_data), //writing mechanics are NOT pipelined
+            .wdata(write_data), //writing mechanics are NOT pipelined
             .patch_in(level_patches[i]),
             .patch_in_two(level_patches_two[i]),
             .valid_left(level_valid_storage[j*2][i]),
             .valid_right(level_valid_storage[(j*2)+1][i]),
             .valid_left_two(level_valid_storage_two[j*2][i]),
-            .valid_right_two(level_valid_storage_two[(j*2)+1][i])
+            .valid_right_two(level_valid_storage_two[(j*2)+1][i]),
+            .rdata(rdata_storage[(((2**i)) + j-1)])
             );
 
         //  assign valid_output[(j*2)+1:(j*2)] = vl;
@@ -192,7 +292,7 @@ generate
 
             if (rst_n == 0) begin
                 level_patches[i+1] <= 0;
-             level_patches_two[i+1] <= 0 ;
+                level_patches_two[i+1] <= 0 ;
                  for (int r = 0; r < 64; r++) begin
                      level_valid[r][i+1] = 1'b0;
                       level_valid_two[r][i+1] = 1'b0;
@@ -242,6 +342,7 @@ always @(*) begin
 end
 
 endmodule
+
 
 
 

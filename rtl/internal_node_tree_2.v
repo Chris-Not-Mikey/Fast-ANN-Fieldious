@@ -52,9 +52,13 @@ reg [INTERNAL_WIDTH-1:0] rdata_storage [63:0]; //For index and median read from 
 reg [INTERNAL_WIDTH - 1 : 0]  write_data;
 reg wen;
 reg [31:0] wb_out;
+reg ack;
 wire signed [31:0] wb_addr; //Will only use top 6 bits of this
 
 assign wb_addr = wbs_adr_i - WB_ADDRESS_OFFSET;
+ assign wbs_ack_o = ack;
+ 
+ 
 
 
 assign wbs_dat_o = wb_out;
@@ -70,7 +74,7 @@ always @(*) begin
             if (wbs_dat_i[21] == 1'b0) begin
                 write_data[10:0] = wbs_dat_i[10:0]; //if index is 0
                 wen = 1'b0;
-                wbs_ack_o = 1'b0;
+                ack = 1'b0;
 
         
 
@@ -79,7 +83,7 @@ always @(*) begin
                 write_data[21:11] = wbs_dat_i[10:0]; //second half
                 wen = 1'b1; //written all data so set wen
 
-                wbs_ack_o = 1'b1;
+                ack = 1'b1;
             
             end
         end
@@ -92,12 +96,12 @@ always @(*) begin
  
 
                 wb_out[10:0] = rdata_storage[wb_addr[5:0]][10:0]; //read address is same as write address
-                wbs_ack_o = 1'b1;
+                ack = 1'b1;
 
             end
             else begin
                 wb_out[21:11] = rdata_storage[wb_addr[5:0]][21:11]; //read address is same as write address
-                wbs_ack_o = 1'b1;
+                ack = 1'b1;
             
             end
 

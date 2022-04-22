@@ -347,7 +347,7 @@ end
     change_fetch_width = 1;
 	   wbs_adr_i = 32'd495;
     
-    #20
+    #200
     wbs_dat_i = 32'b100000001100;
     change_fetch_width = 0;
 
@@ -355,7 +355,7 @@ end
     fifo_valid <=1;
 	  
 	  
-    #20
+    #200
     wb_mode = 0;
     wbs_we_i = 0;
 
@@ -561,16 +561,16 @@ end
       //Even 5
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[10:0]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[21:11]); 
-      expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
+      	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[32:22]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[43:33]); 
-      expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
+            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected[54:44]); 
 
       //Odd 5
-      expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected_two[10:0]); 
+            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected_two[10:0]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected_two[21:11]); 
-      expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected_two[32:22]); 
+            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected_two[32:22]); 
 	    expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected_two[43:33]); 
-      expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected_two[54:44]); 
+            expected_scan_file = $fscanf(expected_data_file, "%d\n", hold_expected_two[54:44]); 
 		 
 		 
 	
@@ -587,7 +587,7 @@ end
 		    $display("%t: received = %d, expected = %d", $time, rpatch0[43:33], hold_expected[43:33]);
 		    $display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);
 
-        assert(rpatch1 == hold_expected_two);
+        	assert(rpatch1 == hold_expected_two);
 		    $display("%t: received = %d, expected = %d", $time, rpatch1, hold_expected_two);
 		    $display("%t: received = %d, expected = %d", $time, rpatch1[10:0], hold_expected_two[10:0]);
 		    $display("%t: received = %d, expected = %d", $time, rpatch1[21:11], hold_expected_two[21:11]);

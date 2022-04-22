@@ -335,7 +335,7 @@ end
 
 
     #100 
-    wb_mode = 1;
+    wb_mode = 0;
     wbs_dat_i = 32'b000000000100;
     wbs_we_i = 1;
 	  
@@ -463,7 +463,7 @@ always @ (posedge write_clock) begin
 	  if (wrst_n) begin
 	    stall <= 20 % 2;
 	    receiver_full_n <= 1;
-		  if (fifo_enq && !wb_mode) begin
+		  if (fifo_enq) begin
 	       //scan_file = $fscanf(data_file, "%d\n", captured_data); 
 		    
 

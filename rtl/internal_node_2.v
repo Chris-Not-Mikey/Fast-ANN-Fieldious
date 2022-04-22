@@ -24,7 +24,8 @@ module internal_node
   output valid_left,
   output valid_right,
   output valid_left_two,
-  output valid_right_two
+  output valid_right_two,
+  output [STORAGE_WIDTH-1: 0] rdata
 
 );
 
@@ -124,6 +125,8 @@ assign valid_right_two = (!comparison_two) && valid_two;
 
 
 assign patch_out = patch_in; //deprecated
+
+assign rdata = {median, 8'b0, idx} //fill to 22 in width
 
 
 

@@ -348,17 +348,21 @@ end
 	   wbs_adr_i = 32'd495;
     
     #20
-    wbs_dat_i = 32'b100000000100;
+    wbs_dat_i = 32'b100000001100;
     change_fetch_width = 0;
 
 
     fifo_valid <=1;
+	  
+	  
+    #20
+    wb_mode = 0;
+    wbs_we_i = 0;
 
 
     //Write to internal Tree
     #40 rst_n <= 1;
-     wb_mode = 0;
-	    wbs_we_i = 0;
+     
     input_fetch_width = 3'd1;
     change_fetch_width <= 1'b1;
     receiver_full_n <=1;

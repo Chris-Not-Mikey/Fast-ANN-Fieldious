@@ -349,6 +349,8 @@ end
 	  
     //Check reading here
     wbs_we_i = 0;
+    #200
+     wbs_dat_i = 32'b000000001100;
 	  
 	  
     #600

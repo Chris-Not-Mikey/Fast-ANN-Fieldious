@@ -92,6 +92,8 @@ always @(*) begin
         //if not write, then read
 
         else begin
+         
+           wb_wen = 1'b0;
 
            if (wbs_dat_i[11] == 1'b0) begin
  

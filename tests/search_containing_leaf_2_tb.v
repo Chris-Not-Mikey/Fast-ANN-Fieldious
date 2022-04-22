@@ -459,7 +459,7 @@ end
 	      fsm_rst_agg_n <= 0;
 	 wb_mode <= 1; //Read what is is in secon address via wishbone
 	   wbs_adr_i <= 32'd496;
-	   wbs_dat_i <= 32'b000000000000;
+	   wbs_dat_i <= 32'b100000000000;
 	   
     end
     else if ((fifo_deq) && (rempty)) begin

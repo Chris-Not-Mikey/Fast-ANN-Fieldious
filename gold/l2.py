@@ -1,0 +1,118 @@
+#####################################################################
+#           l2.py                                                   #
+#           For computining the l2 score of the HW results          #
+#           Also does reconstruction to create visual output        #
+#                                                                   #
+#           Author: Chris Calloway                                  #
+#           email: cmc2374@stanford.edu                             #
+#                                                                   #
+#####################################################################
+
+import numpy
+import cv2
+from sklearn.feature_extraction import image
+from sklearn.decomposition import PCA
+import tensorflow as tf
+
+
+
+# Following two functions  based on https://stackoverflow.com/a/51785735/278836
+def custom_extract_patches(images):
+    return tf.image.extract_patches(
+        images,
+        (1, 5, 5, 1),
+        (1, 1, 1, 1),
+        (1, 1, 1, 1),
+        padding="VALID")
+
+@tf.function
+def extract_patches_inverse(shape, patches):
+    _x = tf.zeros(shape)
+    _y = custom_extract_patches(_x)
+    grad = tf.gradients(_y, _x)[0]
+    return tf.gradients(_y, _x, grad_ys=patches)[0] / grad
+
+
+
+def _create_patches(img, psize):
+
+    n_channels = img.shape[-1]
+
+    patches = image.extract_patches_2d(img, (psize, psize))
+
+    if True > 0:
+        print("Patches for image have shape: {}".format(patches.shape))
+
+    patches = patches.reshape((-1, psize * psize * n_channels))
+
+    if True > 0:
+        print("Reshaped patches for image have shape: {}".format(patches.shape))
+
+    return patches
+
+
+
+
+
+if __name__ == "__main__":
+    numpy.random.seed(0)
+    psize = 5 # Patch size of 5x5 (much better results than 8x8 for minimal memory penalty)
+  
+        
+    image_a = cv2.imread("../data/gold_data/frame1ball_30.png")
+    image_b = cv2.imread("../data/gold_data/frame2ball_30.png")
+    results_file = open('receiveIndex.txt', 'r')
+    reconstruct_file_name = "../data/gold_results/l2_frame1ball_30_reconstruct.png"
+
+
+    im_height = image_a.shape[1]
+    im_width = image_a.shape[0]
+
+    #row_size = 56 #Row Size = (h-p+1)
+
+
+    row_size = image_a.shape[1] - psize + 1
+    col_size = image_a.shape[0] - psize + 1
+
+    # create patches
+
+    patches_a = _create_patches(image_a, psize)
+    patches_b = _create_patches(image_b, psize)
+
+
+
+    # Actual hardware values
+    Lines = results_file.readlines()
+    
+    hw_indices = []
+    for line in Lines:
+        #print(int(line))
+        hw_indices.append(int(line))
+
+
+    # Compute final HW score 
+    patches_a_reconst = patches_b[hw_indices]
+    diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
+    l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
+    print("Overall Hardware L2 score: {}".format(l2))
+
+
+
+
+
+    # Reconstruct Image  from HW(For Visual Debugging. The L2 score should effectively describe this same result )
+    # Note since patches_a_reconst was made by index, inverse PCA is NOT required 
+
+    recontruct_shape = (1, im_width, im_height, 3)
+
+    patches_a_reconst_format = [patches_a_reconst]
+
+    patches_a_reconst_format = tf.cast(patches_a_reconst_format, tf.float32)
+    images_reconstructed = extract_patches_inverse(recontruct_shape, patches_a_reconst_format)
+    #error = tf.reduce_mean(tf.math.squared_difference(images_reconstructed, images))
+    #print(error)
+
+    #Write the reconstructed image
+    print("Writing reconstructed image to")
+    print(reconstruct_file_name)
+    cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))

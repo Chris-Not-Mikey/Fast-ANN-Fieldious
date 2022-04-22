@@ -228,7 +228,7 @@ module search_containing_leaf_tb;
   .leaf_index_two(leaf_index_two),
   .receiver_en(leaf_en),
   .receiver_two_en(leaf_two_en),
-  .wb_mode(1'b0),
+  .wb_mode(wb_mode),
   .wb_clk_i(wbclk), 
   .wb_rst_i(wb_rst_i), 
   .wbs_stb_i(wbs_stb_i), 

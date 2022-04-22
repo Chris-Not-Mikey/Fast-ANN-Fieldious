@@ -47,7 +47,7 @@ module internal_node_tree
 
 //Wishbone interface
 
-reg [STORAGE_WIDTH-1:0] rdata_storage [63:0]; //For index and median read from tree
+reg [INTERNAL_WIDTH-1:0] rdata_storage [63:0]; //For index and median read from tree
 
 reg [INTERNAL_WIDTH - 1 : 0]  write_data;
 reg wen;
@@ -67,7 +67,7 @@ always @(*) begin
 
         if (wbs_we_i) begin //active high wen
 
-            if wbs_dat_i[21] == 1'b0 begin
+            if (wbs_dat_i[21] == 1'b0) begin
                 write_data[10:0] = wbs_dat_i[10:0]; //if index is 0
                 wen = 1'b0;
                 wbs_ack_o = 1'b0;
@@ -88,7 +88,7 @@ always @(*) begin
 
         else begin
 
-            if wbs_dat_i[21] == 1'b0 begin
+            if (wbs_dat_i[21] == 1'b0) begin
  
 
                 wb_out[10:0] = rdata_storage[wb_addr[5:0]][10:0]; //read address is same as write address

@@ -64,7 +64,7 @@ assign wb_addr = wbs_adr_i - WB_ADDRESS_OFFSET;
  
 
 
-assign wbs_dat_o = wb_out;
+ assign wbs_dat_o = {21'b0,wb_out};
 
 
 always @(*) begin 

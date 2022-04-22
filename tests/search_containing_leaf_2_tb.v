@@ -63,7 +63,7 @@ module search_containing_leaf_tb;
 
   reg [7:0] node_counter;
   reg [8:0] patch_counter;
-	reg [8:0] read_patch_counter;
+  reg [8:0] read_patch_counter;
 
   // RAM Stuff
   logic                                       csb0; //Write
@@ -165,12 +165,12 @@ module search_containing_leaf_tb;
       .sCLK(wclk),
       .sRST(wrst_n),
       .dCLK(clk),
-	    .sENQ(fifo_enq && !wish_bone_en),
+      .sENQ(fifo_enq && !wish_bone_en),
       .sD_IN(wdata),
-	    .sFULL_N(wfull_io),
+      .sFULL_N(wfull_io),
       .dDEQ(fifo_deq),
-	    .dD_OUT(rdata_io),
-	    .dEMPTY_N(rempty_io)
+      .dD_OUT(rdata_io),
+      .dEMPTY_N(rempty_io)
     );
 	
 
@@ -352,12 +352,15 @@ end
     change_fetch_width = 0;
 
 
-    fifo_valid <=1;
+   
 	  
 	  
     #200
     wb_mode = 0;
     wbs_we_i = 0;
+	  
+    #20
+    fifo_valid <=1;
 
 
     //Write to internal Tree
@@ -413,9 +416,9 @@ end
 	
 
   reg [10:0] temp_capture;
-	reg [10:0] temp1;
-	reg [10:0] temp2;
- reg [2:0] counter;
+  reg [10:0] temp1;
+  reg [10:0] temp2;
+  reg [2:0] counter;
 
 
 	

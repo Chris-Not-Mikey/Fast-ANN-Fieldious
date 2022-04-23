@@ -66,7 +66,7 @@ module QueryPatchMem2
             case(wbs_dat_i[13:11]) 
 
                 3'b000: begin 
-                    wb_mask = 8'b00010001;     
+                    wb_mask = 8'b00000001;     
                     wb_wdata0 = {56'b0, wbs_dat_i[7:0]};
                 end
                 3'b001: begin

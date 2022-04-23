@@ -114,11 +114,11 @@ module QueryPatchMem2
 
                 if (wbs_dat_i[11] == 1'b0) begin
 
-                    wbs_dat_o = rdata0[31:0]; //first half of data ( we use INPUT DATA to index, not ADDRESS data)
+                    wbs_dat_o = rpatch0[31:0]; //first half of data ( we use INPUT DATA to index, not ADDRESS data)
 
                 end
                 else begin
-                  wbs_dat_o = {9'b0, rdata0[54:32]}; //second half of data
+                  wbs_dat_o = {9'b0, rpatch0[54:32]}; //second half of data
                 end
 
             end

@@ -118,7 +118,7 @@ module query_patch_wishbone_tb;
 	    
     #200
      wbs_we_i = 0;
-     wb_mode = 0;
+     wb_mode = 1;
     
 	
     

@@ -112,15 +112,7 @@ module QueryPatchMem2
 
             else if (wb_mode && !wbs_we_i) begin
 
-                if (wbs_dat_i[11] == 1'b0) begin
-
-                    wbs_dat_o = rpatch0[31:0]; //first half of data ( we use INPUT DATA to index, not ADDRESS data)
-
-                end
-                else begin
-                  wbs_dat_o = {9'b0, rpatch0[54:32]}; //second half of data
-                end
-
+            
             end
 
 
@@ -145,6 +137,7 @@ module QueryPatchMem2
 
     assign rpatch0 = rdata0[PATCH_SIZE*DATA_WIDTH-1:0];
     assign rpatch1 = rdata1[PATCH_SIZE*DATA_WIDTH-1:0];
+  assign wbs_dat_o = wbs_dat_i[11] rpatch0[31:0] ? : {9'b0, rpatch0[54:32]} ;
 
     sram_1kbyte_1rw1r
     #(

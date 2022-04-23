@@ -34,14 +34,14 @@ module sram_1kbyte_1rw1r#(
         if (ADDR_WIDTH == 8) begin
           sky130_sram_1kbyte_1rw1r_32x256_8 #(.DELAY(DELAY)) 
           sram_macro (
-            .clk0(clk0),.csb0(csb0),.web0(web0),.wmask0(wmask0[3:0]),.addr0(addr0[7:0]),.din0(din0[j*32+:32]), .dout0(dout0_w[i][j*32+:32]),
+            .clk0(clk0),.csb0(csb0),.web0(web0),.wmask0(wmask0[((j+1)*4) -1 :(j*4)]),.addr0(addr0[7:0]),.din0(din0[j*32+:32]), .dout0(dout0_w[i][j*32+:32]),
             .clk1(clk1),.csb1(csb1),.addr1(addr1[7:0]),.dout1(dout1_w[i][j*32+:32])
           );
         end
         else begin
           sky130_sram_1kbyte_1rw1r_32x256_8 #(.DELAY(DELAY)) 
           sram_macro (
-            .clk0(clk0),.csb0(addr0[ADDR_WIDTH-1:8] == i ? csb0 : 1'b1),.web0(web0),.wmask0(wmask0[7:4]),.addr0(addr0[7:0]),.din0(din0[j*32+:32]), .dout0(dout0_w[i][j*32+:32]),
+            .clk0(clk0),.csb0(addr0[ADDR_WIDTH-1:8] == i ? csb0 : 1'b1),.web0(web0),.wmask0(wmask0[((j+1)*4) -1 :(j*4)]),.addr0(addr0[7:0]),.din0(din0[j*32+:32]), .dout0(dout0_w[i][j*32+:32]),
             .clk1(clk1),.csb1(addr1[ADDR_WIDTH-1:8] == i ? csb1 : 1'b1),.addr1(addr1[7:0]),.dout1(dout1_w[i][j*32+:32])
           );
         end

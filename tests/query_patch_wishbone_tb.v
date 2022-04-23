@@ -35,7 +35,7 @@ module query_patch_wishbone_tb;
 
     always #6.66666667 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
 	
-    always #100 wbclk = ~wbclk; //Clock for wishbone
+    always #100 wb_clk_i = ~wb_clk_i; //Clock for wishbone
 	
 
 
@@ -75,7 +75,7 @@ module query_patch_wishbone_tb;
     initial begin
     //Clock Signals
     clk <= 0;
-    wbclk <= 0;
+    wb_clk_i <= 0;
 
     //Ram Signals
     csb0 <= 0; //Write

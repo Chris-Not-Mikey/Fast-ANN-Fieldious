@@ -46,7 +46,7 @@ module QueryPatchMem2
 
         wb_addr = wbs_adr_i - WB_ADDRESS_OFFSET;
 
-        if (wb_mode && wbs_we_i) 
+       if (wb_mode && wbs_we_i) begin
 
             //Determine what the mask should be
             //and place the darta in the appropiate section
@@ -96,11 +96,13 @@ module QueryPatchMem2
 
             endcase
 
+       end
+
             //Reading Logic
 
             else if (wb_mode && !wbs_we_i) begin
 
-                if (wbs_dat_i[11] == 1'b0)
+                if (wbs_dat_i[11] == 1'b0) begin
 
                     wbs_dat_o = rpatch0[31:0]; //first half of data ( we use INPUT DATA to index, not ADDRESS data)
 
@@ -111,8 +113,6 @@ module QueryPatchMem2
 
             end
 
-
-        end
 
         //If not wb
         else begin

@@ -100,6 +100,7 @@ module query_patch_wishbone_tb;
 	    
     #100
      web0 = 1;
+     wpatch0 = 0;
 	    
 	    
     #100

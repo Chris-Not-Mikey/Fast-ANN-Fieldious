@@ -97,6 +97,9 @@ module query_patch_wishbone_tb;
 
     web0 = 0;
     wpatch0 = {44'b0, 11'b1};
+	    
+    #100
+     web0 = 1;
 
 
 

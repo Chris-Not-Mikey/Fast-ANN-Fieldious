@@ -98,7 +98,7 @@ module QueryPatchMem2
 
             //Reading Logic
 
-            else (wb_mode && !wbs_we_i) begin
+            else if (wb_mode && !wbs_we_i) begin
 
                 if (wbs_dat_i[11] == 1'b0)
 

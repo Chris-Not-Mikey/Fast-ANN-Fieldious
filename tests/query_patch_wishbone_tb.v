@@ -107,11 +107,11 @@ module query_patch_wishbone_tb;
     wbs_we_i = 1;
     wbs_adr_i = 32'd557;
 	    
-    wpatch0 = {44'b0, 11'd2};
+    wbs_dat_i = {21'b0, 11'd2};
 	    
     #200
 	    
-     wpatch0 = {44'b0, 11'd3};
+     wbs_dat_i = {21'b0, 11'd3};
      wbs_adr_i = 32'd558;
 	    
 	    

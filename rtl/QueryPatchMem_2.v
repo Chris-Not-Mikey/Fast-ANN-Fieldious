@@ -53,7 +53,7 @@ module QueryPatchMem2
             //Logically we would read in 11 bits at a time. However, this does not work will with the SRAM. Thus we read 8 bits at a time
             
 
-            case(wbs_dat_i[13:11]) begin
+            case(wbs_dat_i[13:11]) 
 
                 3'b000: begin 
                     wb_mask = 8'b00000001;     
@@ -94,7 +94,7 @@ module QueryPatchMem2
                 end
 
 
-            end
+            endcase
 
             //Reading Logic
 

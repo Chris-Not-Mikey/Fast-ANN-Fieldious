@@ -66,40 +66,40 @@ module QueryPatchMem2
             case(wbs_dat_i[13:11]) 
 
                 3'b000: begin 
-                    wb_mask = 8'b00010000;     
+                    wb_mask = 8'b00000001;     
                     wb_wdata0 = {56'b0, wbs_dat_i[7:0]};
                 end
                 3'b001: begin
-                    wb_mask = 8'b00100000;
+                    wb_mask = 8'b00000010;
                     wb_wdata0 = {48'b0, wbs_dat_i[7:0], 8'b0};
                 end
                 3'b010: begin 
-                    wb_mask = 8'b01000000;
+                    wb_mask = 8'b00000100;
                     wb_wdata0 = {40'b0, wbs_dat_i[7:0], 16'b0};
                 end
                 3'b011: begin
-                    wb_mask = 8'b10000000;
+                    wb_mask = 8'b00001000;
                     wb_wdata0 = {32'b0, wbs_dat_i[7:0], 24'b0};
                 end
                 3'b100: begin
-                    wb_mask = 8'b00000001;
+                    wb_mask = 8'b00010000;
                     wb_wdata0 = {24'b0, wbs_dat_i[7:0], 32'b0};
                 end
                 3'b101: begin
-                    wb_mask = 8'b00000010;
+                    wb_mask = 8'b00100000;
                     wb_wdata0 = {16'b0, wbs_dat_i[7:0], 40'b0};
                 end
                 3'b110: begin
-                    wb_mask = 8'b00000100;
+                    wb_mask = 8'b01000000;
                     wb_wdata0 = {8'b0, wbs_dat_i[7:0], 48'b0};
                 end
                 3'b111: begin
-                    wb_mask = 8'b00001000;
+                    wb_mask = 8'b10000000;
                     wb_wdata0 = {wbs_dat_i[7:0], 56'b0};
                 end
 
                 default: begin
-                    wb_mask = 8'b00010000;
+                    wb_mask = 8'b00000001;
                     wb_wdata0 = {56'b0, wbs_dat_i[7:0]};
                 end
 

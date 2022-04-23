@@ -1,6 +1,7 @@
 `define DATA_WIDTH 11
 `define FETCH_WIDTH 6
 `define PATCH_SIZE 5
+`define ADDRESS_WIDTH 9
 
 
 module query_patch_wishbone_tb;

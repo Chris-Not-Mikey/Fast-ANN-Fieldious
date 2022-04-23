@@ -116,9 +116,52 @@ module query_patch_wishbone_tb;
      wbs_adr_i = 32'd558;
 	    
 	    
+	    
+     #200
+	    
+     wbs_dat_i = {18'b0, 3'd1, 11'd4};
+     wbs_adr_i = 32'd558;
+	    
+	    
+     #200
+	    
+     wbs_dat_i = {18'b0, 3'd2, 11'd5};
+     wbs_adr_i = 32'd558;
+	    
+	    
+      #200
+	    
+     wbs_dat_i = {18'b0, 3'd3, 11'd6};
+     wbs_adr_i = 32'd558;
+	    
+	    
+      #200
+	    
+     wbs_dat_i = {18'b0, 3'd4, 11'd7};
+     wbs_adr_i = 32'd558;
+	    
+	    
+     #200
+    
+     wbs_dat_i = {18'b0, 3'd5, 11'd8};
+     wbs_adr_i = 32'd558;
+	    
+     #200
+    
+     wbs_dat_i = {18'b0, 3'd6, 11'd9};
+     wbs_adr_i = 32'd558;
+	    
+
+     #200
+    
+     wbs_dat_i = {18'b0, 3'd7, 11'd10};
+     wbs_adr_i = 32'd558;
+	    
+	    
     #200
      wbs_we_i = 0;
      wb_mode = 1;
+     addr0 = 9'b1;
     
 	
     

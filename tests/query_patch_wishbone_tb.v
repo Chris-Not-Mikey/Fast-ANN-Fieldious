@@ -102,19 +102,19 @@ module query_patch_wishbone_tb;
      web0 = 1;
      wpatch0 = 0;
 	    
+
 	    
+    //Wishbone writing
     #100
     wb_mode = 1;
     wbs_we_i = 1;
-    wbs_adr_i = 32'd557;
-	    
+    wbs_adr_i = 32'd557;    
     wbs_dat_i = {21'b0, 11'd2};
 	    
     #200
 	    
      wbs_dat_i = {21'b0, 11'd3};
      wbs_adr_i = 32'd558;
-	    
 	    
 	    
      #200
@@ -164,11 +164,12 @@ module query_patch_wishbone_tb;
      addr0 = 9'b1;
    #200 
    wbs_dat_i = {18'b0, 3'd0, 11'd10};
+	    
+   #200 
+	    
+  wbs_adr_i = 32'd557;   
+	    addr0 = 0;
     
-	
-    
-
-
 
 
     end

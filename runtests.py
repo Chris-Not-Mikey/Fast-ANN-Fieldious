@@ -160,7 +160,7 @@ def test_new_query_buffer_tb():
 
 def test_query_wishbone_tb():
     print("Running query_wishbone_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/query_patch_wishbone_tb.v', 'rtl/QueryPatchMem_2.v.v', 'rtl/sram_1kbyte_1rw1r_mask.v.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v'])
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/query_patch_wishbone_tb.v', 'rtl/QueryPatchMem_2.v', 'rtl/sram_1kbyte_1rw1r_mask.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v'])
 
 
 

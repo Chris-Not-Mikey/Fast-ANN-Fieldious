@@ -162,6 +162,8 @@ module query_patch_wishbone_tb;
      wbs_we_i = 0;
      wb_mode = 1;
      addr0 = 9'b1;
+   #200 
+   wbs_dat_i = {18'b0, 3'd0, 11'd10};
     
 	
     

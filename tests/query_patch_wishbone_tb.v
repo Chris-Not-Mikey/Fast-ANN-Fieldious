@@ -113,6 +113,11 @@ module query_patch_wishbone_tb;
 	    
      wpatch0 = {44'b0, 11'd3};
      wbs_adr_i = 32'd558;
+	    
+	    
+    #200
+     wbs_we_i = 0;
+     wb_mode = 0;
     
 	
     

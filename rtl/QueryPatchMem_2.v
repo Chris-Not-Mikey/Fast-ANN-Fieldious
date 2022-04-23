@@ -31,6 +31,16 @@ module QueryPatchMem2
     output [31:0] wbs_dat_o
 
 );
+  
+  
+    
+    logic [63:0] wdata0;
+    logic [63:0] rdata0;
+    logic [63:0] rdata1;
+    logic [7:0] wmask;
+    logic wen;
+    logic [ADDR_WIDTH-1:0] ram_addr0;
+  
 
     reg [7:0] wb_mask; //We will determine wmask based on on the input data
     wire [7:0] io_mask; //Fully permissice mask that is used in non-wishbone mode
@@ -108,7 +118,7 @@ module QueryPatchMem2
 
                 end
                 else begin
-                   wbs_dat_o = {9'b0 ,rdata0[54:32]}; //second half of data
+                  wbs_dat_o = {9'b0, rdata0[54:32]}; //second half of data
                 end
 
             end
@@ -123,12 +133,6 @@ module QueryPatchMem2
 
 
 
-    logic [63:0] wdata0;
-    logic [63:0] rdata0;
-    logic [63:0] rdata1;
-    logic [7:0] wmask;
-    logic wen;
-    logic [ADDR_WIDTH-1:0] ram_addr0;
   
    
 

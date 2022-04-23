@@ -154,7 +154,7 @@ module QueryPatchMem2
         .csb1(csb1),
         .addr1(addr1),
         .dout1(rdata1),
-        .wmask(wmask)
+        .wmask0(wmask)
     );
 
 endmodule

@@ -128,11 +128,15 @@ module QueryPatchMem2
     logic [63:0] rdata1;
     logic [7:0] wmask;
     logic wen;
+    logic [ADDR_WIDTH-1:0] ram_addr0;
+  
+   
 
     assign wdata0 = wb_mode ? wb_wdata0 :  {'0, wpatch0};
     assign wmask = wb_mode ? wb_mask :  io_mask;
 
     assign wen = wb_mode ? !wbs_we_i : web0;
+    assign ram_addr0 = wb_mode ? wb_addr[ADDR_WIDTH-1:0] : addr0;
 
 
     assign rpatch0 = rdata0[PATCH_SIZE*DATA_WIDTH-1:0];
@@ -147,7 +151,7 @@ module QueryPatchMem2
         .clk0(clk),
         .csb0(csb0),
         .web0(wen),
-        .addr0(addr0),
+        .addr0(ram_addr0),
         .din0(wdata0),
         .dout0(rdata0),
         .clk1(clk),

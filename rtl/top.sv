@@ -1,6 +1,7 @@
 module top
 #(
     parameter DATA_WIDTH = 11,
+    parameter DIST_WIDTH = 25, // maximum 25
     parameter IDX_WIDTH = 9, // index of patch in the original image
     parameter LEAF_SIZE = 8,
     parameter PATCH_SIZE = 5, //excluding the index
@@ -119,14 +120,14 @@ module top
     logic [IDX_WIDTH-1:0]                                   k0_p5_idx_in;
     logic [IDX_WIDTH-1:0]                                   k0_p6_idx_in;
     logic [IDX_WIDTH-1:0]                                   k0_p7_idx_in;
-    logic [DATA_WIDTH-1:0]                                  k0_p0_l2_dist;
-    logic [DATA_WIDTH-1:0]                                  k0_p1_l2_dist;
-    logic [DATA_WIDTH-1:0]                                  k0_p2_l2_dist;
-    logic [DATA_WIDTH-1:0]                                  k0_p3_l2_dist;
-    logic [DATA_WIDTH-1:0]                                  k0_p4_l2_dist;
-    logic [DATA_WIDTH-1:0]                                  k0_p5_l2_dist;
-    logic [DATA_WIDTH-1:0]                                  k0_p6_l2_dist;
-    logic [DATA_WIDTH-1:0]                                  k0_p7_l2_dist;
+    logic [DIST_WIDTH-1:0]                                  k0_p0_l2_dist;
+    logic [DIST_WIDTH-1:0]                                  k0_p1_l2_dist;
+    logic [DIST_WIDTH-1:0]                                  k0_p2_l2_dist;
+    logic [DIST_WIDTH-1:0]                                  k0_p3_l2_dist;
+    logic [DIST_WIDTH-1:0]                                  k0_p4_l2_dist;
+    logic [DIST_WIDTH-1:0]                                  k0_p5_l2_dist;
+    logic [DIST_WIDTH-1:0]                                  k0_p6_l2_dist;
+    logic [DIST_WIDTH-1:0]                                  k0_p7_l2_dist;
     logic [IDX_WIDTH-1:0]                                   k0_p0_idx_out;
     logic [IDX_WIDTH-1:0]                                   k0_p1_idx_out;
     logic [IDX_WIDTH-1:0]                                   k0_p2_idx_out;
@@ -136,55 +137,16 @@ module top
     logic [IDX_WIDTH-1:0]                                   k0_p6_idx_out;
     logic [IDX_WIDTH-1:0]                                   k0_p7_idx_out;
 
-    logic                                                   rm_restart;
-    logic                                                   rm_valid_in;
-    logic                                                   rm_valid_out;
-    logic                                                   rm_query_last_in;
-    logic                                                   rm_query_last_out;
-    logic [LEAF_ADDRW-1:0]                                  rm_leaf_idx_in;
-    logic [DATA_WIDTH-1:0]                                  rm_p0_l2_dist;
-    logic [DATA_WIDTH-1:0]                                  rm_p1_l2_dist;
-    logic [DATA_WIDTH-1:0]                                  rm_p2_l2_dist;
-    logic [DATA_WIDTH-1:0]                                  rm_p3_l2_dist;
-    logic [DATA_WIDTH-1:0]                                  rm_p4_l2_dist;
-    logic [DATA_WIDTH-1:0]                                  rm_p5_l2_dist;
-    logic [DATA_WIDTH-1:0]                                  rm_p6_l2_dist;
-    logic [DATA_WIDTH-1:0]                                  rm_p7_l2_dist;
-    logic [IDX_WIDTH-1:0]                                   rm_p0_idx;
-    logic [IDX_WIDTH-1:0]                                   rm_p1_idx;
-    logic [IDX_WIDTH-1:0]                                   rm_p2_idx;
-    logic [IDX_WIDTH-1:0]                                   rm_p3_idx;
-    logic [IDX_WIDTH-1:0]                                   rm_p4_idx;
-    logic [IDX_WIDTH-1:0]                                   rm_p5_idx;
-    logic [IDX_WIDTH-1:0]                                   rm_p6_idx;
-    logic [IDX_WIDTH-1:0]                                   rm_p7_idx;
-    logic [DATA_WIDTH-1:0]                                  rm_p0_l2_dist_min;
-    logic [DATA_WIDTH-1:0]                                  rm_p1_l2_dist_min;
-    logic [DATA_WIDTH-1:0]                                  rm_p2_l2_dist_min;
-    logic [DATA_WIDTH-1:0]                                  rm_p3_l2_dist_min;
-    logic [DATA_WIDTH-1:0]                                  rm_p4_l2_dist_min;
-    logic [DATA_WIDTH-1:0]                                  rm_p5_l2_dist_min;
-    logic [DATA_WIDTH-1:0]                                  rm_p6_l2_dist_min;
-    logic [DATA_WIDTH-1:0]                                  rm_p7_l2_dist_min;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        rm_p0_idx_min;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        rm_p1_idx_min;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        rm_p2_idx_min;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        rm_p3_idx_min;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        rm_p4_idx_min;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        rm_p5_idx_min;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        rm_p6_idx_min;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        rm_p7_idx_min;
-
     logic                                                   s0_valid_in;
     logic                                                   s0_valid_out;
-    logic [DATA_WIDTH-1:0]                                  s0_data_in_0;
-    logic [DATA_WIDTH-1:0]                                  s0_data_in_1;
-    logic [DATA_WIDTH-1:0]                                  s0_data_in_2;
-    logic [DATA_WIDTH-1:0]                                  s0_data_in_3;
-    logic [DATA_WIDTH-1:0]                                  s0_data_in_4;
-    logic [DATA_WIDTH-1:0]                                  s0_data_in_5;
-    logic [DATA_WIDTH-1:0]                                  s0_data_in_6;
-    logic [DATA_WIDTH-1:0]                                  s0_data_in_7;
+    logic [DIST_WIDTH-1:0]                                  s0_data_in_0;
+    logic [DIST_WIDTH-1:0]                                  s0_data_in_1;
+    logic [DIST_WIDTH-1:0]                                  s0_data_in_2;
+    logic [DIST_WIDTH-1:0]                                  s0_data_in_3;
+    logic [DIST_WIDTH-1:0]                                  s0_data_in_4;
+    logic [DIST_WIDTH-1:0]                                  s0_data_in_5;
+    logic [DIST_WIDTH-1:0]                                  s0_data_in_6;
+    logic [DIST_WIDTH-1:0]                                  s0_data_in_7;
     logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_in_0;
     logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_in_1;
     logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_in_2;
@@ -193,14 +155,29 @@ module top
     logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_in_5;
     logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_in_6;
     logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_in_7;
-    logic [DATA_WIDTH-1:0]                                  s0_data_out_0;
-    logic [DATA_WIDTH-1:0]                                  s0_data_out_1;
-    logic [DATA_WIDTH-1:0]                                  s0_data_out_2;
-    logic [DATA_WIDTH-1:0]                                  s0_data_out_3;
+    logic [DIST_WIDTH-1:0]                                  s0_data_out_0;
+    logic [DIST_WIDTH-1:0]                                  s0_data_out_1;
+    logic [DIST_WIDTH-1:0]                                  s0_data_out_2;
+    logic [DIST_WIDTH-1:0]                                  s0_data_out_3;
     logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_out_0;
     logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_out_1;
     logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_out_2;
     logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_out_3;
+
+    logic                                                   sl0_restart;
+    logic                                                   sl0_insert;
+    logic                                                   sl0_last_in;
+    logic [DIST_WIDTH-1:0]                                  sl0_l2_dist_in;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        sl0_merged_idx_in;
+    logic                                                   sl0_valid_out;
+    logic [DIST_WIDTH-1:0]                                  sl0_l2_dist_0;
+    logic [DIST_WIDTH-1:0]                                  sl0_l2_dist_1;
+    logic [DIST_WIDTH-1:0]                                  sl0_l2_dist_2;
+    logic [DIST_WIDTH-1:0]                                  sl0_l2_dist_3;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        sl0_merged_idx_0;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        sl0_merged_idx_1;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        sl0_merged_idx_2;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        sl0_merged_idx_3;
 
 
     MainFSM #(
@@ -246,7 +223,7 @@ module top
         .k0_query_first_in                      (k0_query_first_in),
         .k0_query_last_in                       (k0_query_last_in),
         .k0_query_patch                         (k0_query_patch),
-        .s0_valid_out                           (s0_valid_out),
+        .sl0_valid_out                          (sl0_valid_out),
         .best_arr_wleaf_idx_0                   (best_arr_wleaf_idx_0)
     );
 
@@ -307,8 +284,10 @@ module top
         .dEMPTY_N           (out_fifo_rempty_n)
     );
 
-    // reads only the best
+    // reads only the best patch idx
     assign out_fifo_wdata = best_arr_ridx_1[0];
+    // if you want to read only the best leaf idx
+    // assign out_fifo_wdata = best_arr_rleaf_idx_1[0];
 
 
     // Memories
@@ -397,21 +376,25 @@ module top
         .rleaf_idx_1        (best_arr_rleaf_idx_1)
     );
 
-    assign best_arr_csb0 = ~s0_valid_out;
+    assign best_arr_csb0 = ~sl0_valid_out;
     assign best_arr_web0 = 1'b0;
-    assign best_arr_wdist_0 = { s0_data_out_3,
-                                s0_data_out_2,
-                                s0_data_out_1,
-                                s0_data_out_0 };
-    assign best_arr_widx_0 = {  s0_idx_out_3[IDX_WIDTH-1:0],
-                                s0_idx_out_2[IDX_WIDTH-1:0],
-                                s0_idx_out_1[IDX_WIDTH-1:0],
-                                s0_idx_out_0[IDX_WIDTH-1:0] };
-    assign best_arr_wleaf_idx_0 = { s0_idx_out_3[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
-                                    s0_idx_out_2[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
-                                    s0_idx_out_1[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
-                                    s0_idx_out_0[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH] };
-
+    // skip storing distances
+    assign best_arr_wdist_0 = { {DATA_WIDTH{1'b0}},
+                                {DATA_WIDTH{1'b0}},
+                                {DATA_WIDTH{1'b0}},
+                                {DATA_WIDTH{1'b0}} };
+    // assign best_arr_wdist_0 = { sl0_l2_dist_3,
+    //                             sl0_l2_dist_2,
+    //                             sl0_l2_dist_1,
+    //                             sl0_l2_dist_0 };
+    assign best_arr_widx_0 = {  sl0_merged_idx_3[IDX_WIDTH-1:0],
+                                sl0_merged_idx_2[IDX_WIDTH-1:0],
+                                sl0_merged_idx_1[IDX_WIDTH-1:0],
+                                sl0_merged_idx_0[IDX_WIDTH-1:0] };
+    assign best_arr_wleaf_idx_0 = { sl0_merged_idx_3[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
+                                    sl0_merged_idx_2[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
+                                    sl0_merged_idx_1[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
+                                    sl0_merged_idx_0[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH] };
 
     // Computes
     L2Kernel l2_k0_inst (
@@ -484,70 +467,6 @@ module top
         end
     end
 
-    RunningMin running_min_inst (
-        .clk                (clk),
-        .rst_n              (rst_n),
-        .restart            (rm_restart),
-        .valid_in           (rm_valid_in),
-        .valid_out          (rm_valid_out),
-        .query_last_in      (rm_query_last_in),
-        .query_last_out     (rm_query_last_out),
-        .leaf_idx_in        (rm_leaf_idx_in),
-        .p0_l2_dist         (rm_p0_l2_dist),
-        .p1_l2_dist         (rm_p1_l2_dist),
-        .p2_l2_dist         (rm_p2_l2_dist),
-        .p3_l2_dist         (rm_p3_l2_dist),
-        .p4_l2_dist         (rm_p4_l2_dist),
-        .p5_l2_dist         (rm_p5_l2_dist),
-        .p6_l2_dist         (rm_p6_l2_dist),
-        .p7_l2_dist         (rm_p7_l2_dist),
-        .p0_idx             (rm_p0_idx),
-        .p1_idx             (rm_p1_idx),
-        .p2_idx             (rm_p2_idx),
-        .p3_idx             (rm_p3_idx),
-        .p4_idx             (rm_p4_idx),
-        .p5_idx             (rm_p5_idx),
-        .p6_idx             (rm_p6_idx),
-        .p7_idx             (rm_p7_idx),
-        .p0_l2_dist_min     (rm_p0_l2_dist_min),
-        .p1_l2_dist_min     (rm_p1_l2_dist_min),
-        .p2_l2_dist_min     (rm_p2_l2_dist_min),
-        .p3_l2_dist_min     (rm_p3_l2_dist_min),
-        .p4_l2_dist_min     (rm_p4_l2_dist_min),
-        .p5_l2_dist_min     (rm_p5_l2_dist_min),
-        .p6_l2_dist_min     (rm_p6_l2_dist_min),
-        .p7_l2_dist_min     (rm_p7_l2_dist_min),
-        .p0_idx_min         (rm_p0_idx_min),
-        .p1_idx_min         (rm_p1_idx_min),
-        .p2_idx_min         (rm_p2_idx_min),
-        .p3_idx_min         (rm_p3_idx_min),
-        .p4_idx_min         (rm_p4_idx_min),
-        .p5_idx_min         (rm_p5_idx_min),
-        .p6_idx_min         (rm_p6_idx_min),
-        .p7_idx_min         (rm_p7_idx_min)
-    );
-
-    assign rm_valid_in      =   k0_dist_valid;
-    assign rm_restart       =   k0_query_first_out;
-    assign rm_query_last_in =   k0_query_last_out;
-    assign rm_leaf_idx_in   =   k0_leaf_idx_out;
-    assign rm_p0_l2_dist    =   k0_p0_l2_dist;
-    assign rm_p1_l2_dist    =   k0_p1_l2_dist;
-    assign rm_p2_l2_dist    =   k0_p2_l2_dist;
-    assign rm_p3_l2_dist    =   k0_p3_l2_dist;
-    assign rm_p4_l2_dist    =   k0_p4_l2_dist;
-    assign rm_p5_l2_dist    =   k0_p5_l2_dist;
-    assign rm_p6_l2_dist    =   k0_p6_l2_dist;
-    assign rm_p7_l2_dist    =   k0_p7_l2_dist;
-    assign rm_p0_idx        =   k0_p0_idx_out;
-    assign rm_p1_idx        =   k0_p1_idx_out;
-    assign rm_p2_idx        =   k0_p2_idx_out;
-    assign rm_p3_idx        =   k0_p3_idx_out;
-    assign rm_p4_idx        =   k0_p4_idx_out;
-    assign rm_p5_idx        =   k0_p5_idx_out;
-    assign rm_p6_idx        =   k0_p6_idx_out;
-    assign rm_p7_idx        =   k0_p7_idx_out;
-
 
     BitonicSorter sorter0_inst(
         .clk                (clk),
@@ -580,23 +499,62 @@ module top
         .idx_out_3          (s0_idx_out_3)
     );
 
-    assign s0_valid_in      =   rm_query_last_out;
-    assign s0_data_in_0     =   rm_p0_l2_dist_min;
-    assign s0_data_in_1     =   rm_p1_l2_dist_min;
-    assign s0_data_in_2     =   rm_p2_l2_dist_min;
-    assign s0_data_in_3     =   rm_p3_l2_dist_min;
-    assign s0_data_in_4     =   rm_p4_l2_dist_min;
-    assign s0_data_in_5     =   rm_p5_l2_dist_min;
-    assign s0_data_in_6     =   rm_p6_l2_dist_min;
-    assign s0_data_in_7     =   rm_p7_l2_dist_min;
-    assign s0_idx_in_0      =   rm_p0_idx_min;
-    assign s0_idx_in_1      =   rm_p1_idx_min;
-    assign s0_idx_in_2      =   rm_p2_idx_min;
-    assign s0_idx_in_3      =   rm_p3_idx_min;
-    assign s0_idx_in_4      =   rm_p4_idx_min;
-    assign s0_idx_in_5      =   rm_p5_idx_min;
-    assign s0_idx_in_6      =   rm_p6_idx_min;
-    assign s0_idx_in_7      =   rm_p7_idx_min;
+    assign s0_valid_in      =   {k0_leaf_idx_out, k0_dist_valid};
+    assign s0_data_in_0     =   {k0_leaf_idx_out, k0_p0_l2_dist};
+    assign s0_data_in_1     =   {k0_leaf_idx_out, k0_p1_l2_dist};
+    assign s0_data_in_2     =   {k0_leaf_idx_out, k0_p2_l2_dist};
+    assign s0_data_in_3     =   {k0_leaf_idx_out, k0_p3_l2_dist};
+    assign s0_data_in_4     =   {k0_leaf_idx_out, k0_p4_l2_dist};
+    assign s0_data_in_5     =   {k0_leaf_idx_out, k0_p5_l2_dist};
+    assign s0_data_in_6     =   {k0_leaf_idx_out, k0_p6_l2_dist};
+    assign s0_data_in_7     =   {k0_leaf_idx_out, k0_p7_l2_dist};
+    assign s0_idx_in_0      =   {k0_leaf_idx_out, k0_p0_idx_out};
+    assign s0_idx_in_1      =   {k0_leaf_idx_out, k0_p1_idx_out};
+    assign s0_idx_in_2      =   {k0_leaf_idx_out, k0_p2_idx_out};
+    assign s0_idx_in_3      =   {k0_leaf_idx_out, k0_p3_idx_out};
+    assign s0_idx_in_4      =   {k0_leaf_idx_out, k0_p4_idx_out};
+    assign s0_idx_in_5      =   {k0_leaf_idx_out, k0_p5_idx_out};
+    assign s0_idx_in_6      =   {k0_leaf_idx_out, k0_p6_idx_out};
+    assign s0_idx_in_7      =   {k0_leaf_idx_out, k0_p7_idx_out};
 
+    SortedList sl0(
+        .clk                    (clk),
+        .rst_n                  (rst_n),
+        .restart                (sl0_restart),
+        .insert                 (sl0_insert),
+        .last_in                (sl0_last_in),
+        .l2_dist_in             (sl0_l2_dist_in),
+        .merged_idx_in          (sl0_merged_idx_in),
+        .valid_out              (sl0_valid_out),
+        .l2_dist_0              (sl0_l2_dist_0),
+        .l2_dist_1              (sl0_l2_dist_1),
+        .l2_dist_2              (sl0_l2_dist_2),
+        .l2_dist_3              (sl0_l2_dist_3),
+        .merged_idx_0           (sl0_merged_idx_0),
+        .merged_idx_1           (sl0_merged_idx_1),
+        .merged_idx_2           (sl0_merged_idx_2),
+        .merged_idx_3           (sl0_merged_idx_3)
+    );
+
+    logic [5:0] delay_k0_query_first_out;
+    logic [5:0] delay_k0_query_last_out;
+    always_ff @(posedge clk, negedge rst_n) begin
+        if (~rst_n) delay_k0_query_first_out <= '0;
+        else begin
+            delay_k0_query_first_out <= {delay_k0_query_first_out[4:0], k0_query_first_out};
+        end
+    end
+    always_ff @(posedge clk, negedge rst_n) begin
+        if (~rst_n) delay_k0_query_last_out <= '0;
+        else begin
+            delay_k0_query_last_out <= {delay_k0_query_last_out[4:0], k0_query_last_out};
+        end
+    end
+    
+    assign sl0_restart = delay_k0_query_first_out[5];
+    assign sl0_insert = s0_valid_out;
+    assign sl0_last_in = delay_k0_query_last_out[5];
+    assign sl0_l2_dist_in = s0_data_out_0;
+    assign sl0_merged_idx_in = s0_idx_out_0;
 
 endmodule

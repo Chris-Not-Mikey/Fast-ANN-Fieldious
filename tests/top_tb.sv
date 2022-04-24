@@ -92,6 +92,7 @@ module top_tb();
         // $readmemh("leaves_mem_dummy1.txt", dut.leaf_mem_inst.loop_ram_patch_gen[7].ram_patch_inst.loop_depth_gen[0].loop_width_gen[1].genblk1.sram_macro.mem);
         
         expected_idx_data_file = $fopen("data/IO_data/expected_idx.txt", "r");
+        // expected_idx_data_file = $fopen("data/IO_data/topToBottomLeafIndex.txt", "r");
         if (expected_idx_data_file == 0) begin
             $display("expected_idx_data_file handle was NULL");
             $finish;
@@ -199,6 +200,8 @@ module top_tb();
             $fwrite(received_idx_data_file, "%d\n", received_idx[i]);
             if (expected_idx[i] != received_idx[i])
                 $display("mismatch %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
+            // else
+            //     $display("match %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
         end
 
 

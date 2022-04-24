@@ -25,21 +25,21 @@ module L2Kernel (
   output logic dist_valid,
   output logic [5:0] leaf_idx_out,
   output logic [8:0] p0_idx_out,
-  output logic [10:0] p0_l2_dist,
+  output logic [24:0] p0_l2_dist,
   output logic [8:0] p1_idx_out,
-  output logic [10:0] p1_l2_dist,
+  output logic [24:0] p1_l2_dist,
   output logic [8:0] p2_idx_out,
-  output logic [10:0] p2_l2_dist,
+  output logic [24:0] p2_l2_dist,
   output logic [8:0] p3_idx_out,
-  output logic [10:0] p3_l2_dist,
+  output logic [24:0] p3_l2_dist,
   output logic [8:0] p4_idx_out,
-  output logic [10:0] p4_l2_dist,
+  output logic [24:0] p4_l2_dist,
   output logic [8:0] p5_idx_out,
-  output logic [10:0] p5_l2_dist,
+  output logic [24:0] p5_l2_dist,
   output logic [8:0] p6_idx_out,
-  output logic [10:0] p6_l2_dist,
+  output logic [24:0] p6_l2_dist,
   output logic [8:0] p7_idx_out,
-  output logic [10:0] p7_l2_dist,
+  output logic [24:0] p7_l2_dist,
   output logic query_first_out,
   output logic query_last_out
 );
@@ -57,7 +57,6 @@ logic [8:0] p0_idx_r0;
 logic [8:0] p0_idx_r1;
 logic [8:0] p0_idx_r2;
 logic [8:0] p0_idx_r3;
-logic p0_overflow;
 logic signed [10:0] p0_patch_diff [4:0];
 logic [22:0] p1_add_tree0 [2:0];
 logic [23:0] p1_add_tree1 [1:0];
@@ -68,7 +67,6 @@ logic [8:0] p1_idx_r0;
 logic [8:0] p1_idx_r1;
 logic [8:0] p1_idx_r2;
 logic [8:0] p1_idx_r3;
-logic p1_overflow;
 logic signed [10:0] p1_patch_diff [4:0];
 logic [22:0] p2_add_tree0 [2:0];
 logic [23:0] p2_add_tree1 [1:0];
@@ -79,7 +77,6 @@ logic [8:0] p2_idx_r0;
 logic [8:0] p2_idx_r1;
 logic [8:0] p2_idx_r2;
 logic [8:0] p2_idx_r3;
-logic p2_overflow;
 logic signed [10:0] p2_patch_diff [4:0];
 logic [22:0] p3_add_tree0 [2:0];
 logic [23:0] p3_add_tree1 [1:0];
@@ -90,7 +87,6 @@ logic [8:0] p3_idx_r0;
 logic [8:0] p3_idx_r1;
 logic [8:0] p3_idx_r2;
 logic [8:0] p3_idx_r3;
-logic p3_overflow;
 logic signed [10:0] p3_patch_diff [4:0];
 logic [22:0] p4_add_tree0 [2:0];
 logic [23:0] p4_add_tree1 [1:0];
@@ -101,7 +97,6 @@ logic [8:0] p4_idx_r0;
 logic [8:0] p4_idx_r1;
 logic [8:0] p4_idx_r2;
 logic [8:0] p4_idx_r3;
-logic p4_overflow;
 logic signed [10:0] p4_patch_diff [4:0];
 logic [22:0] p5_add_tree0 [2:0];
 logic [23:0] p5_add_tree1 [1:0];
@@ -112,7 +107,6 @@ logic [8:0] p5_idx_r0;
 logic [8:0] p5_idx_r1;
 logic [8:0] p5_idx_r2;
 logic [8:0] p5_idx_r3;
-logic p5_overflow;
 logic signed [10:0] p5_patch_diff [4:0];
 logic [22:0] p6_add_tree0 [2:0];
 logic [23:0] p6_add_tree1 [1:0];
@@ -123,7 +117,6 @@ logic [8:0] p6_idx_r0;
 logic [8:0] p6_idx_r1;
 logic [8:0] p6_idx_r2;
 logic [8:0] p6_idx_r3;
-logic p6_overflow;
 logic signed [10:0] p6_patch_diff [4:0];
 logic [22:0] p7_add_tree0 [2:0];
 logic [23:0] p7_add_tree1 [1:0];
@@ -134,7 +127,6 @@ logic [8:0] p7_idx_r0;
 logic [8:0] p7_idx_r1;
 logic [8:0] p7_idx_r2;
 logic [8:0] p7_idx_r3;
-logic p7_overflow;
 logic signed [10:0] p7_patch_diff [4:0];
 logic [4:0] query_first_shft;
 logic [4:0] query_last_shft;
@@ -265,8 +257,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     end
   end
 end
-assign p0_overflow = |p0_add_tree2[24:19];
-assign p0_l2_dist = p0_overflow ? 11'h7FF: p0_add_tree2[18:8];
+assign p0_l2_dist = p0_add_tree2;
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin
@@ -350,8 +341,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     end
   end
 end
-assign p1_overflow = |p1_add_tree2[24:19];
-assign p1_l2_dist = p1_overflow ? 11'h7FF: p1_add_tree2[18:8];
+assign p1_l2_dist = p1_add_tree2;
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin
@@ -435,8 +425,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     end
   end
 end
-assign p2_overflow = |p2_add_tree2[24:19];
-assign p2_l2_dist = p2_overflow ? 11'h7FF: p2_add_tree2[18:8];
+assign p2_l2_dist = p2_add_tree2;
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin
@@ -520,8 +509,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     end
   end
 end
-assign p3_overflow = |p3_add_tree2[24:19];
-assign p3_l2_dist = p3_overflow ? 11'h7FF: p3_add_tree2[18:8];
+assign p3_l2_dist = p3_add_tree2;
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin
@@ -605,8 +593,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     end
   end
 end
-assign p4_overflow = |p4_add_tree2[24:19];
-assign p4_l2_dist = p4_overflow ? 11'h7FF: p4_add_tree2[18:8];
+assign p4_l2_dist = p4_add_tree2;
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin
@@ -690,8 +677,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     end
   end
 end
-assign p5_overflow = |p5_add_tree2[24:19];
-assign p5_l2_dist = p5_overflow ? 11'h7FF: p5_add_tree2[18:8];
+assign p5_l2_dist = p5_add_tree2;
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin
@@ -775,8 +761,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     end
   end
 end
-assign p6_overflow = |p6_add_tree2[24:19];
-assign p6_l2_dist = p6_overflow ? 11'h7FF: p6_add_tree2[18:8];
+assign p6_l2_dist = p6_add_tree2;
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin
@@ -860,7 +845,6 @@ always_ff @(posedge clk, negedge rst_n) begin
     end
   end
 end
-assign p7_overflow = |p7_add_tree2[24:19];
-assign p7_l2_dist = p7_overflow ? 11'h7FF: p7_add_tree2[18:8];
+assign p7_l2_dist = p7_add_tree2;
 endmodule   // L2Kernel
 

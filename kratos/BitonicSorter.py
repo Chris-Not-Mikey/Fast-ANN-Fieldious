@@ -6,7 +6,7 @@ The outputs[3:0] are sorted with [3] being the largest and [0] being the smalles
 
 class BitonicSorter(Generator):
     def __init__(self,
-                 data_width=11,
+                 data_width=25,
                  idx_width=9,
                  channel_num=8,
                  patch_size=5,

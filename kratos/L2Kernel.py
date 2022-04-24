@@ -3,6 +3,7 @@ from kratos import *
 class L2Kernel(Generator):
     def __init__(self,
                  data_width=11,
+                 dist_width=25,
                  idx_width=9,
                  pca_size=5,
                  leaf_size=8,
@@ -12,6 +13,7 @@ class L2Kernel(Generator):
                  height=23):
         super().__init__("L2Kernel", False)
         self.data_width = data_width
+        self.dist_width = dist_width
         self.idx_width = idx_width
         self.pca_size = pca_size
         self.leaf_size = leaf_size
@@ -98,7 +100,7 @@ class L2Kernel(Generator):
                                     packed=True,
                                     explicit_array=True)
             self._idx_in = self.input(f"p{i}_idx_in", self.idx_width)
-            self._l2_dist = self.output(f"p{i}_l2_dist", self.data_width)
+            self._l2_dist = self.output(f"p{i}_l2_dist", self.dist_width)
             self._idx_out = self.output(f"p{i}_idx_out", self.idx_width)
 
             self._idx_r0 = self.var(f"p{i}_idx_r0", self.idx_width)
@@ -200,13 +202,15 @@ class L2Kernel(Generator):
                         self._add_tree2 = self._add_tree1[0].extend(self.data_width * 2 + 3) + self._add_tree1[1].extend(self.data_width * 2 + 3)
             self.add_code(update_add_tree)
             
-            # detect add and multiplication overflow
-            self._overflow = self.var(f"p{i}_overflow", 1)
-            # empiracally determined that add_tree2[19, 9] provides good precisions
-            self.wire(self._overflow, self._add_tree2[self._add_tree2.width - 1, 19].r_or())
-            self.wire(self._l2_dist, ternary(self._overflow,
-                                             const(pow(2, 11) - 1, 11),
-                                             self._add_tree2[18, 8]))
+            if self.dist_width == (self.data_width * 2 + 3):
+                self.wire(self._l2_dist, self._add_tree2)
+            else:
+                # detect add and multiplication overflow
+                self._overflow = self.var(f"p{i}_overflow", 1)
+                self.wire(self._overflow, self._add_tree2[self._add_tree2.width - 1, self.dist_width].r_or())
+                self.wire(self._l2_dist, ternary(self._overflow,
+                                                const(pow(2, self.dist_width) - 1, self.dist_width),
+                                                self._add_tree2[self.dist_width - 1, 0]))
 
 
 if __name__ == "__main__":

@@ -56,7 +56,7 @@ module MainFSM #(
     output logic                                                    k0_query_last_in,
     output logic signed [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]           k0_query_patch,
 
-    input logic                                                     s0_valid_out,
+    input logic                                                     sl0_valid_out,
     input logic [LEAF_ADDRW-1:0]                                    best_arr_wleaf_idx_0 [K-1:0]
 );
 
@@ -278,7 +278,7 @@ module MainFSM #(
 
             ExactFstRowDone: begin
                 prop_leaf_wr_rotate = 1'b1;
-                if (s0_valid_out) begin
+                if (sl0_valid_out) begin
                     nextState = SLPR0;
                     col_query_cnt_incr = 1'b1;
                     // read query for the first SearchLeaf
@@ -507,9 +507,9 @@ module MainFSM #(
 
             // read out the best array
             SendBestIdx: begin
+                counter_in = NUM_QUERYS - 1;
                 if (~out_fifo_wenq & out_fifo_wfull_n) begin
                     counter_en = 1'b1;
-                    counter_in = NUM_QUERYS - 1;
                     // reads only the best
                     best_arr_csb1 = {{(K-1){1'b1}}, 1'b0};
                     best_arr_addr1 = counter;
@@ -563,7 +563,7 @@ module MainFSM #(
     // stores the next addr of best arrays
     always_ff @(posedge clk, negedge rst_n) begin
         if (~rst_n | best_arr_addr_rst) best_arr_addr_r <= '0;
-        else if (s0_valid_out) begin
+        else if (sl0_valid_out) begin
             best_arr_addr_r <= best_arr_addr_r + 1'b1;
         end
     end
@@ -580,7 +580,7 @@ module MainFSM #(
                 prop_leaf_idx_r[i][3] <= '0;
             end
         end
-        else if (s0_valid_out) begin
+        else if (sl0_valid_out) begin
             if (((row_outer_cnt == NUM_OUTER_BLOCK) && (prop_leaf_wr_idx == NUM_LAST_BLOCK - 1))
                     || (prop_leaf_wr_idx == BLOCKING - 1) )
                 prop_leaf_wr_idx <= '0;

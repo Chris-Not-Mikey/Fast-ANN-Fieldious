@@ -102,7 +102,6 @@ module MainFSM #(
     logic qp_mem_rvalid1;
     logic [LEAF_ADDRW-1:0] prop_leaf_idx_r [BLOCKING-1:0] [K-1:0];
     logic [1:0] prop_leaf_wr_idx;
-    logic prop_leaf_wr_rotate;
     logic [1:0] row_blocking_cnt;
     logic row_blocking_cnt_incr;
     logic [$clog2(NUM_OUTER_BLOCK)-1:0] row_outer_cnt;
@@ -158,7 +157,6 @@ module MainFSM #(
         qp_mem_rd_addr_incr_row_special = '0;
         best_arr_addr_rst = '0;
         col_query_cnt_incr = '0;
-        prop_leaf_wr_rotate = '0;
         row_blocking_cnt_incr = '0;
         row_outer_cnt_incr = '0;
 
@@ -239,7 +237,6 @@ module MainFSM #(
                 leaf_mem_csb0 = '0;
                 leaf_mem_web0 = '1;
                 leaf_mem_addr0 = counter;
-                prop_leaf_wr_rotate = 1'b1;
 
                 if (counter_done) begin
                     if ((prop_leaf_wr_idx == BLOCKING - 1) || 
@@ -270,14 +267,25 @@ module MainFSM #(
             end
 
             ExactFstRowLast: begin
-                nextState = ExactFstRowDone;
+                // according to the latency in the waveform,
+                // the last sl0_valid_out will arrive just after we have finished the second query
+                // therefore, if NUM_LAST_BLOCK <= 2, we need to wait for sl0 to finish
+                if ((row_outer_cnt == NUM_OUTER_BLOCK) && (NUM_LAST_BLOCK <= 2))
+                    nextState = ExactFstRowDone;
+                else begin
+                    nextState = SLPR0;
+                    col_query_cnt_incr = 1'b1;
+                    // read query for the first SearchLeaf
+                    qp_mem_csb1 = 1'b0;
+                    qp_mem_addr1 = qp_mem_rd_addr;
+                end
+
                 k0_query_valid = 1'b1;
                 k0_query_last_in = 1'b1;
                 k0_query_patch = cur_query_patch;
             end
 
             ExactFstRowDone: begin
-                prop_leaf_wr_rotate = 1'b1;
                 if (sl0_valid_out) begin
                     nextState = SLPR0;
                     col_query_cnt_incr = 1'b1;

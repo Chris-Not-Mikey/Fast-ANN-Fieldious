@@ -210,12 +210,12 @@ module top_tb();
 
     end
     
-      initial begin
-    $dumpfile("dump.vcd");
-    $dumpvars;
+    initial begin
+        $dumpfile("dump.vcd");
+        $dumpvars;
 
-    #166780000;
-    $finish(2);
-  end
+        #166780000;
+        $finish(2);
+    end
 
 endmodule

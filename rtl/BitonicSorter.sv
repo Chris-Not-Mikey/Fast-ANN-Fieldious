@@ -16,6 +16,8 @@ module BitonicSorter (
   input logic [14:0] idx_in_5,
   input logic [14:0] idx_in_6,
   input logic [14:0] idx_in_7,
+  input logic query_first_in,
+  input logic query_last_in,
   input logic rst_n,
   input logic valid_in,
   output logic [24:0] data_out_0,
@@ -26,9 +28,13 @@ module BitonicSorter (
   output logic [14:0] idx_out_1,
   output logic [14:0] idx_out_2,
   output logic [14:0] idx_out_3,
+  output logic query_first_out,
+  output logic query_last_out,
   output logic valid_out
 );
 
+logic [5:0] query_first_shft;
+logic [5:0] query_last_shft;
 logic [24:0] stage0_data [7:0];
 logic [14:0] stage0_idx [7:0];
 logic stage0_valid;
@@ -47,6 +53,19 @@ logic stage4_valid;
 logic [24:0] stage5_data [3:0];
 logic [14:0] stage5_idx [3:0];
 logic stage5_valid;
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    query_first_shft <= 6'h0;
+    query_last_shft <= 6'h0;
+  end
+  else begin
+    query_first_shft <= {query_first_shft[4:0], query_first_in};
+    query_last_shft <= {query_last_shft[4:0], query_last_in};
+  end
+end
+assign query_first_out = query_first_shft[5];
+assign query_last_out = query_last_shft[5];
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin

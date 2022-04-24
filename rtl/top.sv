@@ -137,6 +137,10 @@ module top
     logic [IDX_WIDTH-1:0]                                   k0_p6_idx_out;
     logic [IDX_WIDTH-1:0]                                   k0_p7_idx_out;
 
+    logic                                                   s0_query_first_in;
+    logic                                                   s0_query_first_out;
+    logic                                                   s0_query_last_in;
+    logic                                                   s0_query_last_out;
     logic                                                   s0_valid_in;
     logic                                                   s0_valid_out;
     logic [DIST_WIDTH-1:0]                                  s0_data_in_0;
@@ -471,6 +475,10 @@ module top
     BitonicSorter sorter0_inst(
         .clk                (clk),
         .rst_n              (rst_n),
+        .query_first_in     (s0_query_first_in),
+        .query_first_out    (s0_query_first_out),
+        .query_last_in      (s0_query_last_in),
+        .query_last_out     (s0_query_last_out),
         .valid_in           (s0_valid_in),
         .valid_out          (s0_valid_out),
         .data_in_0          (s0_data_in_0),
@@ -499,23 +507,25 @@ module top
         .idx_out_3          (s0_idx_out_3)
     );
 
-    assign s0_valid_in      =   {k0_leaf_idx_out, k0_dist_valid};
-    assign s0_data_in_0     =   {k0_leaf_idx_out, k0_p0_l2_dist};
-    assign s0_data_in_1     =   {k0_leaf_idx_out, k0_p1_l2_dist};
-    assign s0_data_in_2     =   {k0_leaf_idx_out, k0_p2_l2_dist};
-    assign s0_data_in_3     =   {k0_leaf_idx_out, k0_p3_l2_dist};
-    assign s0_data_in_4     =   {k0_leaf_idx_out, k0_p4_l2_dist};
-    assign s0_data_in_5     =   {k0_leaf_idx_out, k0_p5_l2_dist};
-    assign s0_data_in_6     =   {k0_leaf_idx_out, k0_p6_l2_dist};
-    assign s0_data_in_7     =   {k0_leaf_idx_out, k0_p7_l2_dist};
-    assign s0_idx_in_0      =   {k0_leaf_idx_out, k0_p0_idx_out};
-    assign s0_idx_in_1      =   {k0_leaf_idx_out, k0_p1_idx_out};
-    assign s0_idx_in_2      =   {k0_leaf_idx_out, k0_p2_idx_out};
-    assign s0_idx_in_3      =   {k0_leaf_idx_out, k0_p3_idx_out};
-    assign s0_idx_in_4      =   {k0_leaf_idx_out, k0_p4_idx_out};
-    assign s0_idx_in_5      =   {k0_leaf_idx_out, k0_p5_idx_out};
-    assign s0_idx_in_6      =   {k0_leaf_idx_out, k0_p6_idx_out};
-    assign s0_idx_in_7      =   {k0_leaf_idx_out, k0_p7_idx_out};
+    assign s0_query_first_in    =   k0_query_first_out;
+    assign s0_query_last_in     =   k0_query_last_out;
+    assign s0_valid_in          =   {k0_leaf_idx_out, k0_dist_valid};
+    assign s0_data_in_0         =   {k0_leaf_idx_out, k0_p0_l2_dist};
+    assign s0_data_in_1         =   {k0_leaf_idx_out, k0_p1_l2_dist};
+    assign s0_data_in_2         =   {k0_leaf_idx_out, k0_p2_l2_dist};
+    assign s0_data_in_3         =   {k0_leaf_idx_out, k0_p3_l2_dist};
+    assign s0_data_in_4         =   {k0_leaf_idx_out, k0_p4_l2_dist};
+    assign s0_data_in_5         =   {k0_leaf_idx_out, k0_p5_l2_dist};
+    assign s0_data_in_6         =   {k0_leaf_idx_out, k0_p6_l2_dist};
+    assign s0_data_in_7         =   {k0_leaf_idx_out, k0_p7_l2_dist};
+    assign s0_idx_in_0          =   {k0_leaf_idx_out, k0_p0_idx_out};
+    assign s0_idx_in_1          =   {k0_leaf_idx_out, k0_p1_idx_out};
+    assign s0_idx_in_2          =   {k0_leaf_idx_out, k0_p2_idx_out};
+    assign s0_idx_in_3          =   {k0_leaf_idx_out, k0_p3_idx_out};
+    assign s0_idx_in_4          =   {k0_leaf_idx_out, k0_p4_idx_out};
+    assign s0_idx_in_5          =   {k0_leaf_idx_out, k0_p5_idx_out};
+    assign s0_idx_in_6          =   {k0_leaf_idx_out, k0_p6_idx_out};
+    assign s0_idx_in_7          =   {k0_leaf_idx_out, k0_p7_idx_out};
 
     SortedList sl0(
         .clk                    (clk),
@@ -536,24 +546,9 @@ module top
         .merged_idx_3           (sl0_merged_idx_3)
     );
 
-    logic [5:0] delay_k0_query_first_out;
-    logic [5:0] delay_k0_query_last_out;
-    always_ff @(posedge clk, negedge rst_n) begin
-        if (~rst_n) delay_k0_query_first_out <= '0;
-        else begin
-            delay_k0_query_first_out <= {delay_k0_query_first_out[4:0], k0_query_first_out};
-        end
-    end
-    always_ff @(posedge clk, negedge rst_n) begin
-        if (~rst_n) delay_k0_query_last_out <= '0;
-        else begin
-            delay_k0_query_last_out <= {delay_k0_query_last_out[4:0], k0_query_last_out};
-        end
-    end
-    
-    assign sl0_restart = delay_k0_query_first_out[5];
+    assign sl0_restart = s0_query_first_out;
     assign sl0_insert = s0_valid_out;
-    assign sl0_last_in = delay_k0_query_last_out[5];
+    assign sl0_last_in = s0_query_last_out;
     assign sl0_l2_dist_in = s0_data_out_0;
     assign sl0_merged_idx_in = s0_idx_out_0;
 

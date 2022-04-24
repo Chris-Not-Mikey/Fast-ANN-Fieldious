@@ -37,6 +37,8 @@ class BitonicSorter(Generator):
         for i in range(self.channel_num):
             self._data_in.append(self.input(f"data_in_{i}", self.data_width))
             self._idx_in.append(self.input(f"idx_in_{i}", self.leaf_addrw + self.idx_width))
+        self._query_first_in = self.input("query_first_in", 1)
+        self._query_last_in = self.input("query_last_in", 1)
 
         # outputs
         self._valid_out = self.output("valid_out", 1)
@@ -45,6 +47,26 @@ class BitonicSorter(Generator):
         for i in range(self.out_num):
             self._data_out.append(self.output(f"data_out_{i}", self.data_width))
             self._idx_out.append(self.output(f"idx_out_{i}", self.leaf_addrw + self.idx_width))
+        self._query_first_out = self.output("query_first_out", 1)
+        self._query_last_out = self.output("query_last_out", 1)
+
+        # output pipeline registers
+        self._query_first_shft = self.var(f"query_first_shft", 6)
+        self._query_last_shft = self.var(f"query_last_shft", 6)
+
+        @always_ff((posedge, "clk"), (negedge, "rst_n"))
+        def update_pipeline_shift(self):
+            if ~self._rst_n:
+                self._query_first_shft = 0
+                self._query_last_shft = 0
+            else:
+                self._query_first_shft = concat(self._query_first_shft[self._query_first_shft.width - 2, 0], self._query_first_in)
+                self._query_last_shft = concat(self._query_last_shft[self._query_last_shft.width - 2, 0], self._query_last_in)
+        
+        self.add_code(update_pipeline_shift)
+        self.wire(self._query_first_out, self._query_first_shft[self._query_first_shft.width - 1])
+        self.wire(self._query_last_out, self._query_last_shft[self._query_last_shft.width - 1])
+
 
         # pipeline stages
         self._stage0_valid = self.var("stage0_valid", 1)

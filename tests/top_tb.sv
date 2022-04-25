@@ -180,15 +180,17 @@ module top_tb();
         @(negedge io_clk) send_best_arr = 1'b1;
         @(negedge io_clk) send_best_arr = 1'b0;
 
-        for(x=0; x<7; x=x+1) begin
-            for(y=0; y<COL_SIZE; y=y+1) begin
-                for(xi=0; xi<BLOCKING; xi=xi+1) begin
-                    if ((x != 6) || (xi < 2)) begin
-                        wait(out_fifo_rempty_n);
-                        @(negedge io_clk)
-                        out_fifo_deq = 1'b1;
-                        addr = y*ROW_SIZE+x*BLOCKING+xi;
-                        received_idx[addr] = out_fifo_rdata;
+        for(int px=0; px<2; px=px+1) begin
+            for(x=0; x<4; x=x+1) begin
+                for(y=0; y<COL_SIZE; y=y+1) begin
+                    for(xi=0; xi<BLOCKING; xi=xi+1) begin
+                        if ((x != 3) || (xi < 1)) begin
+                            wait(out_fifo_rempty_n);
+                            @(negedge io_clk)
+                            out_fifo_deq = 1'b1;
+                            addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
+                            received_idx[addr] = out_fifo_rdata;
+                        end
                     end
                 end
             end

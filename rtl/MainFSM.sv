@@ -9,8 +9,12 @@ module MainFSM #(
     parameter NUM_LEAVES = 64,
     parameter NUM_NODES = NUM_LEAVES - 1,
     parameter BLOCKING = 4,
-    parameter NUM_OUTER_BLOCK = (ROW_SIZE + BLOCKING - 1) / BLOCKING, // ceiling(ROW_SIZE/BLOCKING)
-    parameter LAST_BLOCK_REMAINDER = ROW_SIZE % BLOCKING,
+    // with 1 kernel
+    // parameter NUM_OUTER_BLOCK = (ROW_SIZE + BLOCKING - 1) / BLOCKING, // ceiling(ROW_SIZE/BLOCKING)
+    // parameter LAST_BLOCK_REMAINDER = (ROW_SIZE) % BLOCKING,
+    // with 2 kernels
+    parameter NUM_OUTER_BLOCK = (ROW_SIZE / 2 + BLOCKING - 1) / BLOCKING, // ceiling(ROW_SIZE/2/BLOCKING)
+    parameter LAST_BLOCK_REMAINDER = (ROW_SIZE / 2) % BLOCKING,
     parameter NUM_LAST_BLOCK = (LAST_BLOCK_REMAINDER==0) ?BLOCKING :LAST_BLOCK_REMAINDER,
     parameter LEAF_ADDRW = $clog2(NUM_LEAVES)
 )
@@ -30,10 +34,13 @@ module MainFSM #(
     output logic                                                    int_node_fsm_enable,
     output logic                                                    int_node_patch_en,
     input logic [LEAF_ADDRW-1:0]                                    int_node_leaf_index,
+    output logic                                                    int_node_patch_en2,
+    input logic [LEAF_ADDRW-1:0]                                    int_node_leaf_index2,
 
     output logic                                                    qp_mem_csb0,
     output logic                                                    qp_mem_web0,
     output logic [$clog2(NUM_QUERYS)-1:0]                           qp_mem_addr0,
+    input logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]                   qp_mem_rpatch0,
     output logic                                                    qp_mem_csb1,
     output logic [$clog2(NUM_QUERYS)-1:0]                           qp_mem_addr1,
     input logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]                   qp_mem_rpatch1,
@@ -48,6 +55,7 @@ module MainFSM #(
     output logic [K-1:0]                                            best_arr_csb1,
     output logic [8:0]                                              best_arr_addr1,
 
+    output logic                                                    out_fifo_wdata_sel,
     output logic                                                    out_fifo_wenq,
     input logic                                                     out_fifo_wfull_n,
 
@@ -55,9 +63,17 @@ module MainFSM #(
     output logic                                                    k0_query_first_in,
     output logic                                                    k0_query_last_in,
     output logic signed [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]           k0_query_patch,
-
     input logic                                                     sl0_valid_out,
-    input logic [LEAF_ADDRW-1:0]                                    best_arr_wleaf_idx_0 [K-1:0]
+    input logic [LEAF_ADDRW-1:0]                                    computes0_leaf_idx [K-1:0],
+    
+    output logic                                                    k1_exactfstrow,
+    output logic                                                    k1_query_valid,
+    output logic                                                    k1_query_first_in,
+    output logic                                                    k1_query_last_in,
+    output logic signed [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]           k1_query_patch,
+    input logic                                                     sl1_valid_out,
+    input logic [LEAF_ADDRW-1:0]                                    computes1_leaf_idx [K-1:0]
+
 );
 
 
@@ -78,7 +94,8 @@ module MainFSM #(
                     SLPR7,
                     SLPR8,
                     SLPR9,
-                    SendBestIdx
+                    SendBestIdx,
+                    SendBestIdx2
     } stateCoding_t;
 
     (* fsm_encoding = "one_hot" *) stateCoding_t currState;
@@ -91,6 +108,7 @@ module MainFSM #(
     logic [15:0] counter_in;
     logic [15:0] counter;
     logic [$clog2(NUM_QUERYS)-1:0] qp_mem_rd_addr;
+    logic [$clog2(NUM_QUERYS)-1:0] qp_mem_rd_addr2;
     logic qp_mem_rd_addr_rst;
     logic qp_mem_rd_addr_set;
     logic qp_mem_rd_addr_incr_col;
@@ -98,13 +116,16 @@ module MainFSM #(
     logic qp_mem_rd_addr_incr_row_special;
     logic [8:0] best_arr_addr_r;
     logic best_arr_addr_rst;
-    logic signed [PATCH_SIZE-1:0] [DATA_WIDTH-1:0] cur_query_patch;
+    logic signed [PATCH_SIZE-1:0] [DATA_WIDTH-1:0] cur_query_patch0;
+    logic signed [PATCH_SIZE-1:0] [DATA_WIDTH-1:0] cur_query_patch1;
+    logic qp_mem_rvalid0;
     logic qp_mem_rvalid1;
-    logic [LEAF_ADDRW-1:0] prop_leaf_idx_r [BLOCKING-1:0] [K-1:0];
+    logic [LEAF_ADDRW-1:0] prop_leaf_idx_r0 [BLOCKING-1:0] [K-1:0];
+    logic [LEAF_ADDRW-1:0] prop_leaf_idx_r1 [BLOCKING-1:0] [K-1:0];
     logic [1:0] prop_leaf_wr_idx;
     logic [1:0] row_blocking_cnt;
     logic row_blocking_cnt_incr;
-    logic [$clog2(NUM_OUTER_BLOCK)-1:0] row_outer_cnt;
+    logic [$clog2(NUM_OUTER_BLOCK+1)-1:0] row_outer_cnt;
     logic row_outer_cnt_incr;
     logic [$clog2(COL_SIZE)-1:0] col_query_cnt;
     logic col_query_cnt_incr;
@@ -130,6 +151,7 @@ module MainFSM #(
         agg_receiver_full_n = '0;
         int_node_fsm_enable = '0;
         int_node_patch_en = '0;
+        int_node_patch_en2 = '0;
         qp_mem_csb0 = 1'b1;
         qp_mem_web0 = 1'b1;
         qp_mem_addr0 = '0;
@@ -144,11 +166,18 @@ module MainFSM #(
         k0_query_first_in = '0;
         k0_query_last_in = '0;
         k0_query_patch = '0;
+        k1_exactfstrow = '0;
+        k1_query_valid = '0;
+        k1_query_first_in = '0;
+        k1_query_last_in = '0;
+        k1_query_patch = '0;
         best_arr_csb1 = {K{1'b1}};
         best_arr_addr1 = '0;
+        out_fifo_wdata_sel = '0;
         
         counter_en = '0;
         counter_in = '0;
+        qp_mem_rvalid0 = '0;
         qp_mem_rvalid1 = '0;
         qp_mem_rd_addr_rst = '0;
         qp_mem_rd_addr_set = '0;
@@ -162,6 +191,7 @@ module MainFSM #(
 
         unique case (currState)
             Idle: begin
+                qp_mem_rd_addr_set = 1'b1;
                 if (load_kdtree) begin
                     nextState = LoadInternalNodes;
                     agg_change_fetch_width = 1'b1;
@@ -175,8 +205,11 @@ module MainFSM #(
                     leaf_mem_csb0 = '0;
                     leaf_mem_web0 = '1;
                     leaf_mem_addr0 = counter;
+                    qp_mem_csb0 = 1'b0;
+                    qp_mem_web0 = 1'b1;
+                    qp_mem_addr0 = qp_mem_rd_addr;
                     qp_mem_csb1 = 1'b0;
-                    qp_mem_addr1 = qp_mem_rd_addr;
+                    qp_mem_addr1 = qp_mem_rd_addr2;
                     row_outer_cnt_incr = 1'b1;
                 end
 
@@ -228,15 +261,20 @@ module MainFSM #(
                 end
             end
 
-            // process 3 queries
+            // process BLOCKING or NUM_LAST_BLOCK queries
             ExactFstRow: begin
                 counter_en = 1'b1;
                 counter_in = NUM_LEAVES - 1;
-                k0_query_valid = 1'b1;
-                k0_query_patch = cur_query_patch;
                 leaf_mem_csb0 = '0;
                 leaf_mem_web0 = '1;
                 leaf_mem_addr0 = counter;
+
+                k0_query_valid = 1'b1;
+                k0_query_patch = cur_query_patch0;
+
+                k1_exactfstrow = 1'b1;
+                k1_query_valid = 1'b1;
+                k1_query_patch = cur_query_patch1;
 
                 if (counter_done) begin
                     if ((prop_leaf_wr_idx == BLOCKING - 1) || 
@@ -246,14 +284,23 @@ module MainFSM #(
 
                 if (counter == 1) begin
                     k0_query_first_in = 1'b1;
+                    qp_mem_rvalid0 = 1'b1;
+                    k0_query_patch = qp_mem_rpatch0;
+                    
+                    k1_query_first_in = 1'b1;
                     qp_mem_rvalid1 = 1'b1;
-                    k0_query_patch = qp_mem_rpatch1;
+                    k1_query_patch = qp_mem_rpatch1;
                 end
 
                 if (counter == 0) begin
-                    qp_mem_csb1 = 1'b0;
-                    qp_mem_addr1 = qp_mem_rd_addr;
+                    qp_mem_csb0 = 1'b0;
+                    qp_mem_web0 = 1'b1;
+                    qp_mem_addr0 = qp_mem_rd_addr;
                     k0_query_last_in = 1'b1;
+                    
+                    qp_mem_csb1 = 1'b0;
+                    qp_mem_addr1 = qp_mem_rd_addr2;
+                    k1_query_last_in = 1'b1;
                 end
 
                 if (counter_done) begin
@@ -276,22 +323,33 @@ module MainFSM #(
                     nextState = SLPR0;
                     col_query_cnt_incr = 1'b1;
                     // read query for the first SearchLeaf
+                    qp_mem_csb0 = 1'b0;
+                    qp_mem_web0 = 1'b1;
+                    qp_mem_addr0 = qp_mem_rd_addr;
                     qp_mem_csb1 = 1'b0;
-                    qp_mem_addr1 = qp_mem_rd_addr;
+                    qp_mem_addr1 = qp_mem_rd_addr2;
                 end
 
                 k0_query_valid = 1'b1;
                 k0_query_last_in = 1'b1;
-                k0_query_patch = cur_query_patch;
+                k0_query_patch = cur_query_patch0;
+
+                k1_query_valid = 1'b1;
+                k1_query_last_in = 1'b1;
+                k1_query_patch = cur_query_patch1;
             end
 
             ExactFstRowDone: begin
+                // assumes sl1_valid_out arrives at the same time
                 if (sl0_valid_out) begin
                     nextState = SLPR0;
                     col_query_cnt_incr = 1'b1;
                     // read query for the first SearchLeaf
+                    qp_mem_csb0 = 1'b0;
+                    qp_mem_web0 = 1'b1;
+                    qp_mem_addr0 = qp_mem_rd_addr;
                     qp_mem_csb1 = 1'b0;
-                    qp_mem_addr1 = qp_mem_rd_addr;
+                    qp_mem_addr1 = qp_mem_rd_addr2;
                 end
             end
 
@@ -301,6 +359,7 @@ module MainFSM #(
                 
                 if (counter == 0) begin
                     int_node_patch_en = 1'b1;
+                    int_node_patch_en2 = 1'b1;
                 end
 
                 if (counter_done) begin
@@ -314,10 +373,15 @@ module MainFSM #(
                 nextState = SLPR2;
                 leaf_mem_csb0 = '0;
                 leaf_mem_web0 = '1;
-                leaf_mem_addr0 = prop_leaf_idx_r[row_blocking_cnt][0];
+                leaf_mem_addr0 = prop_leaf_idx_r0[row_blocking_cnt][0];
+                leaf_mem_csb1 = '0;
+                leaf_mem_addr1 = prop_leaf_idx_r1[row_blocking_cnt][0];
 
+                qp_mem_csb0 = 1'b0;
+                qp_mem_web0 = 1'b1;
+                qp_mem_addr0 = qp_mem_rd_addr;
                 qp_mem_csb1 = 1'b0;
-                qp_mem_addr1 = qp_mem_rd_addr;
+                qp_mem_addr1 = qp_mem_rd_addr2;
                 qp_mem_rd_addr_incr_col = 1'b1;
             end
 
@@ -328,13 +392,19 @@ module MainFSM #(
 
                 k0_query_first_in = 1'b1;
                 k0_query_valid = 1'b1;
-                k0_query_patch = qp_mem_rpatch1;
+                k0_query_patch = qp_mem_rpatch0;
+                k1_query_first_in = 1'b1;
+                k1_query_valid = 1'b1;
+                k1_query_patch = qp_mem_rpatch1;
                 
                 leaf_mem_csb0 = '0;
                 leaf_mem_web0 = '1;
-                leaf_mem_addr0 = prop_leaf_idx_r[row_blocking_cnt][1];
+                leaf_mem_addr0 = prop_leaf_idx_r0[row_blocking_cnt][1];
+                leaf_mem_csb1 = '0;
+                leaf_mem_addr1 = prop_leaf_idx_r1[row_blocking_cnt][1];
                 
                 // store the query for reuse
+                qp_mem_rvalid0 = 1'b1;
                 qp_mem_rvalid1 = 1'b1;
             end
 
@@ -344,15 +414,22 @@ module MainFSM #(
             SLPR3: begin
                 nextState = SLPR4;
                 k0_query_valid = 1'b1;
-                k0_query_patch = cur_query_patch;
+                k0_query_patch = cur_query_patch0;
+                k1_query_valid = 1'b1;
+                k1_query_patch = cur_query_patch1;
                 
                 leaf_mem_csb0 = '0;
                 leaf_mem_web0 = '1;
-                leaf_mem_addr0 = prop_leaf_idx_r[row_blocking_cnt][2];
+                leaf_mem_addr0 = prop_leaf_idx_r0[row_blocking_cnt][2];
+                leaf_mem_csb1 = '0;
+                leaf_mem_addr1 = prop_leaf_idx_r1[row_blocking_cnt][2];
 
                 if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1))) begin
+                    qp_mem_csb0 = 1'b0;
+                    qp_mem_web0 = 1'b1;
+                    qp_mem_addr0 = qp_mem_rd_addr;
                     qp_mem_csb1 = 1'b0;
-                    qp_mem_addr1 = qp_mem_rd_addr;
+                    qp_mem_addr1 = qp_mem_rd_addr2;
                 end
             end
 
@@ -362,14 +439,19 @@ module MainFSM #(
             SLPR4: begin
                 nextState = SLPR5;
                 k0_query_valid = 1'b1;
-                k0_query_patch = cur_query_patch;
+                k0_query_patch = cur_query_patch0;
+                k1_query_valid = 1'b1;
+                k1_query_patch = cur_query_patch1;
                 
                 leaf_mem_csb0 = '0;
                 leaf_mem_web0 = '1;
-                leaf_mem_addr0 = prop_leaf_idx_r[row_blocking_cnt][3];
+                leaf_mem_addr0 = prop_leaf_idx_r0[row_blocking_cnt][3];
+                leaf_mem_csb1 = '0;
+                leaf_mem_addr1 = prop_leaf_idx_r1[row_blocking_cnt][3];
                 
                 if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1)))
                     int_node_patch_en = 1'b1;
+                    int_node_patch_en2 = 1'b1;
             end
 
             // send prop 3 and query to l2_k0
@@ -384,11 +466,15 @@ module MainFSM #(
                         nextState = SLPR6;
                 end
                 k0_query_valid = 1'b1;
-                k0_query_patch = cur_query_patch;
+                k0_query_patch = cur_query_patch0;
+                k1_query_valid = 1'b1;
+                k1_query_patch = cur_query_patch1;
                 
                 leaf_mem_csb0 = '0;
                 leaf_mem_web0 = '1;
                 leaf_mem_addr0 = int_node_leaf_index;
+                leaf_mem_csb1 = '0;
+                leaf_mem_addr1 = int_node_leaf_index2;
                 
                 row_blocking_cnt_incr = 1'b1;
                 if (row_blocking_cnt == BLOCKING - 1) begin
@@ -403,14 +489,22 @@ module MainFSM #(
                 nextState = SLPR2;
                 k0_query_last_in = 1'b1;
                 k0_query_valid = 1'b1;
-                k0_query_patch = cur_query_patch;
+                k0_query_patch = cur_query_patch0;
+                k1_query_last_in = 1'b1;
+                k1_query_valid = 1'b1;
+                k1_query_patch = cur_query_patch1;
 
                 leaf_mem_csb0 = '0;
                 leaf_mem_web0 = '1;
-                leaf_mem_addr0 = prop_leaf_idx_r[row_blocking_cnt][0];
+                leaf_mem_addr0 = prop_leaf_idx_r0[row_blocking_cnt][0];
+                leaf_mem_csb1 = '0;
+                leaf_mem_addr1 = prop_leaf_idx_r1[row_blocking_cnt][0];
 
+                qp_mem_csb0 = 1'b0;
+                qp_mem_web0 = 1'b1;
+                qp_mem_addr0 = qp_mem_rd_addr;
                 qp_mem_csb1 = 1'b0;
-                qp_mem_addr1 = qp_mem_rd_addr;
+                qp_mem_addr1 = qp_mem_rd_addr2;
                 // the next query can be in the first row or in the next row or at the right 
                 if ((col_query_cnt == COL_SIZE - 1) && (row_blocking_cnt == BLOCKING - 1))
                     qp_mem_rd_addr_set = 1'b1;
@@ -434,13 +528,19 @@ module MainFSM #(
                     leaf_mem_csb0 = '0;
                     leaf_mem_web0 = '1;
                     leaf_mem_addr0 = counter;
+                    qp_mem_csb0 = 1'b0;
+                    qp_mem_web0 = 1'b1;
+                    qp_mem_addr0 = qp_mem_rd_addr;
                     qp_mem_csb1 = 1'b0;
-                    qp_mem_addr1 = qp_mem_rd_addr;
+                    qp_mem_addr1 = qp_mem_rd_addr2;
                 end
 
                 k0_query_last_in = 1'b1;
                 k0_query_valid = 1'b1;
-                k0_query_patch = cur_query_patch;
+                k0_query_patch = cur_query_patch0;
+                k1_query_last_in = 1'b1;
+                k1_query_valid = 1'b1;
+                k1_query_patch = cur_query_patch1;
             end
 
             // wait 12 more cycles for the pipeline to flush
@@ -467,7 +567,10 @@ module MainFSM #(
                 if (counter == 0) begin
                     k0_query_last_in = 1'b1;
                     k0_query_valid = 1'b1;
-                    k0_query_patch = cur_query_patch;
+                    k0_query_patch = cur_query_patch0;
+                    k1_query_last_in = 1'b1;
+                    k1_query_valid = 1'b1;
+                    k1_query_patch = cur_query_patch1;
                 end
 
                 if (counter < BLOCKING - NUM_LAST_BLOCK) begin
@@ -485,13 +588,17 @@ module MainFSM #(
 
                 // read next query for SearchLeaf
                 if (counter == (BLOCKING - NUM_LAST_BLOCK) * 5 - 3) begin
+                    qp_mem_csb0 = 1'b0;
+                    qp_mem_web0 = 1'b1;
+                    qp_mem_addr0 = qp_mem_rd_addr;
                     qp_mem_csb1 = 1'b0;
-                    qp_mem_addr1 = qp_mem_rd_addr;
+                    qp_mem_addr1 = qp_mem_rd_addr2;
                 end
 
                 // send to SearchLeaf
                 if (counter == (BLOCKING - NUM_LAST_BLOCK) * 5 - 2) begin
                     int_node_patch_en = 1'b1;
+                    int_node_patch_en2 = 1'b1;
                 end
 
                 if (counter_done) begin
@@ -504,24 +611,50 @@ module MainFSM #(
                         nextState = SLPR2;
                         leaf_mem_csb0 = '0;
                         leaf_mem_web0 = '1;
-                        leaf_mem_addr0 = prop_leaf_idx_r[0][0];
+                        leaf_mem_addr0 = prop_leaf_idx_r0[0][0];
+                        leaf_mem_csb1 = '0;
+                        leaf_mem_addr1 = prop_leaf_idx_r1[0][0];
 
+                        qp_mem_csb0 = 1'b0;
+                        qp_mem_web0 = 1'b1;
+                        qp_mem_addr0 = qp_mem_rd_addr;
                         qp_mem_csb1 = 1'b0;
-                        qp_mem_addr1 = qp_mem_rd_addr;
+                        qp_mem_addr1 = qp_mem_rd_addr2;
                         qp_mem_rd_addr_incr_col = 1'b1;
                     end
                 end
             end
 
             // read out the best array
+            // results of computes0
             SendBestIdx: begin
-                counter_in = NUM_QUERYS - 1;
+                counter_in = NUM_QUERYS / 2 - 1;
+                out_fifo_wdata_sel = 1'b1;
                 if (~out_fifo_wenq & out_fifo_wfull_n) begin
-                    counter_en = 1'b1;
                     // reads only the best
                     best_arr_csb1 = {{(K-1){1'b1}}, 1'b0};
                     best_arr_addr1 = counter;
+                end
 
+                if (out_fifo_wenq) begin
+                    counter_en = 1'b1;
+                    if (counter_done)
+                        nextState = SendBestIdx2;
+                end
+            end
+
+            // results of computes1
+            SendBestIdx2: begin
+                counter_in = NUM_QUERYS / 2 - 1;
+                out_fifo_wdata_sel = 1'b0;
+                if (~out_fifo_wenq & out_fifo_wfull_n) begin
+                    // reads only the best
+                    best_arr_csb1 = {{(K-1){1'b1}}, 1'b0};
+                    best_arr_addr1 = counter;
+                end
+
+                if (out_fifo_wenq) begin
+                    counter_en = 1'b1;
                     if (counter_done)
                         nextState = Idle;
                 end
@@ -553,18 +686,24 @@ module MainFSM #(
 
     // ExactFstRow and SearchLeaf: used to read from the query patch memory
     always_ff @(posedge clk, negedge rst_n) begin
-        if (~rst_n | qp_mem_rd_addr_rst) qp_mem_rd_addr <= '0;
-        else if (qp_mem_rd_addr_set) begin
+        if (~rst_n | qp_mem_rd_addr_rst) begin
+            qp_mem_rd_addr <= '0;
+            qp_mem_rd_addr2 <= '0;
+        end else if (qp_mem_rd_addr_set) begin
             qp_mem_rd_addr <= row_outer_cnt * BLOCKING;
+            qp_mem_rd_addr2 <= row_outer_cnt * BLOCKING + ROW_SIZE / 2;
         end else if (qp_mem_rd_addr_incr_col) begin
             qp_mem_rd_addr <= qp_mem_rd_addr + 1'b1;
+            qp_mem_rd_addr2 <= qp_mem_rd_addr2 + 1'b1;
         end else if (qp_mem_rd_addr_incr_row) begin
             // we have gone BLOCKING right before going to the next row
             qp_mem_rd_addr <= qp_mem_rd_addr + ROW_SIZE - (BLOCKING - 1);
+            qp_mem_rd_addr2 <= qp_mem_rd_addr2 + ROW_SIZE - (BLOCKING - 1);
         end else if (qp_mem_rd_addr_incr_row_special) begin
             // when blocking is not multiples of 4
             // ExactFstRow needs this special increment
             qp_mem_rd_addr <= qp_mem_rd_addr + ROW_SIZE - (NUM_LAST_BLOCK - 1);
+            qp_mem_rd_addr2 <= qp_mem_rd_addr2 + ROW_SIZE - (NUM_LAST_BLOCK - 1);
         end
     end
 
@@ -582,10 +721,14 @@ module MainFSM #(
         if (~rst_n) begin
             prop_leaf_wr_idx <= '0;
             for (int i=0; i<BLOCKING; i=i+1) begin
-                prop_leaf_idx_r[i][0] <= '0;
-                prop_leaf_idx_r[i][1] <= '0;
-                prop_leaf_idx_r[i][2] <= '0;
-                prop_leaf_idx_r[i][3] <= '0;
+                prop_leaf_idx_r0[i][0] <= '0;
+                prop_leaf_idx_r0[i][1] <= '0;
+                prop_leaf_idx_r0[i][2] <= '0;
+                prop_leaf_idx_r0[i][3] <= '0;
+                prop_leaf_idx_r1[i][0] <= '0;
+                prop_leaf_idx_r1[i][1] <= '0;
+                prop_leaf_idx_r1[i][2] <= '0;
+                prop_leaf_idx_r1[i][3] <= '0;
             end
         end
         else if (sl0_valid_out) begin
@@ -594,10 +737,14 @@ module MainFSM #(
                 prop_leaf_wr_idx <= '0;
             else
                 prop_leaf_wr_idx <= prop_leaf_wr_idx + 1'b1;
-            prop_leaf_idx_r[prop_leaf_wr_idx][0] <= best_arr_wleaf_idx_0[0];
-            prop_leaf_idx_r[prop_leaf_wr_idx][1] <= best_arr_wleaf_idx_0[1];
-            prop_leaf_idx_r[prop_leaf_wr_idx][2] <= best_arr_wleaf_idx_0[2];
-            prop_leaf_idx_r[prop_leaf_wr_idx][3] <= best_arr_wleaf_idx_0[3];
+            prop_leaf_idx_r0[prop_leaf_wr_idx][0] <= computes0_leaf_idx[0];
+            prop_leaf_idx_r0[prop_leaf_wr_idx][1] <= computes0_leaf_idx[1];
+            prop_leaf_idx_r0[prop_leaf_wr_idx][2] <= computes0_leaf_idx[2];
+            prop_leaf_idx_r0[prop_leaf_wr_idx][3] <= computes0_leaf_idx[3];
+            prop_leaf_idx_r1[prop_leaf_wr_idx][0] <= computes1_leaf_idx[0];
+            prop_leaf_idx_r1[prop_leaf_wr_idx][1] <= computes1_leaf_idx[1];
+            prop_leaf_idx_r1[prop_leaf_wr_idx][2] <= computes1_leaf_idx[2];
+            prop_leaf_idx_r1[prop_leaf_wr_idx][3] <= computes1_leaf_idx[3];
         end
     end
     
@@ -633,9 +780,16 @@ module MainFSM #(
     
     // used to store and reuse the current query patch
     always_ff @(posedge clk, negedge rst_n) begin
-        if (~rst_n) cur_query_patch <= '0;
+        if (~rst_n) cur_query_patch0 <= '0;
+        else if (qp_mem_rvalid0) begin
+            cur_query_patch0 <= qp_mem_rpatch0;
+        end
+    end
+
+    always_ff @(posedge clk, negedge rst_n) begin
+        if (~rst_n) cur_query_patch1 <= '0;
         else if (qp_mem_rvalid1) begin
-            cur_query_patch <= qp_mem_rpatch1;
+            cur_query_patch1 <= qp_mem_rpatch1;
         end
     end
 

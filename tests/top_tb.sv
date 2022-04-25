@@ -71,8 +71,14 @@ module top_tb();
     integer xi;
     integer y;
     integer addr;
+    real simtime;
+    real kdtreetime;
+    real querytime;
+    real fsmtime;
+    real outputtime;
 
     initial begin
+        $timeformat(-9, 2, "ns", 20);
 
         // $readmemh("leaves_mem_dummy0.txt", dut.leaf_mem_inst.loop_ram_patch_gen[0].ram_patch_inst.loop_depth_gen[0].loop_width_gen[0].genblk1.sram_macro.mem);
         // $readmemh("leaves_mem_dummy0.txt", dut.leaf_mem_inst.loop_ram_patch_gen[1].ram_patch_inst.loop_depth_gen[0].loop_width_gen[0].genblk1.sram_macro.mem);
@@ -134,6 +140,8 @@ module top_tb();
 
         // start load kd tree internal nodes and leaves
         @(negedge io_clk) load_kdtree = 1'b1;
+        simtime = $realtime;
+        $display("[T=%0t] Start sending KD tree internal nodes and leaves", $realtime);
         @(negedge io_clk) load_kdtree = 1'b0;
 
         // send internal nodes, 2 lines per node
@@ -160,7 +168,11 @@ module top_tb();
         @(negedge io_clk)
         in_fifo_wenq = 0;
         in_fifo_wdata = '0;
+        $display("[T=%0t] Finished sending KD tree internal nodes and leaves", $realtime);
+        kdtreetime = $realtime - simtime;
         
+        $display("[T=%0t] Start sending queries", $realtime);
+        simtime = $realtime;
         // send query patches, 5 lines per query patch
         // each patch has 5 lines of data
         for(int i=0; i<NUM_QUERYS*5; i=i+1) begin
@@ -171,13 +183,23 @@ module top_tb();
         @(negedge io_clk)
         in_fifo_wenq = 0;
         in_fifo_wdata = '0;
+        $display("[T=%0t] Finished sending queries", $realtime);
+        querytime = $realtime - simtime;
+        
 
         #100;
         @(negedge io_clk) fsm_start = 1'b1;
+        $display("[T=%0t] Start algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
+        simtime = $realtime;
         @(negedge io_clk) fsm_start = 1'b0;
 
         wait(fsm_done == 1'b1);
+        $display("[T=%0t] Finished algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
+        fsmtime = $realtime - simtime;
+
         @(negedge io_clk) send_best_arr = 1'b1;
+        $display("[T=%0t] Start receiving outputs", $realtime);
+        simtime = $realtime;
         @(negedge io_clk) send_best_arr = 1'b0;
 
         for(int px=0; px<2; px=px+1) begin
@@ -196,6 +218,8 @@ module top_tb();
             end
         end
         @(negedge io_clk) out_fifo_deq = 1'b0;
+        $display("[T=%0t] Finished receiving outputs", $realtime);
+        outputtime = $realtime - simtime;
 
         received_idx_data_file = $fopen("data/IO_data/received_idx.txt", "w");
         for(int i=0; i<NUM_QUERYS; i=i+1) begin
@@ -205,6 +229,12 @@ module top_tb();
             // else
             //     $display("match %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
         end
+
+        $display("===============Runtime Summary===============");
+        $display("KD tree: %t", kdtreetime);
+        $display("Query patches: %t", querytime);
+        $display("Main Algorithm: %t", fsmtime);
+        $display("Outputs: %t", outputtime);
 
 
         #200;

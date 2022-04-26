@@ -1,34 +1,46 @@
 `timescale 1 ns / 1 ps
 module Sorter_tb();
-    localparam  DATA_WIDTH = 11;
+    parameter DATA_WIDTH = 11;
+    parameter DIST_WIDTH = 25; // maximum 25
+    parameter IDX_WIDTH = 9; // index of patch in the original image
+    parameter LEAF_SIZE = 8;
+    parameter PATCH_SIZE = 5; //excluding the index
+    parameter ROW_SIZE = 26;
+    parameter COL_SIZE = 19;
+    parameter NUM_QUERYS = ROW_SIZE * COL_SIZE;
+    parameter K = 4;
+    parameter NUM_LEAVES = 64;
+    parameter BLOCKING = 4;
+    parameter LEAF_ADDRW = $clog2(NUM_LEAVES);
+
     logic clk;
     logic rst_n;
     logic valid_in;
     logic valid_out;
-    logic [10:0] data_in_0;
-    logic [10:0] data_in_1;
-    logic [10:0] data_in_2;
-    logic [10:0] data_in_3;
-    logic [10:0] data_in_4;
-    logic [10:0] data_in_5;
-    logic [10:0] data_in_6;
-    logic [10:0] data_in_7;
-    logic [8:0] indices_in_0;
-    logic [8:0] indices_in_1;
-    logic [8:0] indices_in_2;
-    logic [8:0] indices_in_3;
-    logic [8:0] indices_in_4;
-    logic [8:0] indices_in_5;
-    logic [8:0] indices_in_6;
-    logic [8:0] indices_in_7;
-    logic [10:0] data_out_0;
-    logic [10:0] data_out_1;
-    logic [10:0] data_out_2;
-    logic [10:0] data_out_3;
-    logic [8:0] indices_out_0;
-    logic [8:0] indices_out_1;
-    logic [8:0] indices_out_2;
-    logic [8:0] indices_out_3;
+    logic [DIST_WIDTH-1:0] data_in_0;
+    logic [DIST_WIDTH-1:0] data_in_1;
+    logic [DIST_WIDTH-1:0] data_in_2;
+    logic [DIST_WIDTH-1:0] data_in_3;
+    logic [DIST_WIDTH-1:0] data_in_4;
+    logic [DIST_WIDTH-1:0] data_in_5;
+    logic [DIST_WIDTH-1:0] data_in_6;
+    logic [DIST_WIDTH-1:0] data_in_7;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0] idx_in_0;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0] idx_in_1;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0] idx_in_2;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0] idx_in_3;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0] idx_in_4;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0] idx_in_5;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0] idx_in_6;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0] idx_in_7;
+    logic [DIST_WIDTH-1:0] data_out_0;
+    logic [DIST_WIDTH-1:0] data_out_1;
+    logic [DIST_WIDTH-1:0] data_out_2;
+    logic [DIST_WIDTH-1:0] data_out_3;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0] idx_out_0;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0] idx_out_1;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0] idx_out_2;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0] idx_out_3;
 
     BitonicSorter dut(
         .clk(clk),
@@ -43,22 +55,22 @@ module Sorter_tb();
         .data_in_5(data_in_5),
         .data_in_6(data_in_6),
         .data_in_7(data_in_7),
-        .indices_in_0(indices_in_0),
-        .indices_in_1(indices_in_1),
-        .indices_in_2(indices_in_2),
-        .indices_in_3(indices_in_3),
-        .indices_in_4(indices_in_4),
-        .indices_in_5(indices_in_5),
-        .indices_in_6(indices_in_6),
-        .indices_in_7(indices_in_7),
+        .idx_in_0(idx_in_0),
+        .idx_in_1(idx_in_1),
+        .idx_in_2(idx_in_2),
+        .idx_in_3(idx_in_3),
+        .idx_in_4(idx_in_4),
+        .idx_in_5(idx_in_5),
+        .idx_in_6(idx_in_6),
+        .idx_in_7(idx_in_7),
         .data_out_0(data_out_0),
         .data_out_1(data_out_1),
         .data_out_2(data_out_2),
         .data_out_3(data_out_3),
-        .indices_out_0(indices_out_0),
-        .indices_out_1(indices_out_1),
-        .indices_out_2(indices_out_2),
-        .indices_out_3(indices_out_3)
+        .idx_out_0(idx_out_0),
+        .idx_out_1(idx_out_1),
+        .idx_out_2(idx_out_2),
+        .idx_out_3(idx_out_3)
     );
 
     initial begin 
@@ -78,14 +90,14 @@ module Sorter_tb();
         data_in_5 = '0;
         data_in_6 = '0;
         data_in_7 = '0;
-        indices_in_0 = '0;
-        indices_in_1 = '0;
-        indices_in_2 = '0;
-        indices_in_3 = '0;
-        indices_in_4 = '0;
-        indices_in_5 = '0;
-        indices_in_6 = '0;
-        indices_in_7 = '0;
+        idx_in_0 = '0;
+        idx_in_1 = '0;
+        idx_in_2 = '0;
+        idx_in_3 = '0;
+        idx_in_4 = '0;
+        idx_in_5 = '0;
+        idx_in_6 = '0;
+        idx_in_7 = '0;
         valid_in = 1'b0;
         #20 rst_n = 1;
         #20;
@@ -99,14 +111,14 @@ module Sorter_tb();
         data_in_5 = 125;
         data_in_6 = 83;
         data_in_7 = 283;
-        indices_in_0 = 1;
-        indices_in_1 = 2;
-        indices_in_2 = 4;
-        indices_in_3 = 7;
-        indices_in_4 = 0;
-        indices_in_5 = 5;
-        indices_in_6 = 3;
-        indices_in_7 = 6;
+        idx_in_0 = 1;
+        idx_in_1 = 2;
+        idx_in_2 = 4;
+        idx_in_3 = 7;
+        idx_in_4 = 0;
+        idx_in_5 = 5;
+        idx_in_6 = 3;
+        idx_in_7 = 6;
         valid_in = 1'b1;
         
         @(negedge clk);
@@ -118,14 +130,14 @@ module Sorter_tb();
         data_in_5 = 2;
         data_in_6 = 12;
         data_in_7 = 339;
-        indices_in_0 = 6;
-        indices_in_1 = 2;
-        indices_in_2 = 0;
-        indices_in_3 = 3;
-        indices_in_4 = 5;
-        indices_in_5 = 1;
-        indices_in_6 = 4;
-        indices_in_7 = 7;
+        idx_in_0 = 6;
+        idx_in_1 = 2;
+        idx_in_2 = 0;
+        idx_in_3 = 3;
+        idx_in_4 = 5;
+        idx_in_5 = 1;
+        idx_in_6 = 4;
+        idx_in_7 = 7;
         valid_in = 1'b1;
 
         @(negedge clk);

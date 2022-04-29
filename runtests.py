@@ -93,29 +93,29 @@ def test_conv_gold_tiled_test():
         print(CGREEN + "Test passed!\n" + CEND)
         return 1, 1
 
-def test_mac_tb():
-    print("Running test_mac_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/mac_tb.v', 'rtl/mac.v'])          
+# def test_mac_tb():
+#     print("Running test_mac_tb")
+#     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/mac_tb.v', 'rtl/mac.v'])          
 
-def test_mac_tb_uvm():
-    print("Running test_mac_tb_uvm")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'cpp/mac_gold.c', 'tests/mac_tb_uvm.v', 'rtl/mac.v'])          
+# def test_mac_tb_uvm():
+#     print("Running test_mac_tb_uvm")
+#     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'cpp/mac_gold.c', 'tests/mac_tb_uvm.v', 'rtl/mac.v'])          
 
-def test_skew_registers_tb():
-    print("Running test_skew_registers_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/skew_registers_tb.v', 'rtl/skew_registers.v'])
+# def test_skew_registers_tb():
+#     print("Running test_skew_registers_tb")
+#     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/skew_registers_tb.v', 'rtl/skew_registers.v'])
 
-def test_fifo_tb_uvm():
-    print("Running test_fifo_tb_uvm")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/fifo_tb_uvm.v', 'rtl/fifo.v', 'rtl/SizedFIFO.v'])
+# def test_fifo_tb_uvm():
+#     print("Running test_fifo_tb_uvm")
+#     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/fifo_tb_uvm.v', 'rtl/fifo.v', 'rtl/SizedFIFO.v'])
 
-def test_fifo_tb():
-    print("Running test_fifo_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/fifo_tb.v', 'rtl/fifo.v', 'rtl/SizedFIFO.v'])
+# def test_fifo_tb():
+#     print("Running test_fifo_tb")
+#     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/fifo_tb.v', 'rtl/fifo.v', 'rtl/SizedFIFO.v'])
 
-def test_async_fifo_tb():
-    print("Running test_fifo_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/async_fifo_tb.v', 'rtl/async_fifo.v'])
+# def test_async_fifo_tb():
+#     print("Running test_fifo_tb")
+#     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/async_fifo_tb.v', 'rtl/async_fifo.v'])
 
 def test_internal_node_tb():
     print("Running test_internal_node_tb")
@@ -131,14 +131,13 @@ def test_internal_node_tree_2_tb():
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/internal_node_tree_2_tb.v', 'rtl/internal_node_2.v','rtl/aggregator.v', 'rtl/SyncFIFO.v', 'rtl/internal_node_tree_2.v'])
 
 
-def test_new_async_fifo_tb():
-    print("Running test_fifo_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/new_async_fifo_tb.v', 'rtl/dual_clock_async_fifo_design.v'])
+# def test_new_async_fifo_tb():
+#     print("Running test_fifo_tb")
+#     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/new_async_fifo_tb.v', 'rtl/dual_clock_async_fifo_design.v'])
 
 def test_bluespec_async_fifo_tb():
     print("Running bluespec_fifo_tb")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/bluespec_async_fifo_tb.v', 'rtl/SyncFIFO.v'])
-
 
 
 def test_ram_sync_1r1w_tb_uvm():
@@ -163,8 +162,6 @@ def test_query_wishbone_tb():
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/query_patch_wishbone_tb.v', 'rtl/QueryPatchMem_2.v', 'rtl/sram_1kbyte_1rw1r_mask.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v'])
 
 
-
-
 def test_search_containing_leaf_tb():
     print("Running test_search_containing_leaf_tb")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/search_containing_leaf_tb.v', 'rtl/QueryPatchMem.v',  'rtl/aggregator.v', 'rtl/SyncFIFO.v', 'rtl/sram_1kbyte_1rw1r.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v', 'rtl/internal_node.v', 'rtl/internal_node_tree.v'])
@@ -173,7 +170,6 @@ def test_search_containing_leaf_tb():
 def test_search_containing_leaf_2_tb():
     print("Running test_search_containing_leaf_2_tb")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/search_containing_leaf_2_tb.v', 'rtl/QueryPatchMem.v',  'rtl/aggregator.v', 'rtl/SyncFIFO.v', 'rtl/sram_1kbyte_1rw1r.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v', 'rtl/internal_node_2.v', 'rtl/internal_node_tree_2.v'])
-
 
 
 def test_full_test_tb():
@@ -186,33 +182,33 @@ def test_top_tb():
 
 
 
-def test_adr_gen_sequential_tb():
-    print("Running test_adr_gen_sequential_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/adr_gen_sequential_tb.v', 'rtl/adr_gen_sequential.v'])
+# def test_adr_gen_sequential_tb():
+#     print("Running test_adr_gen_sequential_tb")
+#     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/adr_gen_sequential_tb.v', 'rtl/adr_gen_sequential.v'])
 
-def test_adr_gen_sequential_tb_uvm():
-    print("Running test_adr_gen_sequential_tb_uvm")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/adr_gen_sequential_tb_uvm.v', 'rtl/adr_gen_sequential.v'])
+# def test_adr_gen_sequential_tb_uvm():
+#     print("Running test_adr_gen_sequential_tb_uvm")
+#     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/adr_gen_sequential_tb_uvm.v', 'rtl/adr_gen_sequential.v'])
 
-def test_ifmap_radr_gen_tb():
-    print("Running test_ifmap_radr_gen_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/ifmap_radr_gen_tb.v', 'rtl/ifmap_radr_gen.v'])
+# def test_ifmap_radr_gen_tb():
+#     print("Running test_ifmap_radr_gen_tb")
+#     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/ifmap_radr_gen_tb.v', 'rtl/ifmap_radr_gen.v'])
 
-def test_systolic_array_with_skew_tb():
-    print("Running test_systolic_array_with_skew_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/systolic_array_with_skew_tb.v', 'rtl/systolic_array_with_skew.v', 'rtl/skew_registers.v', 'rtl/systolic_array.v', 'rtl/mac.v'])
+# def test_systolic_array_with_skew_tb():
+#     print("Running test_systolic_array_with_skew_tb")
+#     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/systolic_array_with_skew_tb.v', 'rtl/systolic_array_with_skew.v', 'rtl/skew_registers.v', 'rtl/systolic_array.v', 'rtl/mac.v'])
 
-def test_deaggregator_tb():
-    print("Running test_deaggregator_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/deaggregator_tb.v', 'rtl/deaggregator.v', 'rtl/dual_clock_async_fifo_design.v', 'rtl/fifo.v', 'rtl/SizedFIFO.v'])
+# def test_deaggregator_tb():
+#     print("Running test_deaggregator_tb")
+#     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/deaggregator_tb.v', 'rtl/deaggregator.v', 'rtl/dual_clock_async_fifo_design.v', 'rtl/fifo.v', 'rtl/SizedFIFO.v'])
 
-def test_double_buffer_tb():
-    print("Running test_double_buffer_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/double_buffer_tb.v', 'rtl/double_buffer.v', 'rtl/ram_sync_1r1w.v'])
+# def test_double_buffer_tb():
+#     print("Running test_double_buffer_tb")
+#     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/double_buffer_tb.v', 'rtl/double_buffer.v', 'rtl/ram_sync_1r1w.v'])
 
-def test_accumulation_buffer_tb():
-    print("Running test_accumulation_buffer_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/accumulation_buffer_tb.v', 'rtl/accumulation_buffer.v', 'rtl/ram_sync_1r1w.v'])
+# def test_accumulation_buffer_tb():
+#     print("Running test_accumulation_buffer_tb")
+#     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/accumulation_buffer_tb.v', 'rtl/accumulation_buffer.v', 'rtl/ram_sync_1r1w.v'])
 
 
 def test_conv_tb():

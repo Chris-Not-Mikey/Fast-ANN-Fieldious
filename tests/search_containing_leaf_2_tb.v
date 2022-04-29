@@ -640,7 +640,7 @@ end
 	   
 	   if (leaf_en && (node_counter < 247) ) begin
 		     $display("%t: received = %d", $time, leaf_index);
-		   counter <= node_counter + 1;
+		   node_counter <= node_counter + 1;
 	   end
 	   if (leaf_two_en && (node_counter < 247)) begin
 		      $display("%t: received = %d", $time, leaf_index_two);

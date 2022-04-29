@@ -35,8 +35,15 @@ https://docs.google.com/presentation/d/1Ie0uCnQg5wL7kaqn-tUW8gMvX_XnOqE4hdrijEjC
 ## Intstallation and Viewing Waveforms
 
 ### Installation
-1. Install/activate vcs (For Stanford users, may require load base, load vcs in Farmshare)
+1. Install/Activatve vcs
 2. git clone https://github.com/Chris-Not-Mikey/Fast-ANN-Fieldious.git
+
+
+Farmshare Specific Instructions for Installing vcs (may differ for non-Stanford users)
+1. /farmshare/home/classes/ee/admin/software/bin/centos.sh
+2. module load base
+3. module load vcs
+
 
 ### Running All Tests 
 

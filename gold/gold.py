@@ -1398,7 +1398,7 @@ if __name__ == "__main__":
     
     cat_exp_patchs_str =  "cat " + file_patches_str + " > " + exp_patchs_str
     os.system(cat_nodes_patchs_str)
-    os.system(exp_patchs_str)
+    os.system(cat_exp_patchs_str)
 
 
  

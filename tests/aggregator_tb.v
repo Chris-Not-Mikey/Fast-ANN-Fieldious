@@ -39,7 +39,7 @@ module aggregator_tb;
   
   
   
-  always #6.666666667 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
+  always #6.666666667 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock)
   always #20 wclk =~wclk;
   
   aggregator
@@ -98,9 +98,7 @@ module aggregator_tb;
     #20
     change_fetch_width = 1'b0;
     #820
-    change_fetch_width = 1'b1;
-    local_fetch_width = 3'd1;
-    #7
+ 
     change_fetch_width = 1'b0;
     
 
@@ -168,7 +166,7 @@ module aggregator_tb;
     for (i = 0; i < 4; i++) begin
       always @ (posedge clk) begin
 	if (receiver_enq && (state == 2'b01)    ) begin
-          assert(receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH] == expected_dout + i);
+            assert(receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH] == expected_dout + i);
 	    $display("%t: (1) received = %d, expected = %d", $time, 
             receiver_din[(i + 1)*`DATA_WIDTH - 1 : i * `DATA_WIDTH], expected_dout + i);
         end

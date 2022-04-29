@@ -90,12 +90,12 @@ module aggregator_tb;
     //#5
     wrst_n = 1'b1;
     rst_n = 1'b1;
-    #20
+    #40
     //iseven = 1'b0; 
  
     change_fetch_width = 1'b1;
     local_fetch_width = 3'd4;
-    #20
+    #40
     change_fetch_width = 1'b0;
     #820
  

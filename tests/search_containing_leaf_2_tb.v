@@ -525,7 +525,7 @@ end
      
       write_latency_counter <= 0;
 	  
-	  if (patch_counter == 9'd442) begin
+	  if (patch_counter == 9'd494) begin
 		  
 		  //Stop writing, start reading (TOP LEVEL: Include counter register like this)
 		write_disable <= 1;

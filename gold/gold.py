@@ -1213,15 +1213,15 @@ if __name__ == "__main__":
         os.makedirs(destination_folder)
         
 
-    image_a_str = "../data/gold_data/" + file_name_a + ".png"
+    image_a_str = "/data/gold_data/" + file_name_a + ".png"
     image_a = cv2.imread(image_a_str)
 
-    image_b_str = "../data/gold_data/" + file_name_b + ".png"
+    image_b_str = "/data/gold_data/" + file_name_b + ".png"
     image_b = cv2.imread(image_b_str)
     # image_b = cv2.cvtColor(image_b, cv2.COLOR_BGR2GRAY)
     # image_b = cv2.cvtColor(image_b,cv2.COLOR_GRAY2RGB)
 
-    reconstruct_file_name = "../data/gold_results/" + file_name_a + "_reconstruct.png"
+    reconstruct_file_name = "/data/gold_results/" + file_name_a + "_reconstruct.png"
 
 
     #Image Dimensions

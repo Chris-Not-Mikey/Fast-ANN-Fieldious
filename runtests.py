@@ -119,7 +119,7 @@ def run_process(call_arr):
 
 def test__gold_tb():
     print("Running gold model + generating files")
-    return 1, run_process(['python3', './gold/gold.py'])
+    return 1, run_process(['python3', './gold/gold.py', 'frame1ball_30', 'frame2ball_30', './'])
 
 
 def test_internal_node_tb():

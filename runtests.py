@@ -117,6 +117,11 @@ def run_process(call_arr):
 #     print("Running test_fifo_tb")
 #     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/async_fifo_tb.v', 'rtl/async_fifo.v'])
 
+def test__gold_tb():
+    print("Running gold model + generating files")
+    return 1, run_process(['python3', './gold/gold.py'])
+
+
 def test_internal_node_tb():
     print("Running test_internal_node_tb")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/internal_node_tb.v', 'rtl/internal_node_2.v'])
@@ -162,6 +167,8 @@ def test_internal_node_tree():
 def test_top_tb():
     print("Running test_top_tb")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/top_tb.sv', 'rtl/top.sv', 'rtl/QueryPatchMem.v',  'rtl/aggregator.v', 'rtl/sram_1kbyte_1rw1r.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v', 'rtl/internal_node_2.v', 'rtl/internal_node_tree_2.v', 'rtl/LeavesMem.sv', 'rtl/BitonicSorter.sv', 'rtl/kBestArrays.sv', 'rtl/L2Kernel.sv', 'rtl/MainFSM.sv', 'rtl/RunningMin.sv', 'rtl/SyncFIFO.v', 'rtl/SortedList.sv'])
+
+
 
 
 

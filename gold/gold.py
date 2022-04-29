@@ -1,7 +1,6 @@
 from cmath import inf
 from re import L
 from tarfile import LENGTH_PREFIX
-from turtle import right, xcor
 import kdtree
 import statistics
 from matplotlib.pyplot import axes

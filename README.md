@@ -47,6 +47,10 @@ https://docs.google.com/presentation/d/1Ie0uCnQg5wL7kaqn-tUW8gMvX_XnOqE4hdrijEjC
 #### Python Packages Needed for gold model 
 0. (Optional: creeate venv for python packages)
 1. pip install kdtree
+2. pip install matplotlib
+3. pip install scikit-learn
+4. pip install opencv-python
+5. pip install tensorflow
 
 
 

@@ -3,6 +3,7 @@ import sys
 import inspect 
 import argparse
 import json
+import os
 
 CRED = '\033[91m'
 CGREEN  = '\33[32m'
@@ -119,7 +120,9 @@ def run_process(call_arr):
 
 def test__gold_tb():
     print("Running gold model + generating files")
-    return 1, run_process(['python3', './gold/gold.py', 'frame1ball_30', 'frame2ball_30', './'])
+    os.chdir("./gold")
+    run_process(['python3', './gold/gold.py', 'frame1ball_30', 'frame2ball_30', './'])
+    return 1, os.chdir("..")
 
 
 def test_internal_node_tb():

@@ -631,12 +631,18 @@ end
 
   end
 	
+   reg [9:0] counter;
    always @ (posedge clk) begin
 	   
-	   if (leaf_en) begin
-		     $display("%t: received = %d", $time, leaf_index);
+	   if (!rst_n) begin
+		counter <= 0;  
 	   end
-	      if (leaf_two_en) begin
+	   
+	   if (leaf_en && (counter < 247) ) begin
+		     $display("%t: received = %d", $time, leaf_index);
+		   counter <= counter + 1;
+	   end
+	   if (leaf_two_en && (counter < 247)) begin
 		      $display("%t: received = %d", $time, leaf_index_two);
 	   end
 	   

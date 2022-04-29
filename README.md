@@ -54,6 +54,17 @@ A single test can be run (and thus a particular .vcd file can be generated) and 
 1. python3 runtests.py [test_name] -v
 2. gtkwave dump.vcd &
 
+Example:
+
+1. python3 runtests.py agg -v
+2. gtkwave dump.vcd &
+
+![image](https://user-images.githubusercontent.com/54165966/165996749-ff3fa46b-96c2-44ea-9b0f-8baa945aaeec.png)
+
+
+
+
+
 test_name must be a string that matches part of the test name specified in runtests.py
 A list of all test names (and a brief description) is included below
 

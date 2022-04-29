@@ -1394,7 +1394,11 @@ if __name__ == "__main__":
     nodes_str = destination_folder + "/internalNodes.txt"
     nodes_patchs_str = destination_folder + "/nodes_patches.txt"
     exp_patchs_str = destination_folder + "/expected_patches.txt"
-    cat_nodes_patchs_str =  "cat " + nodes_str + " " + file_patches_str + " > " + nodes_patchs_str
+    
+    gold_buffer_str_1 = "./data/gold_data/buffer_1.txt" #Files that hold a few 0's for padding 
+    gold_buffer_str_2 = "./data/gold_data/buffer_2.txt"
+    
+    cat_nodes_patchs_str =  "cat " + gold_buffer_str_1 + " " + nodes_str + " " + gold_buffer_str_2 + " " + file_patches_str + " > " + nodes_patchs_str
     
     cat_exp_patchs_str =  "cat " + file_patches_str + " > " + exp_patchs_str
     os.system(cat_nodes_patchs_str)

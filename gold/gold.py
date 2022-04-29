@@ -13,8 +13,9 @@ import cv2
 import heapq
 import itertools
 import tensorflow as tf
-
-
+import os
+import time
+import sys
 
 ################################################################
 #                   GOLD.PY                                    #
@@ -22,7 +23,7 @@ import tensorflow as tf
 # A behavior model for Fast ANN Fieldious Hardware accelerator # 
 #                                                              #
 # Author: Chris Calloway, cmc2734@stanford.edu                 #
-# Mainters: Chris Calloway, cmc2734@stanford.edu               #
+# Maintainers: Chris Calloway, cmc2734@stanford.edu            #
 #           Jake Ke, jakeke@stanford.edu                       #
 ################################################################
 
@@ -245,7 +246,7 @@ def find_dimension_median_max_spread(patches):
 
     # THE MEDAIN IS NOT A SINGLE NUMBER, IT IS 5
 
-    inf_list = [float(1024),float(1024),float(1024),float(1024),float(1024), -1]
+    inf_list = [float(1023),float(1023),float(1023),float(1023),float(1023), -1]
     inf_array = numpy.array([inf_list])
 
 
@@ -696,13 +697,16 @@ def compute_all_distances_find_best_new(candidate, point, _pca_model):
 
 #Source: https://www.geeksforgeeks.org/breadth-first-search-or-bfs-for-a-graph/
 # Function to print a BFS of graph
-def BFS(tree):
+def BFS(tree, file):
 
     leaf_counter = 0 #Corresponds to Leaf index in memory
   
     #Open Two Files
-    f_int = open("internalNodes.txt", "w")
-    f_leaf = open("leafNodes.txt", "w")
+    f_int_str = file + "/internalNodes.txt"
+    f_leaf_str = file + "/leafNodes.txt"
+
+    f_int = open(f_int_str, "w")
+    f_leaf = open(f_leaf_str, "w")
 
 
     # Create a queue for BFS
@@ -1157,7 +1161,11 @@ def _fit_pca_model(image_a, image_b, psize, dim_reduced):
 
 def _apply_pca(patches, _pca_model):
 
-    patches_reduced = _pca_model.transform(patches).astype(numpy.float32)
+    patches_reduced = _pca_model.transform(patches).astype(numpy.int16)
+
+    for i in patches_reduced:
+        if i[0] > 1023:
+            print('bad')
 
     if True > 0:
         print("Patches reduced for image: {}".format(patches_reduced.shape))
@@ -1180,27 +1188,45 @@ def _apply_inverse_pca(patches_reduced, _pca_model):
 
 
 if __name__ == "__main__":
+
+    if len(sys.argv) < 4:
+
+        print("[ERROR] must supply [image A] [image B] [destination_folder] " )
+        print("Example: python3 gold.py walking1 walking12 ./ ")
+        exit()
+
+    # starting time
+    start = time.time()
+
+
     numpy.random.seed(0)
     psize = 5 # Patch size of 5x5 (much better results than 8x8 for minimal memory penalty)
     dim_reduced = 5
-        
-    image_a = cv2.imread("../data/gold_data/frame1ball_30.png")
-    # image_a = cv2.cvtColor(image_a, cv2.COLOR_BGR2GRAY)
-    # image_a = cv2.cvtColor(image_a,cv2.COLOR_GRAY2RGB)
-    print(image_a[1][1][0])
-    print(image_a[1][1][1])
-    print(image_a[1][1][2])
 
-    image_b = cv2.imread("../data/gold_data/frame2ball_30.png")
+
+    destination_folder = sys.argv[3] #It would be best if but things in their proper folder. However, I don't know how to pass filenames with vcs ~Chris
+
+    file_name_a = sys.argv[1] #Image A
+    file_name_b = sys.argv[2] #Image B
+
+  
+    if not os.path.exists(destination_folder):
+        os.makedirs(destination_folder)
+        
+
+    image_a_str = "../data/gold_data/" + file_name_a + ".png"
+    image_a = cv2.imread(image_a_str)
+
+    image_b_str = "../data/gold_data/" + file_name_b + ".png"
+    image_b = cv2.imread(image_b_str)
     # image_b = cv2.cvtColor(image_b, cv2.COLOR_BGR2GRAY)
     # image_b = cv2.cvtColor(image_b,cv2.COLOR_GRAY2RGB)
 
-    reconstruct_file_name = "../data/gold_results/frame1ball_30_reconstruct.png"
+    reconstruct_file_name = "../data/gold_results/" + file_name_a + "_reconstruct.png"
 
 
     #Image Dimensions
     print(image_a.shape)
-    print("STOP")
 
     im_height = image_a.shape[1]
     im_width = image_a.shape[0]
@@ -1237,7 +1263,7 @@ if __name__ == "__main__":
 
     max_patches = patches_b_reduced.shape[0]
 
-    inf_list = [float(1024),float(1024),float(1024),float(1024),float(1024)]
+    inf_list = [float(1023),float(1023),float(1023),float(1023),float(1023)]
     inf_array = numpy.array([inf_list])
     print(inf_array.shape)
 
@@ -1284,22 +1310,73 @@ if __name__ == "__main__":
 
     #Experiment with using ints instead
 
-    f_patches = open("patches.txt", "w")
+    file_patches_str = destination_folder + "/patches.txt"    
+    f_patches = open(file_patches_str, "w")
+
     for patchRound in patches_a_reduced:
 
         patchRound[0] = round(patchRound[0])
+        if (patchRound[0] > 1023):
+            #print(patchRound[0])
+            patchRound[0] = 1023
+
+        if (patchRound[0] < -1023):
+            print(patchRound[0])
+            patchRound[0] = -1023
+          
+
         patch_str = str(int(patchRound[0])) + "\n"
         f_patches.write(patch_str)
         patchRound[1] = round(patchRound[1])
+        if (patchRound[1] > 1023):
+            #print(patchRound[1])
+            patchRound[1] = 1023
+
+        if (patchRound[1] < -1023):
+            print(patchRound[1])
+            patchRound[1] = -1023
+            
+          
+
         patch_str = str(int(patchRound[1])) + "\n"
         f_patches.write(patch_str)
         patchRound[2] = round(patchRound[2])
+
+        if (patchRound[2] > 1023):
+            #print(patchRound[2])
+            patchRound[2] = 1023
+
+
+        if (patchRound[2] < -1023):
+            print(patchRound[2])
+            patchRound[2] = -1023
+
         patch_str = str(int(patchRound[2])) + "\n"
         f_patches.write(patch_str)
         patchRound[3] = round(patchRound[3])
+
+        if (patchRound[3] > 1023):
+            #print(patchRound[3])
+            patchRound[3] = 1023
+
+
+        if (patchRound[3] < -1023):
+            print(patchRound[3])
+            patchRound[3] = -1023
+
+
         patch_str = str(int(patchRound[3])) + "\n"
         f_patches.write(patch_str)
         patchRound[4] = round(patchRound[4])
+
+        if (patchRound[4] > 1023):
+            #print(patchRound[4])
+            patchRound[4] = 1023
+
+        if (patchRound[4] < -1023):
+            print(patchRound[4])
+            patchRound[4] = -1023
+
         patch_str = str(int(patchRound[4])) + "\n"
         f_patches.write(patch_str)
 
@@ -1312,7 +1389,7 @@ if __name__ == "__main__":
     nn_best_dists = []
     nn_row_storage = []
 
-    BFS(tree)
+    BFS(tree,destination_folder )
 
 
  
@@ -1321,7 +1398,8 @@ if __name__ == "__main__":
     # TODO: Make query from scratch
     count = 0
 
-    f_top_bottom_leaf_idx = open("topToBottomLeafIndex.txt", "w")
+    f_top_bottom_leaf_str = destination_folder + "/topToBottomLeafIndex.txt"
+    f_top_bottom_leaf_idx = open(f_top_bottom_leaf_str, "w")
     for patchA in patches_a_reduced:
 
         nn_best_dists = []
@@ -1331,6 +1409,7 @@ if __name__ == "__main__":
 
         leaf_index_str = str(int(leaf_index)) + "\n"
         f_top_bottom_leaf_idx.write(leaf_index_str)
+
 
 
         # print(index)
@@ -1372,7 +1451,9 @@ if __name__ == "__main__":
     row_storage = []
 
 
-    f_exact_row = open("exactFirstRowBestIndex.txt", "w")
+  
+    f_exact_row_str = destination_folder + "/exactFirstRowBestIndex.txt"
+    f_exact_row = open(f_exact_row_str, "w")
     for patchA2 in patches_a_reduced:
 
         # Only do full traversal on first row (of patch dimensions)
@@ -1389,7 +1470,7 @@ if __name__ == "__main__":
         # for j in range(4): #Changed to 4
 
         #     best_dists.append(nn_row_storage[row_idx_counter][j])
-        #     #print(nn_row_storage[row_idx_counter][j])
+            #print(nn_row_storage[row_idx_counter][j])
         
 
         #Determine the best 5 among all the nodes
@@ -1404,13 +1485,17 @@ if __name__ == "__main__":
       
          
 
-            # We are looking for the 5 best candidates
+            # We are looking for the 4 best candidates
             if len(best_dists) < 4: #Update 4
 
                
                 best_dists.append([dist, idx, nodeB])
                 #best_dists = sorted(best_dists)
                 best_dists.sort(key=lambda x: x[0])
+
+                if dist < best_dist:
+                    best_dist = dist
+                    best_idx = idx
 
             else:
 
@@ -1460,8 +1545,10 @@ if __name__ == "__main__":
 
     # # # Process Rows on remaning rows (Main Algo)
    
-    f_process_row = open("processRowBestIndex.txt", "w")
-    f_propgationLeafIndex = open("propagationLeafIndex.txt", "w")
+    f_process_row_str = destination_folder + "/processRowBestIndex.txt"
+    f_process_row = open(f_process_row_str, "w")
+    f_propgationLeafIndex_str = destination_folder + "/propagationLeafIndex.txt"
+    f_propgationLeafIndex = open(f_propgationLeafIndex_str, "w")
     for patchA3 in patches_a_reduced[26:]:
 
 
@@ -1558,20 +1645,67 @@ if __name__ == "__main__":
         nn_full_indices.append(best_idx)
         nn_full_distances.append(best_dist)
 
-        # Put best 5 as intial guess for the next time
+        # Put best 5 as initial guess for the next time
         row_storage[(row_idx_counter%row_size)] = best_five
         
         row_idx_counter = row_idx_counter + 1
        
 
 
+
+    # end time
+    end = time.time()
+
+    # total time taken
+    print(f"Runtime of the program is {end - start}")
+
+
     f_propgationLeafIndex.close()
     f_process_row.close()
+
+
+
+    f_expected_idx_str = destination_folder + "/expectedIndex.txt"
+    f_expected_idx = open(f_expected_idx_str, "w")
+
+    for best_idx in nn_full_indices:
+        idx_str = str(best_idx) + "\n"
+    
+        f_expected_idx.write(idx_str)
+
+    f_expected_idx.close()
+
+
+
     # # Compute final score
     patches_a_reconst = patches_b[nn_full_indices]
     diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
     l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
     print("Overall Full Traversal + Process Rows L2 score: {}".format(l2))
+
+
+
+    # #Actuall hardware values
+    # file1 = open('receiveIndex.txt', 'r')
+    # Lines = file1.readlines()
+    
+    # # Strips the newline character
+    # hw_indices = []
+    # for line in Lines:
+    #     #print(int(line))
+    #     hw_indices.append(int(line))
+
+
+    # # # Compute final HW score 
+    # patches_a_reconst = patches_b[hw_indices]
+    # diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
+    # l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
+    # print("Overall Hardware L2 score: {}".format(l2))
+
+    
+
+
+
 
 
     # Reconstruct Image (For Visual Debugging. The L2 score should effectively describe this same result )
@@ -1592,13 +1726,6 @@ if __name__ == "__main__":
     cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))
 
 
-
-
-    
-
-
-
-    
 
 
   

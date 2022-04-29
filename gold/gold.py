@@ -1393,8 +1393,12 @@ if __name__ == "__main__":
     
     nodes_str = destination_folder + "/internalNodes.txt"
     nodes_patchs_str = destination_folder + "/nodes_patches.txt"
+    exp_patchs_str = destination_folder + "/expected_patches.txt"
     cat_nodes_patchs_str =  "cat " + nodes_str + " " + file_patches_str + " > " + nodes_patchs_str
+    
+    cat_exp_patchs_str =  "cat " + file_patches_str + " > " + exp_patchs_str
     os.system(cat_nodes_patchs_str)
+    os.system(exp_patchs_str)
 
 
  

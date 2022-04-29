@@ -630,6 +630,21 @@ end
      end
 
   end
+	
+   always @ (posedge clk) begin
+	   
+	   if (leaf_en) begin
+		     $display("%t: received = %d", $time, leaf_index);
+	   end
+	      if (leaf_two_en) begin
+		      $display("%t: received = %d", $time, leaf_index_two);
+	   end
+	   
+   end
+	
+	
+
+	
 
   initial begin
     $dumpfile("dump.vcd");

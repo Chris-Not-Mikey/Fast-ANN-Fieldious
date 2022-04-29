@@ -110,11 +110,14 @@ module search_containing_leaf_tb;
   //File I/O Stuff
   integer               data_file    ; // file handler
   integer               scan_file    ; // file handler
+  integer               node_file    ; // file handler
   logic   signed [`DSIZE-1:0] captured_data;
 	
   integer               expected_data_file    ; // file handler
   integer               expected_scan_file    ; // file handler
   logic   signed [`DSIZE-1:0] expected_captured_data;
+	logic   [`DSIZE-1:0] expected_node_idx;
+	logic   [`DSIZE-1:0] expected_node_median;
 
 
 
@@ -245,11 +248,14 @@ module search_containing_leaf_tb;
 
 initial begin
 
-//   node_file = $fopen("./data/IO_data/internalNodes.txt", "r");
-//   if (node_file == `NULL) begin
-//     $display("data_file handle was NULL");
-//     $finish;
-//   end
+  node_file = $fopen("./data/IO_data/topToBottomLeafIndex.txt", "r");
+  if (node_file == `NULL) begin
+    $display("data_file handle was NULL");
+    $finish;
+  end
+	
+  node_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
+  node_file = $fscanf(node_file, "%d\n", expected_node_median[10:0]); 
   
 
 
@@ -642,8 +648,12 @@ end
 	   
 	   //TODO: Change 218 to more realistic value
 	   else if (leaf_en && leaf_two_en && (exp_node_counter < 9'd218) ) begin
-		   $display("%t: received leaf index = %d", $time, leaf_index);
-		   $display("%t: received lead index 2 = %d", $time, leaf_index_two);
+		   
+		   node_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
+  		   node_file = $fscanf(node_file, "%d\n", expected_node_median[10:0]); 
+		   
+		   $display("%t: received leaf index = %d, expected = %d", $time, leaf_index, expected_node_idx[10:0]);
+		   $display("%t: received lead index 2 = %d, expected = %d", $time, leaf_index_two, expected_node_median[10:0]);
 		   exp_node_counter <= exp_node_counter + 1;
 	   end
 	   else begin

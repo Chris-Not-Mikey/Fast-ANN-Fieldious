@@ -39,7 +39,7 @@ module aggregator_tb;
   
   
   
-  always #6.666666667 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock)
+  always #20 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock)
   always #20 wclk =~wclk;
   
   aggregator

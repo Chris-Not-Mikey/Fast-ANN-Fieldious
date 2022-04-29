@@ -615,11 +615,11 @@ end
             	//csb0 <= 0; //active low
      		assert(rpatch0 == hold_expected);
 // 		    $display("%t: received = %d, expected = %d", $time, rpatch0, hold_expected);
-		    $display("%t: received = %d, expected = %d", $time, rpatch0[10:0], hold_expected[10:0]);
-		    $display("%t: received = %d, expected = %d", $time, rpatch0[21:11], hold_expected[21:11]);
-		    $display("%t: received = %d, expected = %d", $time, rpatch0[32:22], hold_expected[32:22]);
-		    $display("%t: received = %d, expected = %d", $time, rpatch0[43:33], hold_expected[43:33]);
-		    $display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);
+// 		    $display("%t: received = %d, expected = %d", $time, rpatch0[10:0], hold_expected[10:0]);
+// 		    $display("%t: received = %d, expected = %d", $time, rpatch0[21:11], hold_expected[21:11]);
+// 		    $display("%t: received = %d, expected = %d", $time, rpatch0[32:22], hold_expected[32:22]);
+// 		    $display("%t: received = %d, expected = %d", $time, rpatch0[43:33], hold_expected[43:33]);
+// 		    $display("%t: received = %d, expected = %d", $time, rpatch0[54:44], hold_expected[54:44]);
 
          	assert(rpatch1 == hold_expected_two);
 // 		    $display("%t: received = %d, expected = %d", $time, rpatch1, hold_expected_two);
@@ -650,7 +650,7 @@ end
 	   end
 	   
 	   //TODO: Change 218 to more realistic value
-	   else if (leaf_en && leaf_two_en && (exp_node_counter < 9'd20) ) begin
+	   else if (leaf_en && leaf_two_en && (exp_node_counter < 9'd218) ) begin
 		   
 		   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
 		   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx_2[10:0]); 

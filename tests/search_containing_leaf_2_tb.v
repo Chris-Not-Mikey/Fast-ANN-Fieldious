@@ -631,20 +631,20 @@ end
 
   end
 	
-   reg [9:0] node_counter;
+   reg [9:0] exp_node_counter;
    always @ (posedge clk) begin
 	   
 	   if (!rst_n) begin
-		node_counter <= 0;  
+		exp_node_counter <= 0;  
 	   end
 	   
-	   else if (leaf_en && leaf_two_en && (node_counter < 247) ) begin
+	   else if (leaf_en && leaf_two_en && (exp_node_counter < 247) ) begin
 		   $display("%t: received = %d", $time, leaf_index);
 		   $display("%t: received = %d", $time, leaf_index_two);
-		   node_counter <= node_counter + 1;
+		   exp_node_counter <= exp_node_counter + 1;
 	   end
 	   else begin
-		   node_counter <= node_counter;  
+		   exp_node_counter <= exp_node_counter;  
 	   end
 	   
 	   

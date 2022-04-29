@@ -131,10 +131,11 @@ module search_containing_leaf_tb;
   reg wbs_ack_o; 
   reg [31:0] wbs_dat_o;
 
-     
+   reg exp_clk;
   
   always #6.66666667 clk =~clk; //Conceptually, rlck = clk (read clock is normal clock
   always #20 wclk =~wclk;
+  always #26.6666667 exp_clk = ~exp_clk;
   always #100 wbclk = ~wbclk; //Clock for wishbone
 	
 	
@@ -287,6 +288,7 @@ end
     clk <= 0;
     wclk <= 0;
     wbclk <= 0;
+	  exp_clk <=0;
     fifo_valid <=0;
     rst_n <= 0;
     fsm_rst_agg_n <= 0;
@@ -632,7 +634,7 @@ end
   end
 	
    reg [9:0] exp_node_counter;
-   always @ (posedge clk) begin
+   always @ (posedge exp_clk) begin
 	   
 	   if (!rst_n) begin
 		exp_node_counter <= 0;  

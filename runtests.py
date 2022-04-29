@@ -119,7 +119,7 @@ def run_process(call_arr):
 
 def test_internal_node_tb():
     print("Running test_internal_node_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/internal_node_tb.v', 'rtl/internal_node.v'])
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/internal_node_tb.v', 'rtl/internal_node_2.v'])
 
 
 
@@ -160,7 +160,7 @@ def test_query_wishbone_tb():
 
 
 def test_internal_node_tree():
-    print("Running internal_node_tree_tb (AKA search containing leaf 2")
+    print("Running internal_node_tree_tb (AKA search containing leaf with 2 patches)")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/search_containing_leaf_2_tb.v', 'rtl/QueryPatchMem.v',  'rtl/aggregator.v', 'rtl/SyncFIFO.v', 'rtl/sram_1kbyte_1rw1r.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v', 'rtl/internal_node_2.v', 'rtl/internal_node_tree_2.v'])
 
 

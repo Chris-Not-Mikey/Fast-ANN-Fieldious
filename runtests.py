@@ -121,7 +121,7 @@ def run_process(call_arr):
 def test__gold_tb():
     print("Running gold model + generating files")
     
-    return 1, run_process(['python3', './gold/gold.py', 'frame1ball_30', 'frame2ball_30', './'])
+    return 1, run_process(['python3', './gold/gold.py', args.images[0], args.images[1], './'])
 
 
 def test_internal_node_tb():
@@ -259,10 +259,13 @@ def test_top_tb():
 #     return run, passed
 
 
-parser = argparse.ArgumentParser(description='Autograder for EE272 HW3')
+parser = argparse.ArgumentParser(description='Fast ANN Fieldious Test Suite (Based on Autograder for EE272 HW3)')
 parser.add_argument('tests', type=str, nargs='*', default=['all'],
                     help='list of tests you would like to run')
 parser.add_argument("-l", "--layers", type=str, nargs='*', help='Layer specification files to run', default=["./layers/resnet_conv2_x_params.json"])
+parser.add_argument("-i", "--images", type=str, nargs='*', help='Images A and B (respectively)', default=["frame1ball_30", "frame2ball_30"])
+
+
 parser.add_argument("--list", action="store_true", help='List all tests')
 parser.add_argument("-v", "--verbose", action="store_true", help='Verbose option for printing test output')
 

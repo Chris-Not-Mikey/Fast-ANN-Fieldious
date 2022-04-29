@@ -640,7 +640,8 @@ end
 		exp_node_counter <= 0;  
 	   end
 	   
-	   else if (leaf_en && leaf_two_en && (exp_node_counter < 9'd247) ) begin
+	   //TODO: Change 218 to more realistic value
+	   else if (leaf_en && leaf_two_en && (exp_node_counter < 9'd218) ) begin
 		   $display("%t: received leaf index = %d", $time, leaf_index);
 		   $display("%t: received lead index 2 = %d", $time, leaf_index_two);
 		   exp_node_counter <= exp_node_counter + 1;

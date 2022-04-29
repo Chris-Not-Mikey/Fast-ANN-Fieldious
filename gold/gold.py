@@ -1401,7 +1401,7 @@ if __name__ == "__main__":
     
     cat_nodes_patchs_str =  "cat " + gold_buffer_str_1 + " " + nodes_str + " " + gold_buffer_str_2 + " " + file_patches_str + " > " + nodes_patchs_str
     
-    cat_nodes_patchs_2_str =  "cat " + gold_buffer_str_1 + " " + nodes_str + " " + gold_buffer_str_1 + " " gold_buffer_str_2 + " " + file_patches_str + " > " + nodes_patchs_2_str
+    cat_nodes_patchs_2_str =  "cat " + gold_buffer_str_1 + " " + nodes_str + " " + gold_buffer_str_1 + " " + gold_buffer_str_2 + " " + file_patches_str + " > " + nodes_patchs_2_str
     
     cat_exp_patchs_str =  "cat " + file_patches_str + " > " + exp_patchs_str
     os.system(cat_nodes_patchs_str)

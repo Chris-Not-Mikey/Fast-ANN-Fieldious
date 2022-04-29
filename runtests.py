@@ -145,7 +145,7 @@ def test_aggregator_tb():
 
 def test_query_sram_tb():
     print("Running query_row_double_buffer_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/search_containing_leaf_2_tb.v', 'rtl/QueryPatchMem.v',  'rtl/aggregator.v', 'rtl/SyncFIFO.v', 'rtl/sram_1kbyte_1rw1r.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v', 'rtl/internal_node_2.v', 'rtl/internal_node_tree_2.v'])
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/query_row_double_buffer_tb.v', 'rtl/QueryPatchMem.v',  'rtl/aggregator.v', 'rtl/SyncFIFO.v', 'rtl/sram_1kbyte_1rw1r.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v', 'rtl/internal_node_2.v', 'rtl/internal_node_tree_2.v'])
 
 def test_query_wishbone_tb():
     print("Running query_wishbone_tb")

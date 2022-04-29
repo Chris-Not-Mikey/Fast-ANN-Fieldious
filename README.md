@@ -39,10 +39,16 @@ https://docs.google.com/presentation/d/1Ie0uCnQg5wL7kaqn-tUW8gMvX_XnOqE4hdrijEjC
 2. git clone https://github.com/Chris-Not-Mikey/Fast-ANN-Fieldious.git
 
 
-Farmshare Specific Instructions for Installing vcs (may differ for non-Stanford users)
+#### Farmshare Specific Instructions for Installing vcs (may differ for non-Stanford users)
 1. /farmshare/home/classes/ee/admin/software/bin/centos.sh
 2. module load base
 3. module load vcs
+
+#### Python Packages Needed for gold model 
+0. (Optional: creeate venv for python packages)
+1. pip install kdtree
+
+
 
 
 ### Running All Tests 

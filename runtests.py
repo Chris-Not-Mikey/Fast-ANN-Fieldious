@@ -39,59 +39,59 @@ def run_process(call_arr):
         print(CGREEN + "Test passed!\n" + CEND)
         return 1
 
-def test_conv_gold_test():
-    print("Running conv_gold_test")
-    process = subprocess.run(['make', 'compile_c'], 
-                         stdout=subprocess.PIPE, 
-                         universal_newlines=True)
+# def test_conv_gold_test():
+#     print("Running conv_gold_test")
+#     process = subprocess.run(['make', 'compile_c'], 
+#                          stdout=subprocess.PIPE, 
+#                          universal_newlines=True)
 
-    if (verbose):
-        print(process.stdout)
+#     if (verbose):
+#         print(process.stdout)
 
-    if "Error" in process.stdout or process.returncode != 0:
-        print(CRED + "Test failed to compile\n" + CEND)
-        return 0, 0
+#     if "Error" in process.stdout or process.returncode != 0:
+#         print(CRED + "Test failed to compile\n" + CEND)
+#         return 0, 0
 
-    process = subprocess.run(['make', 'run_c'], 
-                        stdout=subprocess.PIPE, 
-                        universal_newlines=True)
+#     process = subprocess.run(['make', 'run_c'], 
+#                         stdout=subprocess.PIPE, 
+#                         universal_newlines=True)
 
-    if (verbose):
-        print(process.stdout)
+#     if (verbose):
+#         print(process.stdout)
 
-    if "Error! Output does not match gold" in process.stdout:
-        print(CRED + "Test failed\n" + CEND)
-        return 1, 0
-    else:
-        print(CGREEN + "Test passed!\n" + CEND)
-        return 1, 1
+#     if "Error! Output does not match gold" in process.stdout:
+#         print(CRED + "Test failed\n" + CEND)
+#         return 1, 0
+#     else:
+#         print(CGREEN + "Test passed!\n" + CEND)
+#         return 1, 1
 
-def test_conv_gold_tiled_test():
-    print("Running conv_gold_tiled_test")
-    process = subprocess.run(['make', 'compile_tiled_c'], 
-                         stdout=subprocess.PIPE, 
-                         universal_newlines=True)
+# def test_conv_gold_tiled_test():
+#     print("Running conv_gold_tiled_test")
+#     process = subprocess.run(['make', 'compile_tiled_c'], 
+#                          stdout=subprocess.PIPE, 
+#                          universal_newlines=True)
 
-    if (verbose):
-        print(process.stdout)
+#     if (verbose):
+#         print(process.stdout)
 
-    if "Error" in process.stdout or process.returncode != 0:
-        print(CRED + "Test failed to compile\n" + CEND)
-        return 0, 0
+#     if "Error" in process.stdout or process.returncode != 0:
+#         print(CRED + "Test failed to compile\n" + CEND)
+#         return 0, 0
 
-    process = subprocess.run(['make', 'run_tiled_c'], 
-                        stdout=subprocess.PIPE, 
-                        universal_newlines=True)
+#     process = subprocess.run(['make', 'run_tiled_c'], 
+#                         stdout=subprocess.PIPE, 
+#                         universal_newlines=True)
 
-    if (verbose):
-        print(process.stdout)
+#     if (verbose):
+#         print(process.stdout)
 
-    if "Error! Output does not match gold" in process.stdout:
-        print(CRED + "Test failed\n" + CEND)
-        return 1, 0
-    else:
-        print(CGREEN + "Test passed!\n" + CEND)
-        return 1, 1
+#     if "Error! Output does not match gold" in process.stdout:
+#         print(CRED + "Test failed\n" + CEND)
+#         return 1, 0
+#     else:
+#         print(CGREEN + "Test passed!\n" + CEND)
+#         return 1, 1
 
 # def test_mac_tb():
 #     print("Running test_mac_tb")
@@ -211,60 +211,60 @@ def test_top_tb():
 #     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/accumulation_buffer_tb.v', 'rtl/accumulation_buffer.v', 'rtl/ram_sync_1r1w.v'])
 
 
-def test_conv_tb():
-    if "all" in args.layers:
-        args.layers = ["./layers/resnet_conv1_params.json", "./layers/resnet_conv2_x_params.json", "./layers/resnet_conv3_1_params.json", "./layers/resnet_conv3_x_params.json", "./layers/resnet_conv4_1_params.json", "./layers/resnet_conv4_x_params.json", "./layers/resnet_conv5_1_params.json", "./layers/resnet_conv5_x_params.json"]
+# def test_conv_tb():
+#     if "all" in args.layers:
+#         args.layers = ["./layers/resnet_conv1_params.json", "./layers/resnet_conv2_x_params.json", "./layers/resnet_conv3_1_params.json", "./layers/resnet_conv3_x_params.json", "./layers/resnet_conv4_1_params.json", "./layers/resnet_conv4_x_params.json", "./layers/resnet_conv5_1_params.json", "./layers/resnet_conv5_x_params.json"]
 
-    run = 0
-    passed = 0
-    for layer in args.layers:
-        print("Running test_conv_tb with layer params:", layer)
+#     run = 0
+#     passed = 0
+#     for layer in args.layers:
+#         print("Running test_conv_tb with layer params:", layer)
 
-        with open(layer) as f:
-            data = json.load(f)
+#         with open(layer) as f:
+#             data = json.load(f)
 
-        param_str_c = f'''const int IC0 = {data["IC0"]};
-const int OC0 = {data["OC0"]};
-const int IC1 = {data["IC1"]};
-const int OC1 = {data["OC1"]};
-const int FX = {data["FX"]};
-const int FY = {data["FY"]};
-const int OX0 = {data["OX0"]};
-const int OY0 = {data["OY0"]};
-const int OX1 = {data["OX1"]};
-const int OY1 = {data["OY1"]};
-const int STRIDE = {data["STRIDE"]}; 
-'''
+#         param_str_c = f'''const int IC0 = {data["IC0"]};
+# const int OC0 = {data["OC0"]};
+# const int IC1 = {data["IC1"]};
+# const int OC1 = {data["OC1"]};
+# const int FX = {data["FX"]};
+# const int FY = {data["FY"]};
+# const int OX0 = {data["OX0"]};
+# const int OY0 = {data["OY0"]};
+# const int OX1 = {data["OX1"]};
+# const int OY1 = {data["OY1"]};
+# const int STRIDE = {data["STRIDE"]}; 
+# '''
 
-        param_str_v = f'''`define IC0 {data["IC0"]}
-`define OC0 {data["OC0"]}
-`define IC1 {data["IC1"]}
-`define OC1 {data["OC1"]}
-`define FX {data["FX"]}
-`define FY {data["FY"]}
-`define OX0 {data["OX0"]}
-`define OY0 {data["OY0"]}
-`define OX1 {data["OX1"]}
-`define OY1 {data["OY1"]}
-`define STRIDE {data["STRIDE"]}
-'''
+#         param_str_v = f'''`define IC0 {data["IC0"]}
+# `define OC0 {data["OC0"]}
+# `define IC1 {data["IC1"]}
+# `define OC1 {data["OC1"]}
+# `define FX {data["FX"]}
+# `define FY {data["FY"]}
+# `define OX0 {data["OX0"]}
+# `define OY0 {data["OY0"]}
+# `define OX1 {data["OX1"]}
+# `define OY1 {data["OY1"]}
+# `define STRIDE {data["STRIDE"]}
+# '''
     
-        with open("./cpp/conv_tb_params.h", "w") as output:
-            output.write(param_str_c)
+#         with open("./cpp/conv_tb_params.h", "w") as output:
+#             output.write(param_str_c)
 
-        with open("./tests/layer_params.v", "w") as output:
-            output.write(param_str_v)
+#         with open("./tests/layer_params.v", "w") as output:
+#             output.write(param_str_v)
                     
-        process = subprocess.run(['make', 'generate_layer'], 
-                            stdout=subprocess.PIPE, 
-                            universal_newlines=True)
-        if (verbose):
-            print(f'Layer params: IC0={data["IC0"]} OC0={data["OC0"]} IC1={data["IC1"]} OC1={data["OC1"]} FX={data["FX"]} FY={data["FY"]} OX0={data["OX0"]} OY0={data["OY0"]} OX1={data["OX1"]} OY1={data["OY1"]} STRIDE={data["STRIDE"]}')
-            print(process.stdout)
+#         process = subprocess.run(['make', 'generate_layer'], 
+#                             stdout=subprocess.PIPE, 
+#                             universal_newlines=True)
+#         if (verbose):
+#             print(f'Layer params: IC0={data["IC0"]} OC0={data["OC0"]} IC1={data["IC1"]} OC1={data["OC1"]} FX={data["FX"]} FY={data["FY"]} OX0={data["OX0"]} OY0={data["OY0"]} OX1={data["OX1"]} OY1={data["OY1"]} STRIDE={data["STRIDE"]}')
+#             print(process.stdout)
 
-        run += 1
-        passed += run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/conv_tb.v', 'rtl/conv.v', 'rtl/systolic_array_with_skew.v', 'rtl/skew_registers.v', 'rtl/systolic_array.v', 'rtl/mac.v', 'rtl/adr_gen_sequential.v', 'rtl/deaggregator.v', 'rtl/aggregator.v', 'rtl/fifo.v', 'rtl/SizedFIFO.v', 'rtl/conv_controller.v', 'rtl/accumulation_buffer.v', 'rtl/ram_sync_1r1w.v', 'rtl/ifmap_radr_gen.v', 'rtl/double_buffer.v'])
-    return run, passed
+#         run += 1
+#         passed += run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/conv_tb.v', 'rtl/conv.v', 'rtl/systolic_array_with_skew.v', 'rtl/skew_registers.v', 'rtl/systolic_array.v', 'rtl/mac.v', 'rtl/adr_gen_sequential.v', 'rtl/deaggregator.v', 'rtl/aggregator.v', 'rtl/fifo.v', 'rtl/SizedFIFO.v', 'rtl/conv_controller.v', 'rtl/accumulation_buffer.v', 'rtl/ram_sync_1r1w.v', 'rtl/ifmap_radr_gen.v', 'rtl/double_buffer.v'])
+#     return run, passed
 
 
 parser = argparse.ArgumentParser(description='Autograder for EE272 HW3')

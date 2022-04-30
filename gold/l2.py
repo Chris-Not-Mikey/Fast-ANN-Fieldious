@@ -125,7 +125,7 @@ if __name__ == "__main__":
     gold_l2 = float(Lines[0])
     
     if abs(l2 - gold_l2) > 1:
-        print('failed")
+        print("failed")
     else:
         print("Sucess")
 

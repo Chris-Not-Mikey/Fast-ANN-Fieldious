@@ -120,9 +120,9 @@ if __name__ == "__main__":
     #Compare to gold model, and fail test if disparity is too big
     
     gold_l2 = open('./data/IO_data/gold_l2_score.txt', 'r')
-    lines = file1.readlines()
+    lines = gold_l2.readlines()
     
-    gold_l2 = float(Lines[0])
+    gold_l2 = float(lines[0])
     
     if abs(l2 - gold_l2) > 1:
         print("failed")

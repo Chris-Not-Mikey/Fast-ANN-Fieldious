@@ -140,6 +140,7 @@ module L2Kernel_tb();
         p0_data = '0;
         
         wait(dist_valid == 1'b1);
+        assert(p0_l2_dist == 2000);
         //$display("p0_data is %d", p0_data);
         wait(dist_valid == 1'b0);
         #20;

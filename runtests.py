@@ -39,6 +39,40 @@ def run_process(call_arr):
     else:
         print(CGREEN + "Test passed!\n" + CEND)
         return 1
+    
+    
+def run_python_process(call_arr):
+    process = subprocess.run(call_arr, 
+                         stdout=subprocess.PIPE, 
+                         universal_newlines=True)
+
+    if (verbose):
+        print(process.stdout)
+
+    if "failed" in process.stdout:
+        print(CRED + "Test failed\n" + CEND)
+        print(process.stdout)
+        return 0
+    
+    print(CGREEN + "Test passed!\n" + CEND)
+
+#     process = subprocess.run(['./simv'], 
+#                         stdout=subprocess.PIPE, 
+#                         universal_newlines=True)
+
+#     if (verbose):
+#         print(process.stdout)
+
+#     if "Failed" in process.stdout or "failed" in process.stdout or "Error" in process.stdout or "error" in process.stdout or "mismatch" in process.stdout:
+#         print(CRED + "Test failed\n" + CEND)
+#         print(process.stdout)
+#         return 0
+#     elif "Time: 0 ps" in process.stdout:
+#         print(CRED + "Test not implemented\n" + CEND)
+#         return 0
+#     else:
+#         print(CGREEN + "Test passed!\n" + CEND)
+#         return 1
 
 # def test_conv_gold_test():
 #     print("Running conv_gold_test")
@@ -121,12 +155,12 @@ def run_process(call_arr):
 def test__gold_tb():
     print("Running gold model + generating files")
     
-    return 1, run_process(['python3', './gold/gold.py', args.images[0], args.images[1], './data/IO_data/']) #/data/IODATA ensures our testbenches read the right file
+    return 1, run_python_process(['python3', './gold/gold.py', args.images[0], args.images[1], './data/IO_data/']) #/data/IODATA ensures our testbenches read the right file
 
 def test_z_l2_tb():
     print("Running l2 on final results and reconstructing images")
     
-    return 1, run_process(['python3', './gold/l2.py', args.images[0], args.images[1]])
+    return 1, run_python_process(['python3', './gold/l2.py', args.images[0], args.images[1]])
 
 
 def test_internal_node_tb():

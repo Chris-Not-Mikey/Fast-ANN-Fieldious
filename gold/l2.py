@@ -127,7 +127,7 @@ if __name__ == "__main__":
     if abs(l2 - gold_l2) > 1:
         print("failed")
     else:
-        print("Sucess")
+        print("failed")
 
 
 

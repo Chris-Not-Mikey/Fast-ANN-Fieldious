@@ -13,6 +13,7 @@ import cv2
 from sklearn.feature_extraction import image
 from sklearn.decomposition import PCA
 import tensorflow as tf
+import sys
 
 
 
@@ -55,14 +56,34 @@ def _create_patches(img, psize):
 
 
 if __name__ == "__main__":
+    
+    
+    if len(sys.argv) < 3:
+
+        print("[ERROR] must supply [image A] [image B]" )
+        print("Example: python3 l2.py walking1 walking12")
+        exit()
+    
     numpy.random.seed(0)
     psize = 5 # Patch size of 5x5 (much better results than 8x8 for minimal memory penalty)
-  
+    
+    
+    file_name_a = sys.argv[1] #Image A
+    file_name_b = sys.argv[2] #Image B
+
         
-    image_a = cv2.imread("../data/gold_data/frame1ball_30.png")
-    image_b = cv2.imread("../data/gold_data/frame2ball_30.png")
-    results_file = open('../data/IO_data/received_idx.txt', 'r')
-    reconstruct_file_name = "../data/gold_results/l2_frame1ball_30_reconstruct.png"
+
+    image_a_str = "./data/gold_data/" + file_name_a + ".png"
+    image_a = cv2.imread(image_a_str)
+
+    image_b_str = "./data/gold_data/" + file_name_b + ".png"
+    image_b = cv2.imread(image_b_str)
+  
+      
+#     image_a = cv2.imread("./data/gold_data/frame1ball_30.png")
+#     image_b = cv2.imread("./data/gold_data/frame2ball_30.png")
+    results_file = open('./data/IO_data/received_idx.txt', 'r')
+    reconstruct_file_name = "../data/gold_results/l2_" +  file_name_a + "_reconstruct.png"
 
 
     im_height = image_a.shape[1]

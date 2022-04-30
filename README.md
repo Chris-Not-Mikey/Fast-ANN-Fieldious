@@ -46,9 +46,9 @@ https://docs.google.com/presentation/d/1Ie0uCnQg5wL7kaqn-tUW8gMvX_XnOqE4hdrijEjC
 ## Intstallation and Viewing Waveforms
 
 ### Installation
-1. Install/Activatve vcs (Farmshare Specific Instructions below)
+1. Install/Activatve vcs (Farmshare specific instructions below)
 2. git clone https://github.com/Chris-Not-Mikey/Fast-ANN-Fieldious.git
-3. Install Packages needed for gold model (see below)
+3. Install packages needed for gold model (see below)
 
 
 #### Farmshare Specific Instructions for Installing vcs (May Differ for Non-Stanford Users)

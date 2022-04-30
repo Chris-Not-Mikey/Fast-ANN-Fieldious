@@ -55,6 +55,7 @@ def run_python_process(call_arr):
         return 0
     
     print(CGREEN + "Test passed!\n" + CEND)
+    return 1
 
 #     process = subprocess.run(['./simv'], 
 #                         stdout=subprocess.PIPE, 

@@ -16,12 +16,15 @@ Fast ANN Fieldious is a hardware accelerator for approximate nearest neighbor fi
 
 
 
-Our goal is to find nearest neighbors in Image B for a given Image A
+Our goal is to find nearest neighbors in Image B for a given Image A.
 This is a very important task for computer vision, optical flow, video compression, etc.
-However, it is a very computationally expensive alogorithm. Interestingly, the most popular algorithm (propagation assisted K-Tree) lends itself well to hardware acceleration since it can be pipelined and executed in parallel. Thus the idea for Fast-ANN-Fieldious was born. 
+However, it is a very computationally expensive alogorithm. Interestingly, the most popular algorithm (propagation assisted kd-tree) lends itself well to hardware acceleration since it can be pipelined and executed in parallel. Thus the idea for Fast-ANN-Fieldious was born. 
 
 More details of this problem statement and its implementation can be found in the links below.
-Schematics for each block can be found in the Design Review link
+Schematics for each block can be found in the Design Review link. A top level diagram of all blocks can be seen below:
+
+![image](https://user-images.githubusercontent.com/54165966/166120157-2986be25-6eac-4444-ad91-6d91395445e2.png)
+
 
 
 ## Team
@@ -123,14 +126,17 @@ test_name must be a string that matches part of the test name specified in runte
 A list of all test names (and a brief description) is included below
 
 1. "gold" -- runs Gold Model which also generates test vectors for particular image pair (necessary to run first if testing new test vectors)
-2. "test_top" -- top level test bench for all components 
+2. "test_top" -- top level and FSM unit test (full pipeline test)
 3. "internal_node" -- internal node unit test
 4. "internal_node_tree" -- internal node tree unit test (search containing leaf algo)
-5. "query_row_double_buffer" -- unit test for patch SRAM
-6. "wishbone" -- unit test for wishbone interface
-7. "bluespec" -- unit test for blue spec async fifo (IP)
-8. "agg" -- unit test for aggregator (IP)
-9. "l2" -- runs final l2 score + image reconstruction and compares to gold results (necessary to run after test_top so that correct results are calculated)
+5. "sorted_list" -- sorted list unit test
+6. "sorter" -- Bitonic sorter unit test
+7. "l2_kernel" -- l2 kernel unit test
+8. "query_row_double_buffer" -- SRAM unit test 
+9. "wishbone" -- wishbone interface unit test
+10. "bluespec" -- blue spec async fifo (IP) unit test 
+11. "agg" -- aggregator (IP) unit test
+12. "l2_reconstruct" -- runs final l2 score + image reconstruction and compares to gold results (necessary to run after test_top so that correct results are compared)
 
 
 

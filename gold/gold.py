@@ -1162,9 +1162,9 @@ def _apply_pca(patches, _pca_model):
 
     patches_reduced = _pca_model.transform(patches).astype(numpy.int16)
 
-    for i in patches_reduced:
-        if i[0] > 1023:
-            print('bad')
+#     for i in patches_reduced:
+#         if i[0] > 1023:
+#             print('bad')
 
     if True > 0:
         print("Patches reduced for image: {}".format(patches_reduced.shape))

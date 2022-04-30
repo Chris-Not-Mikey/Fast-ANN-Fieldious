@@ -1699,6 +1699,14 @@ if __name__ == "__main__":
     diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
     l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
     print("Overall Full Traversal + Process Rows L2 score: {}".format(l2))
+    
+    
+    #write gold l2 to .txt file the l2.py can read
+    f_l2_str = destination_folder + "/gold_l2_score.txt"
+    f_l2 = open(f_l2_str, "w")
+    f_l2.write(str(l2))
+    f_l2.close()
+    
 
 
 

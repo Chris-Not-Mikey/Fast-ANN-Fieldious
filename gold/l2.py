@@ -116,6 +116,18 @@ if __name__ == "__main__":
     diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
     l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
     print("Overall Hardware L2 score: {}".format(l2))
+    
+    #Compare to gold model, and fail test if disparity is too big
+    
+    gold_l2 = open('./data/IO_data/gold_l2_score.txt', 'r')
+    lines = file1.readlines()
+    
+    gold_l2 = float(Lines[0])
+    
+    if abs(l2 - gold_l2) > 1:
+        print('failed")
+    else:
+        print("Sucess")
 
 
 
@@ -137,3 +149,6 @@ if __name__ == "__main__":
     print("Writing reconstructed image to")
     print(reconstruct_file_name)
     cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))
+    
+    
+  

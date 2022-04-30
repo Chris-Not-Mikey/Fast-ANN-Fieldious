@@ -75,17 +75,22 @@ The first two steps are optional but highly recommended
 
 ### Running All Tests 
 
+The following will run the gold model, all unit tests, and final image reconstruction test on the default set of test vectors.
+
 1. cd Fast-ANN-Fieldious
 2. python3 runtests.py 
 
-runtests.py is based on the autograder from 272. Thus, the same commands will work.
-In particular -v can be specified for verbose mode to show assertion matches
 
-Now however to specify which test vectors (images) to run, to run something other than default you must do:
+runtests.py is based on the autograder from 272. Thus,  most of the same commands will work.
+In particular -v can be specified for verbose mode to show assertion matches and other display outputs.
+
+To specify which test vectors (images) to run (other than the default), included the following flag:
 -i "imageA" "imageB"
 
 Example:
-1. python3 runtests.py -i "stick1" "stick2"
+1. python3 runtests.py -v -i "stick1" "stick2"
+
+This will run all the tests in verbose mode, using the "stick figure" test vectors (as seen above) instead of the default test vectors.
 
 All images can be found in "data/gold_data"
 For ease of use, each image pair (test vector image A and image B pair) is reproduced below:

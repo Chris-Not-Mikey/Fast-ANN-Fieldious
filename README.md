@@ -95,7 +95,7 @@ Example:
 test_name must be a string that matches part of the test name specified in runtests.py
 A list of all test names (and a brief description) is included below
 
-1. "gold" -- runs Gold Model which also generates test vectors for particular image pair (necessary if testing new test vectors)
+1. "gold" -- runs Gold Model which also generates test vectors for particular image pair (necessary to run first if testing new test vectors)
 2. "test_top" -- top level test bench for all components 
 3. "internal_node" -- internal node unit test
 4. "internal_node_tree" -- internal node tree unit test (search containing leaf algo)
@@ -103,7 +103,7 @@ A list of all test names (and a brief description) is included below
 6. "wishbone" -- unit test for wishbone interface
 7. "bluespec" -- unit test for blue spec async fifo (IP)
 8. "agg" -- unit test for aggregator (IP)
-9. "l2" -- WIP (runs l2 score + image reconstruciton and compares to gold results)
+9. "l2" -- runs final l2 score + image reconstruction and compares to gold results (necessary to run after test_top so that correct results are calculated)
 
 
 

@@ -83,7 +83,7 @@ if __name__ == "__main__":
 #     image_a = cv2.imread("./data/gold_data/frame1ball_30.png")
 #     image_b = cv2.imread("./data/gold_data/frame2ball_30.png")
     results_file = open('./data/IO_data/received_idx.txt', 'r')
-    reconstruct_file_name = "../data/gold_results/l2_" +  file_name_a + "_reconstruct.png"
+    reconstruct_file_name = "./data/gold_results/l2_" +  file_name_a + "_reconstruct.png"
 
 
     im_height = image_a.shape[1]

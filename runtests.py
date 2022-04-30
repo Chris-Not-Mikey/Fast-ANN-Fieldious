@@ -192,6 +192,19 @@ def test_query_wishbone_tb():
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/query_patch_wishbone_tb.v', 'rtl/QueryPatchMem_2.v', 'rtl/sram_1kbyte_1rw1r_mask.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v'])
 
 
+def test_sorted_list_tb():
+    print("Running sorted_list_tb")
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/SortedList_tb.sv', 'rtl/SortedList.sv'])
+
+def test_sorter_tb():
+    print("Running sorter_tb")
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/Sorter_tb.sv', 'rtl/BitonicSorter.sv'])
+
+def test_l2_kernel_tb():
+    print("Running l2_kernel_tb")
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/L2Kernel_tb.sv', 'rtl/L2Kernel.sv'])
+
+
 # def test_search_containing_leaf_tb():
 #     print("Running test_search_containing_leaf_tb")
 #     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/search_containing_leaf_tb.v', 'rtl/QueryPatchMem.v',  'rtl/aggregator.v', 'rtl/SyncFIFO.v', 'rtl/sram_1kbyte_1rw1r.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v', 'rtl/internal_node.v', 'rtl/internal_node_tree.v'])

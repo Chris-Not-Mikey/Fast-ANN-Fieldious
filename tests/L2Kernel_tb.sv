@@ -139,9 +139,9 @@ module L2Kernel_tb();
         query_patch = '0;
         p0_data = '0;
         
-        wait(query_valid == 1'b1);
+        wait(dist_valid == 1'b1);
         //$display("p0_data is %d", p0_data);
-        wait(query_valid == 1'b0);
+        wait(dist_valid == 1'b0);
         #20;
         $finish;
 

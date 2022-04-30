@@ -53,14 +53,6 @@ module SortedList_tb();
         last_in = '0;
         l2_dist_in = '0;
         merged_idx_in = '0;
-        l2_dist_0 = '0;
-        l2_dist_1 = '0;
-        l2_dist_2 = '0;
-        l2_dist_3 = '0;
-        merged_idx_0 = '0;
-        merged_idx_1 = '0;
-        merged_idx_2 = '0;
-        merged_idx_3 = '0;
 
         #20 rst_n = 1;
         #20;

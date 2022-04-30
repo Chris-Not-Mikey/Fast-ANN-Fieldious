@@ -18,7 +18,7 @@ Fast ANN Fieldious is a hardware accelerator for approximate nearest neighbor fi
 
 Our goal is to find nearest neighbors in Image B for a given Image A.
 This is a very important task for computer vision, optical flow, video compression, etc.
-However, it is a very computationally expensive alogorithm. Interestingly, the most popular algorithm (propagation assisted kd-tree) lends itself well to hardware acceleration since it can be pipelined and executed in parallel. Thus the idea for Fast-ANN-Fieldious was born. 
+However, it is a very computationally expensive algorithm. Interestingly, the most popular algorithm (propagation assisted kd-tree) lends itself well to hardware acceleration since it can be pipelined and executed in parallel. Thus the idea for Fast-ANN-Fieldious was born. 
 
 More details of this problem statement and its implementation can be found in the links below.
 Schematics for each block can be found in the Design Review link. A top level diagram of all blocks can be seen below:

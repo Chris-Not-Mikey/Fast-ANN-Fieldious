@@ -29,7 +29,7 @@ def run_process(call_arr):
     if (verbose):
         print(process.stdout)
 
-    if "Failed" in process.stdout or "failed" in process.stdout or "Error" in process.stdout or "error" in process.stdout or "mismatch" in process.stdout:
+    if "Failed" in process.stdout or "failed" in process.stdout or "Error" in process.stdout or "error" in process.stdout:
         print(CRED + "Test failed\n" + CEND)
         print(process.stdout)
         return 0

@@ -158,8 +158,8 @@ def test__gold_tb():
     
     return 1, run_python_process(['python3', './gold/gold.py', args.images[0], args.images[1], './data/IO_data/']) #/data/IODATA ensures our testbenches read the right file
 
-def test_z_l2_tb():
-    print("Running l2 on final results and reconstructing images")
+def test_z_l2_reconstruct_tb():
+    print("Running l2 on final results and reconstructing image")
     
     return 1, run_python_process(['python3', './gold/l2.py', args.images[0], args.images[1]])
 

@@ -12,10 +12,15 @@ For EE 372 @ Stanford
 
 Fast ANN Fieldious is a hardware accelerator for approximate nearest neighbor fields (ANN). The following repository is our Verilog design and verification files for this accelerator.
 
+<img width="899" alt="image" src="https://user-images.githubusercontent.com/54165966/166093855-555c4de2-8ea2-4fbe-929c-e81455e49181.png">
 
-Our goal is to find nearest neighbors in image B for a given image A
+
+
+Our goal is to find nearest neighbors in Image B for a given Image A
 This is a very important task for computer vision, optical flow, video compression, etc.
-However, it is a very computationally expensive alogorithm, but the most popular algorithm (propagation assisted K-Tree) lends itself well to hardware acceleration since it can be pipelined and executed in parallel. More details can be found in the links below.
+However, it is a very computationally expensive alogorithm. Interestingly, the most popular algorithm (propagation assisted K-Tree) lends itself well to hardware acceleration since it can be pipelined and executed in parallel. Thus the idea for Fast-ANN-Fieldious was born. 
+
+More details of this problem statement and its implementation can be found in the links below.
 
 
 ## Team

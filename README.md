@@ -63,12 +63,22 @@ https://docs.google.com/presentation/d/1Ie0uCnQg5wL7kaqn-tUW8gMvX_XnOqE4hdrijEjC
 runtests.py is based on the autograder from 272. Thus, the same commands will work.
 In particular -v can be specified for verbose mode to show assertion matches
 
+Now however to specify which test vectors (images) to run, to run something other than default you must do:
+-i "imageA" "imageB
+
+Example:
+1. python3 runtests.py -i "stick1" "stick2"
+
+All image names can be found in "data/gold_data"
+Note: do NOT include .png in filename
+
+
 
 ### Running A Specific Test And Viewing Waveform 
 
 A single test can be run (and thus a particular .vcd file can be generated) and viewed with gtkwave as follows:
 
-1. python3 runtests.py [test_name] -v
+1. python3 runtests.py [test_name] -v 
 2. gtkwave dump.vcd &
 
 Example:
@@ -85,19 +95,19 @@ Example:
 test_name must be a string that matches part of the test name specified in runtests.py
 A list of all test names (and a brief description) is included below
 
-1. "test_top" -- top level test bench for all components 
-2. ""
-3. ""
+1. "gold" -- runs Gold Model which also generates test vectors for particular image pair (necessary if testing new test vectors)
+2. "test_top" -- top level test bench for all components 
+3. "internal_node" -- internal node unit test
+4. "internal_node_tree" -- internal node tree unit test (search containing leaf algo)
+5. "query_row_double_buffer" -- unit test for patch SRAM
+6. "wishbone" -- unit test for wishbone interface
+7. "bluespec" -- unit test for blue spec async fifo (IP)
+8. "agg" -- unit test for aggregator (IP)
+9. "l2" -- WIP (runs l2 score + image reconstruciton and compares to gold results)
 
 
 
-### Full Top Level Verification with L2 Score and Image Reconstruction
 
-While the above will show tests passing, to show the full pipeline (including off chip computation of L2 score and image reconstruction)
-The following commands must be executed
-
-1.  python3 runtests.py test_tob -v
-2.  python3 l2.py 
 
 
 

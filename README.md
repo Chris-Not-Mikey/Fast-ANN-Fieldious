@@ -21,6 +21,7 @@ This is a very important task for computer vision, optical flow, video compressi
 However, it is a very computationally expensive alogorithm. Interestingly, the most popular algorithm (propagation assisted K-Tree) lends itself well to hardware acceleration since it can be pipelined and executed in parallel. Thus the idea for Fast-ANN-Fieldious was born. 
 
 More details of this problem statement and its implementation can be found in the links below.
+Schematics for each block can be found in the Design Review link
 
 
 ## Team

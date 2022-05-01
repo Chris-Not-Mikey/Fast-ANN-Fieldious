@@ -686,7 +686,7 @@ module MainFSM #(
 
     // ExactFstRow and SearchLeaf: used to read from the query patch memory
     always_ff @(posedge clk, negedge rst_n) begin
-        if (~rst_n | qp_mem_rd_addr_rst) begin
+        if (~rst_n | qp_mem_rd_addr_rst) begin //TODO: Synthesis Investigation (https://stackoverflow.com/questions/44517945/what-happens-when-one-declares-more-signalsvariables-than-needed-in-the-sensit)
             qp_mem_rd_addr <= '0;
             qp_mem_rd_addr2 <= '0;
         end else if (qp_mem_rd_addr_set) begin
@@ -709,7 +709,7 @@ module MainFSM #(
 
     // stores the next addr of best arrays
     always_ff @(posedge clk, negedge rst_n) begin
-        if (~rst_n | best_arr_addr_rst) best_arr_addr_r <= '0;
+        if (~rst_n | best_arr_addr_rst) best_arr_addr_r <= '0; //TODO: Synthesis Investigation (https://stackoverflow.com/questions/44517945/what-happens-when-one-declares-more-signalsvariables-than-needed-in-the-sensit
         else if (sl0_valid_out) begin
             best_arr_addr_r <= best_arr_addr_r + 1'b1;
         end

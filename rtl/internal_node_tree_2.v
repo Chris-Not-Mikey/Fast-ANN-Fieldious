@@ -176,7 +176,7 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
   
  end
  
- assign receiver_en = latency_track_reciever_en[5];
+ assign receiver_en = latency_track_reciever_en[5] && exo;
  assign receiver_two_en = latency_track_reciever_two_en[5];
 
 
@@ -233,6 +233,17 @@ reg level_valid_two [63:0][7:0]; //for storing valid signals
 wire level_valid_storage [63:0][7:0]; //for storing valid signals
 wire level_valid_storage_two [63:0][7:0]; //for storing valid signals
 
+ 
+ 
+integer idx;
+initial begin
+   for (idx = 0; idx < 6; idx = idx + 1) begin
+  
+   $dumpvars(0, level_patches[idx]);
+    
+   end
+  
+ end
 
  
  always @(*) begin

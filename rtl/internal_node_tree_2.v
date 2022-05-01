@@ -234,16 +234,9 @@ wire level_valid_storage [63:0][7:0]; //for storing valid signals
 wire level_valid_storage_two [63:0][7:0]; //for storing valid signals
 
  
+ reg [PATCH_WIDTH-1:0] debug_one = level_patches[0];
+ reg [PATCH_WIDTH-1:0] debug_two = level_patches[1];
  
-integer idx;
-initial begin
-   for (idx = 0; idx < 6; idx = idx + 1) begin
-  
-   $dumpvars(0, level_patches[idx]);
-    
-   end
-  
- end
 
  
  always @(*) begin

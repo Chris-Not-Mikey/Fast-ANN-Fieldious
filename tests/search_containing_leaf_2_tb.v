@@ -255,8 +255,8 @@ initial begin
     $finish;
   end
 	
-  node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
-  node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx_2[10:0]); 
+//   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
+//   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx_2[10:0]); 
   
 
 
@@ -273,8 +273,8 @@ initial begin
   end
 
   scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
-// 	scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
-// 	scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
+	scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
+	scan_file = $fscanf(data_file, "%d\n", wdata[10:0]); 
   //wdata[10:0] = captured_data; //11'b0; Let FILE handle provide data
 	
  // #20

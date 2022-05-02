@@ -135,8 +135,8 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
 
  //Register for keeping track of whether output is valid (keeps track of pipelined inputs as well.
  // This handles the 6 cycle latency of this setup
- reg latency_track_reciever_en [6:0];
- reg latency_track_reciever_two_en [6:0];
+ reg latency_track_reciever_en [7:0];
+ reg latency_track_reciever_two_en [7:0];
  
  always @ (posedge clk) begin
      if (rst_n == 0) begin
@@ -146,7 +146,8 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
       latency_track_reciever_en[3] <= 0;
       latency_track_reciever_en[4] <= 0;
       latency_track_reciever_en[5] <= 0;
-      //latency_track_reciever_en[6] <= 0;
+      latency_track_reciever_en[6] <= 0;
+      latency_track_reciever_en[7] <= 0;
 
       latency_track_reciever_two_en[0] <= 0;
       latency_track_reciever_two_en[1] <= 0;
@@ -154,7 +155,8 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
       latency_track_reciever_two_en[3] <= 0;
       latency_track_reciever_two_en[4] <= 0;
       latency_track_reciever_two_en[5] <= 0;
-      //latency_track_reciever_two_en[6] <= 0;
+      latency_track_reciever_two_en[6] <= 0;
+      latency_track_reciever_two_en[7] <= 0;
     end
     else begin
       latency_track_reciever_en[0] <= patch_en;
@@ -164,6 +166,7 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
       latency_track_reciever_en[4] <= latency_track_reciever_en[3];
       latency_track_reciever_en[5] <= latency_track_reciever_en[4];
       latency_track_reciever_en[6] <= latency_track_reciever_en[5];
+       latency_track_reciever_en[7] <= latency_track_reciever_en[6];
 
       latency_track_reciever_two_en[0] <= patch_two_en;
       latency_track_reciever_two_en[1] <= latency_track_reciever_two_en[0];
@@ -172,12 +175,13 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
       latency_track_reciever_two_en[4] <= latency_track_reciever_two_en[3];
       latency_track_reciever_two_en[5] <= latency_track_reciever_two_en[4];
       latency_track_reciever_two_en[6] <= latency_track_reciever_two_en[5];
+     latency_track_reciever_two_en[7] <= latency_track_reciever_two_en[6];
     end
   
  end
  
- assign receiver_en = latency_track_reciever_en[6];
- assign receiver_two_en = latency_track_reciever_two_en[6];
+ assign receiver_en = latency_track_reciever_en[7];
+ assign receiver_two_en = latency_track_reciever_two_en[7];
 
 
 //Register for storing and updating address

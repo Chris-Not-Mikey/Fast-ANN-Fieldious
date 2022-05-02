@@ -239,31 +239,6 @@ wire level_valid_storage_two [63:0][7:0]; //for storing valid signals
  wire [PATCH_WIDTH-1:0] debug_two;
  assign debug_two = level_patches[1];
  
- wire [64-1:0] debug_valid; 
- assign debug_valid = level_valid[2];
- wire [64-1:0] debug_valid_two;
- assign  debug_valid_two = level_valid[3];
- 
-  
- wire [64-1:0] debug_valid_three; 
- assign debug_valid_three = level_valid[4];
- wire [64-1:0] debug_valid_four;
- assign  debug_valid_four = level_valid[5];
- 
- 
- wire [64-1:0] debug_valid_five; 
- assign debug_valid_five = level_valid[6];
- 
- 
- 
- 
-
- 
-
-
-
-
- 
  
  
 genvar i, j;
@@ -518,8 +493,8 @@ always @ (posedge clk) begin
         level_patches_two[6] <=  55'b0; 
 
         for (int r = 0; r < 64; r++) begin
-         level_valid[r][6] <= 1'b0;
-         level_valid_two[r][6] <= 1'b0;
+         level_valid[r][6] = 1'b0;
+         level_valid_two[r][6] = 1'b0;
         end
     end
 
@@ -528,8 +503,8 @@ always @ (posedge clk) begin
         level_patches_two[6] <= level_patches_two[5];
 
           for (int r = 0; r < 64; r++) begin
-           level_valid[r][6] <= level_valid_storage[r][5];
-           level_valid_two[r][6] <= level_valid_storage_two[r][5];
+           level_valid[r][6] = level_valid_storage[r][5];
+           level_valid_two[r][6] = level_valid_storage_two[r][5];
         end
     end
 end

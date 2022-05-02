@@ -176,8 +176,8 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
   
  end
  
- assign receiver_en = latency_track_reciever_en[5];
- assign receiver_two_en = latency_track_reciever_two_en[5];
+ assign receiver_en = latency_track_reciever_en[4];
+ assign receiver_two_en = latency_track_reciever_two_en[4];
 
 
 //Register for storing and updating address

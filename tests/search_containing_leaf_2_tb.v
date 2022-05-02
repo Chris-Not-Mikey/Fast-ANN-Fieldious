@@ -255,8 +255,8 @@ initial begin
     $finish;
   end
 	
-//   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
-//   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx_2[10:0]); 
+  node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
+  node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx_2[10:0]); 
   
 
 

@@ -135,8 +135,8 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
 
  //Register for keeping track of whether output is valid (keeps track of pipelined inputs as well.
  // This handles the 6 cycle latency of this setup
-reg latency_track_reciever_en [5:0];
-reg latency_track_reciever_two_en [5:0];
+ reg latency_track_reciever_en [6:0];
+ reg latency_track_reciever_two_en [6:0];
  
  always @ (posedge clk) begin
      if (rst_n == 0) begin
@@ -146,6 +146,7 @@ reg latency_track_reciever_two_en [5:0];
       latency_track_reciever_en[3] <= 0;
       latency_track_reciever_en[4] <= 0;
       latency_track_reciever_en[5] <= 0;
+      //latency_track_reciever_en[6] <= 0;
 
       latency_track_reciever_two_en[0] <= 0;
       latency_track_reciever_two_en[1] <= 0;
@@ -153,6 +154,7 @@ reg latency_track_reciever_two_en [5:0];
       latency_track_reciever_two_en[3] <= 0;
       latency_track_reciever_two_en[4] <= 0;
       latency_track_reciever_two_en[5] <= 0;
+      //latency_track_reciever_two_en[6] <= 0;
     end
     else begin
       latency_track_reciever_en[0] <= patch_en;
@@ -161,6 +163,7 @@ reg latency_track_reciever_two_en [5:0];
       latency_track_reciever_en[3] <= latency_track_reciever_en[2];
       latency_track_reciever_en[4] <= latency_track_reciever_en[3];
       latency_track_reciever_en[5] <= latency_track_reciever_en[4];
+      //latency_track_reciever_en[6] <= latency_track_reciever_en[5];
 
       latency_track_reciever_two_en[0] <= patch_two_en;
       latency_track_reciever_two_en[1] <= latency_track_reciever_two_en[0];
@@ -168,6 +171,7 @@ reg latency_track_reciever_two_en [5:0];
       latency_track_reciever_two_en[3] <= latency_track_reciever_two_en[2];
       latency_track_reciever_two_en[4] <= latency_track_reciever_two_en[3];
       latency_track_reciever_two_en[5] <= latency_track_reciever_two_en[4];
+      //latency_track_reciever_two_en[6] <= latency_track_reciever_two_en[5];
     end
   
  end
@@ -229,18 +233,14 @@ reg level_valid_two [63:0][7:0]; //for storing valid signals
 wire level_valid_storage [63:0][7:0]; //for storing valid signals
 wire level_valid_storage_two [63:0][7:0]; //for storing valid signals
 
-
+ 
+ reg [PATCH_WIDTH-1:0] debug_one = level_patches[0];
+ reg [PATCH_WIDTH-1:0] debug_two = level_patches[1];
  
 
 
-always @(*) begin
-    
-    level_valid[0][0] = 255'b1;
-    level_valid_two[0][0] = 255'b1;
-    level_patches[0] = patch_in;
-    level_patches_two[0] = patch_in_two;
 
-end
+
  
  
  
@@ -292,38 +292,228 @@ generate
 
 
 
-        
+    //SYNTHESIS CHANGE: The following was not synthesized as intended, so has been broken into individual components as seen below ~Chris
+    
         //Create register per depth that holds current patch and valids
 
-        always @ (posedge clk) begin
+//         always @ (posedge clk) begin
 
-            if (rst_n == 0) begin
-                level_patches[i+1] <= 0;
-                level_patches_two[i+1] <= 0 ;
-                 for (int r = 0; r < 64; r++) begin
-                     level_valid[r][i+1] = 1'b0;
-                      level_valid_two[r][i+1] = 1'b0;
-                 end
+//             if (rst_n == 0) begin
+//                 level_patches[i+1] <= 0;
+//                 level_patches_two[i+1] <= 0 ;
+//                  for (int r = 0; r < 64; r++) begin
+//                      level_valid[r][i+1] = 1'b0;
+//                       level_valid_two[r][i+1] = 1'b0;
+//                  end
              
-            end
-            else begin
-                level_patches[i+1] <= level_patches[i];
-                level_patches_two[i+1] <= level_patches_two[i];
-                //level_valid[i+1] <= level_valid[i];
-                 for (int r = 0; r < 64; r++) begin
-                    level_valid[r][i+1] = level_valid_storage[r][i];
-                    level_valid_two[r][i+1] = level_valid_storage_two[r][i];
-                 end
-            end
+//             end
+//             else begin
+//                 level_patches[i+1] <= level_patches[i];
+//                 level_patches_two[i+1] <= level_patches_two[i];
+//                 //level_valid[i+1] <= level_valid[i];
+//                  for (int r = 0; r < 64; r++) begin
+//                     level_valid[r][i+1] = level_valid_storage[r][i];
+//                     level_valid_two[r][i+1] = level_valid_storage_two[r][i];
+//                  end
+//             end
 
-        end
+//         end
 
         
     end
 
-
 endgenerate
 
+
+//Registers for 
+ 
+ 
+  
+//  always @(*) begin
+//     level_valid[0][0] = 255'b1;
+//   level_valid_two[0][0] = 255'b1;
+
+//  end
+ 
+//  always @(posedge clk) begin
+//   level_patches[0] <= patch_in;
+//   level_patches_two[0] <= patch_in_two;
+//  end
+ 
+ //NEW register input
+ always @ (posedge clk) begin
+
+    if (rst_n == 0) begin
+     level_patches[0] <= 55'b0;
+     level_patches_two[0] <=  55'b0; 
+
+        for (int r = 0; r < 64; r++) begin
+         level_valid[r][0] = 1'b0;
+         level_valid_two[r][0] = 1'b0;
+        end
+    end
+
+    else begin
+     level_patches[0] <= patch_in;
+     level_patches_two[0] <= patch_in_two;
+     
+     level_valid[0][0] = 1'b1;
+     level_valid_two[0][0] =  1'b1;
+
+        for (int r = 1; r < 64; r++) begin
+         level_valid[r][0] = 1'b0;
+         level_valid_two[r][0] = 1'b0;
+        end
+    end
+end
+ 
+ 
+always @ (posedge clk) begin
+
+    if (rst_n == 0) begin
+        level_patches[1] <= 55'b0;
+        level_patches_two[1] <=  55'b0; 
+
+        for (int r = 0; r < 64; r++) begin
+            level_valid[r][1] = 1'b0;
+             level_valid_two[r][1] = 1'b0;
+        end
+    end
+
+    else begin
+        level_patches[1] <= level_patches[0];
+        level_patches_two[1] <= level_patches_two[0];
+
+          for (int r = 0; r < 64; r++) begin
+           level_valid[r][1] = level_valid_storage[r][0];
+           level_valid_two[r][1] = level_valid_storage_two[r][0];
+        end
+    end
+end
+
+
+always @ (posedge clk) begin
+
+    if (rst_n == 0) begin
+        level_patches[2] <= 55'b0;
+        level_patches_two[2] <=  55'b0; 
+
+        for (int r = 0; r < 64; r++) begin
+         level_valid[r][2] = 1'b0;
+         level_valid_two[r][2] = 1'b0;
+        end
+    end
+
+    else begin
+        level_patches[2] <= level_patches[1];
+        level_patches_two[2] <= level_patches_two[1];
+
+          for (int r = 0; r < 64; r++) begin
+           level_valid[r][2] = level_valid_storage[r][1];
+           level_valid_two[r][2] = level_valid_storage_two[r][1];
+        end
+    end
+end
+
+
+always @ (posedge clk) begin
+
+    if (rst_n == 0) begin
+        level_patches[3] <= 55'b0;
+        level_patches_two[3] <=  55'b0; 
+
+        for (int r = 0; r < 64; r++) begin
+         level_valid[r][3] = 1'b0;
+         level_valid_two[r][3] = 1'b0;
+        end
+    end
+
+    else begin
+        level_patches[3] <= level_patches[1];
+        level_patches_two[3] <= level_patches_two[1];
+
+          for (int r = 0; r < 64; r++) begin
+           level_valid[r][3] = level_valid_storage[r][2];
+           level_valid_two[r][3] = level_valid_storage_two[r][2];
+        end
+    end
+end
+
+
+
+always @ (posedge clk) begin
+
+    if (rst_n == 0) begin
+        level_patches[4] <= 55'b0;
+        level_patches_two[4] <=  55'b0; 
+
+        for (int r = 0; r < 64; r++) begin
+         level_valid[r][4] = 1'b0;
+         level_valid_two[r][4] = 1'b0;
+        end
+    end
+
+    else begin
+        level_patches[4] <= level_patches[3];
+        level_patches_two[4] <= level_patches_two[3];
+
+          for (int r = 0; r < 64; r++) begin
+           level_valid[r][4] = level_valid_storage[r][3];
+           level_valid_two[r][4] = level_valid_storage_two[r][3];
+        end
+    end
+end
+
+
+always @ (posedge clk) begin
+
+    if (rst_n == 0) begin
+        level_patches[5] <= 55'b0;
+        level_patches_two[5] <=  55'b0; 
+
+        for (int r = 0; r < 64; r++) begin
+         level_valid[r][5] = 1'b0;
+         level_valid_two[r][5] = 1'b0;
+        end
+    end
+
+    else begin
+        level_patches[5] <= level_patches[4];
+        level_patches_two[5] <= level_patches_two[4];
+
+          for (int r = 0; r < 64; r++) begin
+           level_valid[r][5] = level_valid_storage[r][4];
+           level_valid_two[r][5] = level_valid_storage_two[r][4];
+        end
+    end
+end
+
+
+always @ (posedge clk) begin
+
+    if (rst_n == 0) begin
+        level_patches[6] <= 55'b0;
+        level_patches_two[6] <=  55'b0; 
+
+        for (int r = 0; r < 64; r++) begin
+         level_valid[r][6] <= 1'b0;
+         level_valid_two[r][6] <= 1'b0;
+        end
+    end
+
+    else begin
+        level_patches[6] <= level_patches[5];
+        level_patches_two[6] <= level_patches_two[5];
+
+          for (int r = 0; r < 64; r++) begin
+           level_valid[r][6] <= level_valid_storage[r][5];
+           level_valid_two[r][6] <= level_valid_storage_two[r][5];
+        end
+    end
+end
+ 
+ 
+ 
 
 //From the last row, determine the leaf index
 //Algo source: https://stackoverflow.com/a/62776453

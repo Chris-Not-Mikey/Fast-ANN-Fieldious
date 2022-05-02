@@ -655,7 +655,7 @@ end
 	   end
 	   
 	   //TODO: Change 218 to more realistic value
-		else if (leaf_en && leaf_two_en && (exp_node_counter < 9'd247) ) begin
+		else if (leaf_en && leaf_two_en && (exp_node_counter < 9'd246) ) begin
 		   
 		   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
 		   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx_2[10:0]); 

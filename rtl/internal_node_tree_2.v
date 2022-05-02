@@ -239,10 +239,25 @@ wire level_valid_storage_two [63:0][7:0]; //for storing valid signals
  wire [PATCH_WIDTH-1:0] debug_two;
  assign debug_two = level_patches[1];
  
- wire [PATCH_WIDTH-1:0] debug_valid; 
- assign debug_valid = level_valid[0][0];
- wire [PATCH_WIDTH-1:0] debug_valid_two;
- assign  debug_valid_two = level_valid[0][0];
+ wire [64-1:0] debug_valid; 
+ assign debug_valid = level_valid[2];
+ wire [64-1:0] debug_valid_two;
+ assign  debug_valid_two = level_valid[3];
+ 
+  
+ wire [64-1:0] debug_valid_three; 
+ assign debug_valid_three = level_valid[4];
+ wire [64-1:0] debug_valid_four;
+ assign  debug_valid_four = level_valid[5];
+ 
+ 
+ wire [64-1:0] debug_valid_five; 
+ assign debug_valid_five = level_valid[6];
+ 
+ 
+ 
+ 
+
  
 
 

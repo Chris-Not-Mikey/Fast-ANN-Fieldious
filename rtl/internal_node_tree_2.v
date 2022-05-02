@@ -234,8 +234,15 @@ wire level_valid_storage [63:0][7:0]; //for storing valid signals
 wire level_valid_storage_two [63:0][7:0]; //for storing valid signals
 
  
- reg [PATCH_WIDTH-1:0] debug_one = level_patches[0];
- reg [PATCH_WIDTH-1:0] debug_two = level_patches[1];
+ wire [PATCH_WIDTH-1:0] debug_one; 
+ assign debug_one  = level_patches[0];
+ wire [PATCH_WIDTH-1:0] debug_two;
+ assign debug_two = level_patches[1];
+ 
+ wire [PATCH_WIDTH-1:0] debug_valid; 
+ assign debug_valid = level_valid[0][0];
+ wire [PATCH_WIDTH-1:0] debug_valid_two;
+ assign  debug_valid_two = level_valid[0][0];
  
 
 

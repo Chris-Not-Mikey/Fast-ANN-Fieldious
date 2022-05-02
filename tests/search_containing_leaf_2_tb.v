@@ -572,6 +572,9 @@ end
 	    read_latency_counter <= read_latency_counter + 1;
 	    
 	    csb0 <= 0;
+	   
+	     patch_en <= 0; //Stop streaming patches to Tree to get index
+           patch_two_en <= 0; //Stop second patch as well
           
 	    
 	    web0 <= 1'b1;

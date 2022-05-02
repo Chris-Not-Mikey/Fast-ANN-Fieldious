@@ -657,12 +657,13 @@ end
 	   end
 	   
 	   //TODO: Change 218 to more realistic value
-		else if (leaf_en && leaf_two_en && (exp_node_counter < 9'd20) ) begin
-		
+		else if (delay_counter == 3'd1)  begin
+			delay_counter <= delay_counter + 1;
 			
-			if (delay_counter == 3'd2) begin 
-				
-				   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
+		end
+		
+		else if (delay_counter == 3'd2)  begin
+			   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
 				   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx_2[10:0]); 
 
 				   //assert(leaf_index == expected_node_idx[10:0]);
@@ -672,11 +673,30 @@ end
 		   		exp_node_counter <= exp_node_counter + 1;
 				delay_counter <= 0;
 			
-			end
+		end
+		
+		
+		
+		else if (leaf_en && leaf_two_en && (exp_node_counter < 9'd20) ) begin
+		
 			
-			else begin 
+// 			if (delay_counter == 3'd2) begin 
+				
+// 				   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
+// 				   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx_2[10:0]); 
+
+// 				   //assert(leaf_index == expected_node_idx[10:0]);
+// 				   $display("%t: received leaf index = %d, expected = %d", $time, leaf_index, expected_node_idx[10:0]);
+// 				   //assert(leaf_index_two == expected_node_idx_2[10:0]);
+// 				   $display("%t: received leaf index 2 = %d, expected = %d", $time, leaf_index_two, expected_node_idx_2[10:0]);
+// 		   		exp_node_counter <= exp_node_counter + 1;
+// 				delay_counter <= 0;
+			
+// 			end
+			
+			//else begin 
 				delay_counter <= delay_counter + 1;
-			end
+			//end
 			
 			
 		   

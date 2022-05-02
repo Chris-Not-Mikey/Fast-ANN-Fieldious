@@ -354,7 +354,7 @@ endgenerate
         end
     end
 
-    else begin
+  else if (patch_en && patch_two_en) begin //Only update patch when enabled
      level_patches[0] <= patch_in;
      level_patches_two[0] <= patch_in_two;
      
@@ -366,6 +366,22 @@ endgenerate
          level_valid_two[r][0] <= 1'b0;
         end
     end
+  
+   else begin
+    
+     level_patches[0] <= level_patches[0];
+     level_patches_two[0] <= level_patches_two[0];
+     
+     level_valid[0][0] <= 1'b1;
+     level_valid_two[0][0] <=  1'b1;
+
+        for (int r = 1; r < 64; r++) begin
+         level_valid[r][0] <= 1'b0;
+         level_valid_two[r][0] <= 1'b0;
+        end
+    
+   end
+  
 end
  
  

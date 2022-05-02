@@ -38,7 +38,7 @@ module aggregator
   always @ (posedge clk) begin
     if (!rst_n) begin
        LOCAL_FETCH_WIDTH <= FETCH_WIDTH;
-       //count_r <= 0; //Causes synthesis error
+      count_r <= 0;
     end
     
     else if (change_fetch_width) begin
@@ -66,3 +66,5 @@ module aggregator
     end
   end
 endmodule
+
+

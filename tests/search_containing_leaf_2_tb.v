@@ -647,7 +647,7 @@ end
 	
    reg [9:0] exp_node_counter;
 	reg [3:0] delay_counter;
-	always @ (posedge clk) begin
+	always @ (posedge exp_clk) begin
 	   
 	   
 	   
@@ -660,7 +660,7 @@ end
 		else if (leaf_en && leaf_two_en && (exp_node_counter < 9'd20) ) begin
 		
 			
-			if (delay_counter == 3'd1) begin 
+			//if (delay_counter == 3'd1) begin 
 				
 				   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
 				   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx_2[10:0]); 
@@ -672,11 +672,11 @@ end
 		   		exp_node_counter <= exp_node_counter + 1;
 				delay_counter <= 0;
 			
-			end
+			//end
 			
-			else begin 
-				delay_counter <= delay_counter + 1;
-			end
+// 			else begin 
+// 				delay_counter <= delay_counter + 1;
+// 			end
 			
 			
 		   

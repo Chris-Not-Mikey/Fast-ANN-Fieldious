@@ -163,7 +163,7 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
       latency_track_reciever_en[3] <= latency_track_reciever_en[2];
       latency_track_reciever_en[4] <= latency_track_reciever_en[3];
       latency_track_reciever_en[5] <= latency_track_reciever_en[4];
-      //latency_track_reciever_en[6] <= latency_track_reciever_en[5];
+      latency_track_reciever_en[6] <= latency_track_reciever_en[5];
 
       latency_track_reciever_two_en[0] <= patch_two_en;
       latency_track_reciever_two_en[1] <= latency_track_reciever_two_en[0];
@@ -171,13 +171,13 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
       latency_track_reciever_two_en[3] <= latency_track_reciever_two_en[2];
       latency_track_reciever_two_en[4] <= latency_track_reciever_two_en[3];
       latency_track_reciever_two_en[5] <= latency_track_reciever_two_en[4];
-      //latency_track_reciever_two_en[6] <= latency_track_reciever_two_en[5];
+      latency_track_reciever_two_en[6] <= latency_track_reciever_two_en[5];
     end
   
  end
  
- assign receiver_en = latency_track_reciever_en[4];
- assign receiver_two_en = latency_track_reciever_two_en[4];
+ assign receiver_en = latency_track_reciever_en[6];
+ assign receiver_two_en = latency_track_reciever_two_en[6];
 
 
 //Register for storing and updating address

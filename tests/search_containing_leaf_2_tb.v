@@ -656,13 +656,13 @@ end
 		   delay_counter <= 0;
 	   end
 	   
-	   //TODO: Change 218 to more realistic value
-		else if (delay_counter == 3'd1)  begin
-			delay_counter <= delay_counter + 1;
+// 	   //TODO: Change 218 to more realistic value
+// 		else if (delay_counter == 3'd1)  begin
+// 			delay_counter <= delay_counter + 1;
 			
-		end
+// 		end
 		
-		else if (delay_counter == 3'd2)  begin
+		else if (delay_counter == 3'd1)  begin
 			   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
 				   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx_2[10:0]); 
 

@@ -646,7 +646,9 @@ end
   end
 	
    reg [9:0] exp_node_counter;
-   always @ (posedge exp_clk) begin
+   always @ (posedge clk) begin
+	   
+	   
 	   
 	   if (!rst_n) begin
 		exp_node_counter <= 0;  

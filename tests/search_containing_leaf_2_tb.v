@@ -666,9 +666,9 @@ end
 			   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
 				   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx_2[10:0]); 
 
-				   //assert(leaf_index == expected_node_idx[10:0]);
+				   assert(leaf_index == expected_node_idx[10:0]);
 				   $display("%t: received leaf index = %d, expected = %d", $time, leaf_index, expected_node_idx[10:0]);
-				   //assert(leaf_index_two == expected_node_idx_2[10:0]);
+				   assert(leaf_index_two == expected_node_idx_2[10:0]);
 				   $display("%t: received leaf index 2 = %d, expected = %d", $time, leaf_index_two, expected_node_idx_2[10:0]);
 		   		exp_node_counter <= exp_node_counter + 1;
 				delay_counter <= 0;

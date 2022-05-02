@@ -660,7 +660,7 @@ end
 		else if (leaf_en && leaf_two_en && (exp_node_counter < 9'd20) ) begin
 		
 			
-			if (delay_counter == 3'd1) begin 
+			if (delay_counter == 3'd2) begin 
 				
 				   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
 				   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx_2[10:0]); 

@@ -646,7 +646,7 @@ end
   end
 	
    reg [9:0] exp_node_counter;
-   always @ (posedge clk) begin
+	always @ (negedge clk) begin
 	   
 	   
 	   

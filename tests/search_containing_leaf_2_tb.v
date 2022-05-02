@@ -647,7 +647,7 @@ end
 	
    reg [9:0] exp_node_counter;
 	reg [3:0] delay_counter;
-	always @ (posedge clk) begin
+	always @ (negedge clk) begin
 	   
 	   
 	   

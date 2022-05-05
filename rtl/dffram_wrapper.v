@@ -55,7 +55,7 @@ module dffram_wrapper
           .Do(dout0_w[i][j*32+:32]),
           .A(addr0[7:0])
         );
-        end
+  
     
       end
     end

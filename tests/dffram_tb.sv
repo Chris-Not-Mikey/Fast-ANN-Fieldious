@@ -193,7 +193,7 @@ module search_containing_leaf_tb;
 	
 
 
-  QueryPatchMem2
+  QueryPatchDFFRAM
   #(
     .DATA_WIDTH(`DATA_WIDTH),
     .PATCH_SIZE(`PATCH_SIZE),

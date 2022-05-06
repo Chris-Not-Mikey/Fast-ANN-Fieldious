@@ -233,7 +233,7 @@ def test_top_tb():
 
 def test_top_dffram_tb():
     print("Running test_top_tb but with DFFRAM instead of SRAM")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/top_tb.sv', 'rtl/top_dffram.sv', 'rtl/QueryPatchDFFRAM.sv',  'rtl/aggregator.v', 'rtl/dffram_wrapper.v', 'rtl/RAM256x32.v', 'rtl/internal_node_2.v', 'rtl/internal_node_tree_2.v', 'rtl/LeavesMem.sv', 'rtl/BitonicSorter.sv', 'rtl/kBestArrays.sv', 'rtl/L2Kernel.sv', 'rtl/MainFSM.sv', 'rtl/RunningMin.sv', 'rtl/SyncFIFO.v', 'rtl/SortedList.sv'])
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/top_tb.sv', 'rtl/top_dffram.sv', 'rtl/QueryPatchDFFRAM.sv',  'rtl/aggregator.v', 'rtl/dffram_wrapper.v', 'rtl/sram_1kbyte_1rw1r.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v', 'rtl/RAM256x32.v', 'rtl/internal_node_2.v', 'rtl/internal_node_tree_2.v', 'rtl/LeavesMem.sv', 'rtl/BitonicSorter.sv', 'rtl/kBestArrays.sv', 'rtl/L2Kernel.sv', 'rtl/MainFSM.sv', 'rtl/RunningMin.sv', 'rtl/SyncFIFO.v', 'rtl/SortedList.sv'])
 
 
 

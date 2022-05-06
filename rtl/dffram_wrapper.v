@@ -8,7 +8,7 @@ module dffram_wrapper
   parameter DATA_WIDTH = 32,
   parameter ADDR_WIDTH = 8,
   parameter RAM_DEPTH = 128,               
-  parameter NUM_WMASKS = 4,
+  parameter NUM_WMASKS = 4
  
 )(
 //   input CLK,

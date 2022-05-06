@@ -9,7 +9,6 @@ module dffram_wrapper
   parameter ADDR_WIDTH = 8,
   parameter RAM_DEPTH = 128,               
   parameter NUM_WMASKS = 4
- 
 )(
 //   input CLK,
 //   input [( (DATA_WIDTH + 8 - 1) / 8) - 1 : 0]WE,
@@ -17,7 +16,7 @@ module dffram_wrapper
 //   input [ADDR_WIDTH - 1 : 0] A,
 //   input [DATA_WIDTH - 1 : 0] Di,
 //   output [DATA_WIDTH - 1 : 0] Do
-  
+
   
   input  clk0, // clock
   input   csb0, // active low chip select
@@ -28,7 +27,7 @@ module dffram_wrapper
   input  clk1, // clock
   input   csb1, // active low chip select
   input [ADDR_WIDTH-1:0]  addr1,
-  output [DATA_WIDTH-1:0] dout1,
+  output [DATA_WIDTH-1:0] dout1
 );
   
   

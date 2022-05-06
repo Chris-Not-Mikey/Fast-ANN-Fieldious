@@ -5,7 +5,8 @@
  (
      CLK,
      WE,
-     EN,
+     EN0,
+     EN1,
      Di,
      Do0,
      Do1,
@@ -16,7 +17,8 @@
 
     input   wire            CLK;
     input   wire    [3:0]   WE;
-    input   wire            EN;
+    input   wire            EN0;
+    input   wire            EN1;
     input   wire    [31:0]  Di;
     output  reg     [31:0]  Do0;
     output  reg     [31:0]  Do1;
@@ -25,9 +27,8 @@
     reg [31:0] RAM[(256)-1 : 0];
 
     always @(posedge CLK)
-        if(EN) begin
+        if(EN0) begin
           Do0 <= RAM[A0];
-          Do1 <= RAM[A1];
           if(WE[0]) RAM[A0][ 7: 0] <= Di[7:0];
           if(WE[1]) RAM[A0][15:8] <= Di[15:8];
           if(WE[2]) RAM[A0][23:16] <= Di[23:16];
@@ -35,5 +36,18 @@
         end
         else
             Do0 <= 32'b0;
+         
+  
+         end
+    end
+  
+    always @(posedge CLK)
+        if(EN1) begin
+          Do1 <= RAM[A1];
+        end
+        else
             Do1 <= 32'b0;
+         end
+    end
+  
  endmodule

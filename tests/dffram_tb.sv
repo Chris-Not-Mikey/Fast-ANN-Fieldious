@@ -209,7 +209,8 @@ module search_containing_leaf_tb;
       .rpatch0(rpatch0),
       .csb1(csb1),
       .addr1(addr1),
-      .rpatch1(rpatch1)
+      .rpatch1(rpatch1),
+      .wb_mode(1'b0)
   );
 
 

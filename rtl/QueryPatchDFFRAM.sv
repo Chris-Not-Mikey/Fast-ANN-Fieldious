@@ -154,8 +154,7 @@ module QueryPatchDFFRAM
         .clk1(clk),
         .csb1(csb1),
         .addr1(addr1),
-        .dout1(rdata1),
-        .wmask0(wmask)
+        .dout1(rdata1)
     );
 
 endmodule

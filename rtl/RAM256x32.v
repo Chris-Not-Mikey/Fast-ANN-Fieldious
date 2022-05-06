@@ -26,7 +26,7 @@
     input   wire    [(A_WIDTH - 1): 0]   A1;
     reg [31:0] RAM[(256)-1 : 0];
 
-    always @(posedge CLK)
+   always @(posedge CLK) begin
         if(EN0) begin
           Do0 <= RAM[A0];
           if(WE[0]) RAM[A0][ 7: 0] <= Di[7:0];
@@ -34,20 +34,18 @@
           if(WE[2]) RAM[A0][23:16] <= Di[23:16];
           if(WE[3]) RAM[A0][31:24] <= Di[31:24];
         end
-        else
+        else begin
             Do0 <= 32'b0;
-         
-  
-         end
+        end
     end
   
-    always @(posedge CLK)
+   always @(posedge CLK) begin
         if(EN1) begin
           Do1 <= RAM[A1];
         end
-        else
-            Do1 <= 32'b0;
-         end
+        else begin
+           Do1 <= 32'b0;
+        end
     end
   
  endmodule

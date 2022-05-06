@@ -49,9 +49,9 @@ module dffram_wrapper
         if (ADDR_WIDTH == 8) begin
           DFFRAM_RTL_256 dffram (
           .CLK(clk0),
-            .WE({web0,web0,web0,web0}), //Wen and Mask Equivelent to SRAM
-          .EN0(csb0),// CS equivlaent to SRAM. Note: Convert from active low to active high
-            .EN1(csb1),
+            .WE({!web0,!web0,!web0,!web0}), //Wen and Mask Equivelent to SRAM
+            .EN0(!csb0),// CS equivlaent to SRAM. Note: Convert from active low to active high
+            .EN1(!csb1),
             .Di(din0[j*32+:32]), //DIN
           .Do0(dout0_w[i][j*32+:32]),
           .Do1(dout1_w[i][j*32+:32]),
@@ -64,9 +64,9 @@ module dffram_wrapper
           
           DFFRAM_RTL_256 dffram (
           .CLK(clk0),
-            .WE({web0,web0,web0,web0}), // Wen and Mask Equivelent to SRAM
-          .EN0(addr0[ADDR_WIDTH-1:8] == i ? csb0 : 1'b1 ),// CS equivlaent to SRAM. Note: Convert from active low to active high
-          .EN1(addr1[ADDR_WIDTH-1:8] == i ? csb1 : 1'b1 ),
+            .WE({!web0,!web0,!web0,!web0}), // Wen and Mask Equivelent to SRAM
+            .EN0(addr0[ADDR_WIDTH-1:8] == i ? !csb0 : 1'b0 ),// CS equivlaent to SRAM. Note: Convert from active low to active high
+            .EN1(addr1[ADDR_WIDTH-1:8] == i ? !csb1 : 1'b0 ),
           .Di(din0[j*32+:32]), //DIN
           .Do0(dout0_w[i][j*32+:32]),
           .Do1(dout1_w[i][j*32+:32]),

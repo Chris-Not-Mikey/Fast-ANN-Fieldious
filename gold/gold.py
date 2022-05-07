@@ -1238,6 +1238,8 @@ if __name__ == "__main__":
  
     col_size = image_a.shape[0] - psize + 1
 
+    print(row_size)
+
     # (1) fit pca model (on subset of the data)
 
     _pca_model = _fit_pca_model(image_a, image_b, psize, dim_reduced)
@@ -1566,7 +1568,7 @@ if __name__ == "__main__":
     f_process_row = open(f_process_row_str, "w")
     f_propgationLeafIndex_str = destination_folder + "/propagationLeafIndex.txt"
     f_propgationLeafIndex = open(f_propgationLeafIndex_str, "w")
-    for patchA3 in patches_a_reduced[26:]:
+    for patchA3 in patches_a_reduced[row_size:]:
 
 
 

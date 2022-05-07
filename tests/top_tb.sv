@@ -39,7 +39,7 @@ module top_tb();
         .K(4),
         .NUM_LEAVES(NUM_LEAVES),
         .BLOCKING(BLOCKING),
-        .LEAF_ADDRW = $clog2(NUM_LEAVES)
+        .LEAF_ADDRW(ADDR_WIDTH)
        
       ) dut(
         .clk(clk),

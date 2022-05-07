@@ -38,7 +38,7 @@ module top_tb();
         .NUM_QUERYS(NUM_QUERYS),
         .K(4),
         .NUM_LEAVES(NUM_LEAVES),
-        .BLOCKING(BLOCKING) = 4,
+        .BLOCKING(BLOCKING),
         .LEAF_ADDRW = $clog2(NUM_LEAVES)
        
       ) dut(

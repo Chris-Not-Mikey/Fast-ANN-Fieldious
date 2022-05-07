@@ -71,6 +71,8 @@ if __name__ == "__main__":
     file_name_a = sys.argv[1] #Image A
     file_name_b = sys.argv[2] #Image B
 
+    print(file_name_a)
+    print(file_name_b)
         
 
     image_a_str = "./data/gold_data/" + file_name_a + ".png"

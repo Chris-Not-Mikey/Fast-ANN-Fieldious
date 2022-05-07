@@ -528,7 +528,7 @@ end
      
       write_latency_counter <= 0;
 	  
-	  if (patch_counter == 9'd494) begin
+	  if (patch_counter == 9'd408) begin
 		  
 		  //Stop writing, start reading (TOP LEVEL: Include counter register like this)
 		write_disable <= 1;
@@ -678,7 +678,7 @@ end
 		
 		
 		
-		else if (leaf_en && leaf_two_en && (exp_node_counter < 9'd246) ) begin
+		else if (leaf_en && leaf_two_en && (exp_node_counter < 9'd203) ) begin
 			
 			 node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx[10:0]); 
 				   node_scan_file = $fscanf(node_file, "%d\n", expected_node_idx_2[10:0]); 

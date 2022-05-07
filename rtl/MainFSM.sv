@@ -353,6 +353,7 @@ module MainFSM #(
                 end
             end
 
+            // Send query to InternalNode 2 cycles earlier to match the schedule
             SLPR0: begin
                 counter_in = 1;
                 counter_en = 1'b1;
@@ -424,7 +425,7 @@ module MainFSM #(
                 leaf_mem_csb1 = '0;
                 leaf_mem_addr1 = prop_leaf_idx_r1[row_blocking_cnt][2];
 
-                if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1))) begin
+                if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1) && (NUM_LAST_BLOCK != BLOCKING))) begin
                     qp_mem_csb0 = 1'b0;
                     qp_mem_web0 = 1'b1;
                     qp_mem_addr0 = qp_mem_rd_addr;
@@ -449,9 +450,10 @@ module MainFSM #(
                 leaf_mem_csb1 = '0;
                 leaf_mem_addr1 = prop_leaf_idx_r1[row_blocking_cnt][3];
                 
-                if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1)))
+                if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1) && (NUM_LAST_BLOCK != BLOCKING))) begin
                     int_node_patch_en = 1'b1;
                     int_node_patch_en2 = 1'b1;
+                end
             end
 
             // send prop 3 and query to l2_k0
@@ -460,7 +462,7 @@ module MainFSM #(
                 if ((col_query_cnt == COL_SIZE - 1) && (row_blocking_cnt == BLOCKING - 1))
                     nextState = SLPR7;
                 else begin
-                    if ((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1))
+                    if ((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1) && (NUM_LAST_BLOCK != BLOCKING))
                         nextState = SLPR9;
                     else
                         nextState = SLPR6;

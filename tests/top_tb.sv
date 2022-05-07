@@ -27,9 +27,20 @@ module top_tb();
     logic                                   out_fifo_rempty_n;
 
     top #(
+        
+        .DATA_WIDTH(DATA_WIDTH,
+        .DIST_WIDTH(25), // maximum 25
+        .IDX_WIDTH(9), // index of patch in the original image
+        .LEAF_SIZE(8),
+        .PATCH_SIZE(PATCH_SIZE),//excluding the index
         .ROW_SIZE(ROW_SIZE),
         .COL_SIZE(COL_SIZE),
-        .NUM_QUERYS(NUM_QUERYS)
+        .NUM_QUERYS(NUM_QUERYS),
+        .K(4),
+        .NUM_LEAVES(NUM_LEAVES),
+        .BLOCKING(BLOCKING) = 4,
+        .LEAF_ADDRW = $clog2(NUM_LEAVES)
+       
       ) dut(
         .clk(clk),
         .rst_n(rst_n),

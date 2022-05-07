@@ -26,7 +26,10 @@ module top_tb();
     logic [DATA_WIDTH-1:0]                  out_fifo_rdata;
     logic                                   out_fifo_rempty_n;
 
-    top dut(
+    top #(
+        .ROW_SIZE(ROW_SIZE),
+        .COL_SIZE(COL_SIZE)
+      ) dut(
         .clk(clk),
         .rst_n(rst_n),
 

@@ -28,7 +28,8 @@ module top_tb();
 
     top #(
         .ROW_SIZE(ROW_SIZE),
-        .COL_SIZE(COL_SIZE)
+        .COL_SIZE(COL_SIZE),
+        .NUM_QUERYS(NUM_QUERYS)
       ) dut(
         .clk(clk),
         .rst_n(rst_n),

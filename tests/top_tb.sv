@@ -28,7 +28,7 @@ module top_tb();
 
     top #(
         
-        .DATA_WIDTH(DATA_WIDTH,
+        .DATA_WIDTH(DATA_WIDTH),
         .DIST_WIDTH(25), // maximum 25
         .IDX_WIDTH(9), // index of patch in the original image
         .LEAF_SIZE(8),

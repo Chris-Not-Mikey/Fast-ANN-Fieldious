@@ -32,7 +32,20 @@ module top
     output logic                                in_fifo_wfull_n,
     input logic                                 out_fifo_deq,
     output logic [DATA_WIDTH-1:0]               out_fifo_rdata,
-    output logic                                out_fifo_rempty_n
+    output logic                                out_fifo_rempty_n,
+
+    // Wishbone
+    input logic                                             wbs_debug,
+    input logic                                             wbs_qp_mem_csb0,
+    input logic                                             wbs_qp_mem_web0,
+    input logic [$clog2(NUM_QUERYS)-1:0]                    wbs_qp_mem_addr0,
+    input logic [PATCH_SIZE*DATA_WIDTH-1:0]                 wbs_qp_mem_wpatch0,
+    output logic [PATCH_SIZE*DATA_WIDTH-1:0]                wbs_qp_mem_rpatch0,
+    input logic [LEAF_SIZE-1:0]                             wbs_leaf_mem_csb0,
+    input logic [LEAF_SIZE-1:0]                             wbs_leaf_mem_web0,
+    input logic [LEAF_ADDRW-1:0]                            wbs_leaf_mem_addr0,
+    input logic [63:0]                                      wbs_leaf_mem_wleaf0,
+    output logic [63:0]                                     wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0]
 );
 
 
@@ -433,10 +446,11 @@ module top
         .NUM_LEAVES         (NUM_LEAVES)
     ) leaf_mem_inst (
         .clk                (clk),
-        .csb0               (leaf_mem_csb0),
-        .web0               (leaf_mem_web0),
-        .addr0              (leaf_mem_addr0),
-        .wleaf0             (leaf_mem_wleaf0),
+        .csb0               (wbs_debug ?wbs_leaf_mem_csb0 :leaf_mem_csb0),
+        .web0               (wbs_debug ?wbs_leaf_mem_web0 :leaf_mem_web0),
+        .addr0              (wbs_debug ?wbs_leaf_mem_addr0 :leaf_mem_addr0),
+        .wleaf0             (wbs_debug ?wbs_leaf_mem_wleaf0 :leaf_mem_wleaf0),
+        .rleaf0             (wbs_leaf_mem_rleaf0),
         .rpatch_data0       (leaf_mem_rpatch_data0),
         .rpatch_idx0        (leaf_mem_rpatch_idx0),
         .csb1               (leaf_mem_csb1),
@@ -454,16 +468,17 @@ module top
         .DEPTH              (512)
     ) qp_mem_inst (
         .clk                (clk),
-        .csb0               (qp_mem_csb0),
-        .web0               (qp_mem_web0),
-        .addr0              (qp_mem_addr0),
-        .wpatch0            (qp_mem_wpatch0),
+        .csb0               (wbs_debug ?wbs_qp_mem_csb0 :qp_mem_csb0),
+        .web0               (wbs_debug ?wbs_qp_mem_web0 :qp_mem_web0),
+        .addr0              (wbs_debug ?wbs_qp_mem_addr0 :qp_mem_addr0),
+        .wpatch0            (wbs_debug ?wbs_qp_mem_wpatch0 :qp_mem_wpatch0),
         .rpatch0            (qp_mem_rpatch0),
         .csb1               (qp_mem_csb1),
         .addr1              (qp_mem_addr1),
         .rpatch1            (qp_mem_rpatch1)
     );
 
+    assign wbs_qp_mem_rpatch0 = qp_mem_rpatch0;
     assign qp_mem_wpatch0 = agg_receiver_data;
 
     kBestArrays #(

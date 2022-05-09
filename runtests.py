@@ -204,6 +204,10 @@ def test_l2_kernel_tb():
     print("Running l2_kernel_tb")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/L2Kernel_tb.sv', 'rtl/L2Kernel.sv'])
 
+def test_wbs_ctrl_tb():
+    print("Running wbs_ctrl_tb")
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/WishBoneCtrl_tb.sv', 'rtl/WishBoneCtrl.sv'])
+
 
 # def test_search_containing_leaf_tb():
 #     print("Running test_search_containing_leaf_tb")

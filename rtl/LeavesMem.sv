@@ -56,7 +56,7 @@ module LeavesMem
         assign rpatch_idx0[i] = rdata0[i][63:PATCH_SIZE*DATA_WIDTH];
         assign rpatch_data1[i] = rdata1[i][PATCH_SIZE*DATA_WIDTH-1:0];
         assign rpatch_idx1[i] = rdata1[i][63:PATCH_SIZE*DATA_WIDTH];
-        assign rleaf0 = rdata0;
+        assign rleaf0[i] = rdata0[i];
     end
     endgenerate
 

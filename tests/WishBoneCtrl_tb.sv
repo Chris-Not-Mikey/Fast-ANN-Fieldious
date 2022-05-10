@@ -83,6 +83,9 @@ module WishBoneCtrl_tb();
     );
 
     initial begin
+        $dumpfile("dump.vcd");
+        $dumpvars;
+
         wb_rst_i = 1'b1;
         wbs_stb_i = 1'b0;
         wbs_cyc_i = 1'b0;
@@ -248,7 +251,7 @@ module WishBoneCtrl_tb();
         wbs_dat_i = '0;
         wbs_adr_i = '0;
 
-
+        $finish();
 
     end
 

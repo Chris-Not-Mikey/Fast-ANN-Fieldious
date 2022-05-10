@@ -45,7 +45,13 @@ module top
     input logic [LEAF_SIZE-1:0]                             wbs_leaf_mem_web0,
     input logic [LEAF_ADDRW-1:0]                            wbs_leaf_mem_addr0,
     input logic [63:0]                                      wbs_leaf_mem_wleaf0,
-    output logic [63:0]                                     wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0]
+    output logic [63:0]                                     wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0],
+
+    input logic                                                    wbs_node_mem_web,
+    input logic [31:0]                                             wbs_node_mem_addr,
+    input logic [31:0]                                             wbs_node_mem_wdata,
+    output logic [31:0]                                              wbs_node_mem_rdata 
+
 );
 
 
@@ -421,7 +427,7 @@ module top
         .rst_n              (rst_n),
         .fsm_enable         (int_node_fsm_enable), //based on whether we are at the proper I/O portion
         .sender_enable      (int_node_sender_enable),
-        .sender_data        (int_node_sender_data),
+        .sender_data        (wbs_debug ? wbs_node_mem_wdata : int_node_sender_data),
         .patch_en           (int_node_patch_en),
         .patch_in           (int_node_patch_in),
         .leaf_index         (int_node_leaf_index),
@@ -430,7 +436,10 @@ module top
         .patch_in_two       (int_node_patch_in2),
         .leaf_index_two     (int_node_leaf_index2),
         .receiver_two_en    (int_node_leaf_valid2),
-        .wb_mode            (1'b0)
+        .wb_mode            (wbs_debug),
+        .wbs_we_i(wbs_node_mem_web), 
+        .wbs_adr_i(wbs_node_mem_addr), 
+        .wbs_dat_o(wbs_node_mem_rdata)
     );
 
     assign int_node_sender_enable = agg_receiver_enq;

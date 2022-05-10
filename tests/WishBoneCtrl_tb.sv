@@ -35,12 +35,18 @@ module WishBoneCtrl_tb();
     logic [63:0]                                            wbs_leaf_mem_wleaf0;
     logic [63:0]                                            wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0];
 
+    logic                                                    wbs_node_mem_web;
+    logic [31:0]                                             wbs_node_mem_addr;
+    logic [31:0]                                             wbs_node_mem_wdata;
+    logic [31:0]                                             wbs_node_mem_rdata;
+
     localparam WBS_ADDR_MASK        = 32'hF000_0000;
     localparam WBS_MODE_ADDR        = 32'h3000_0000;
     localparam WBS_DEBUG_ADDR       = 32'h3000_0001;
     localparam WBS_QUERY_ADDR       = 32'h3100_0000;
     localparam WBS_LEAF_ADDR        = 32'h3200_0000;
     localparam WBS_BEST_ADDR        = 32'h3300_0000;
+    localparam WBS_NODE_ADDR        = 32'h3400_0000;
     
     initial begin 
         wb_clk_i = 0;
@@ -79,7 +85,11 @@ module WishBoneCtrl_tb();
         .wbs_leaf_mem_web0                      (wbs_leaf_mem_web0),
         .wbs_leaf_mem_addr0                     (wbs_leaf_mem_addr0),
         .wbs_leaf_mem_wleaf0                    (wbs_leaf_mem_wleaf0),
-        .wbs_leaf_mem_rleaf0                    (wbs_leaf_mem_rleaf0)
+        .wbs_leaf_mem_rleaf0                    (wbs_leaf_mem_rleaf0),
+        .wbs_node_mem_web                       (wbs_node_mem_web),
+        .wbs_node_mem_addr                      (wbs_node_mem_addr),
+        .wbs_node_mem_wdata                     (wbs_node_mem_wdata),
+        .wbs_node_mem_rdata                     (wbs_node_mem_rdata)
     );
 
     initial begin
@@ -244,6 +254,44 @@ module WishBoneCtrl_tb();
         wbs_dat_i = 32'hfedcba98;
         wbs_adr_i = WBS_LEAF_ADDR + (3<<1) + 1; // addr 2, upper
         
+        @(negedge wbs_ack_o);
+        wbs_cyc_i = 1'b0;
+        wbs_stb_i = 1'b0;
+        wbs_we_i = 1'b0;
+        wbs_dat_i = '0;
+        wbs_adr_i = '0;
+
+
+         // iternal node mem
+        $display("time %t, internal node tree debugging", $time);
+        // mem read
+        @(posedge wb_clk_i);
+        wbs_cyc_i = 1'b1;
+        wbs_stb_i = 1'b1;
+        wbs_we_i = 1'b0;
+        wbs_sel_i = '1;
+        wbs_adr_i = WBS_NODE_ADDR + (1<<1)+ 0; // addr 1 (first idx and median)
+        
+        @(negedge (wbs_node_mem_web));
+        wbs_node_mem_rdata = 32'{10'b0, 11'd0, 8'b0, 3'b111}; //10 0's, median of 0, and index of -1 (wrt to 3 bits)  (default values)
+
+        @(posedge wbs_ack_o) assert(wbs_dat_o == 32'{10'b0, 11'd0, 8'b0, 3'b111});
+        @(negedge wbs_ack_o);
+        wbs_cyc_i = 1'b0;
+        wbs_stb_i = 1'b0;
+        wbs_we_i = 1'b0;
+        wbs_dat_i = '0;
+        wbs_adr_i = '0;
+
+        // mem write
+        @(posedge wb_clk_i);
+        wbs_cyc_i = 1'b1;
+        wbs_stb_i = 1'b1;
+        wbs_we_i = 1'b1;
+        wbs_sel_i = '1;
+        wbs_dat_i = 32'{10'b0, 11'd55, 11'd1}; //10 0's, median of 55, and index of 1 
+        wbs_adr_i = WBS_NODE_ADDR + (1<<1) + 0; // addr 1
+    
         @(negedge wbs_ack_o);
         wbs_cyc_i = 1'b0;
         wbs_stb_i = 1'b0;

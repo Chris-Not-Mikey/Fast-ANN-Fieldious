@@ -58,6 +58,11 @@ module top_wishbone_wrapper
     logic [63:0]                                            wbs_leaf_mem_wleaf0;
     logic [63:0]                                            wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0];
 
+    logic                                                    wbs_node_mem_web;
+    logic [31:0]                                             wbs_node_mem_addr;
+    logic [31:0]                                             wbs_node_mem_wdata;
+    logic [31:0]                                             wbs_node_mem_rdata;
+
     ClockMux clockmux_inst (
         .select  ( wbs_mode  ),
         .clk0    ( wb_clk_i  ),
@@ -102,7 +107,13 @@ module top_wishbone_wrapper
         .wbs_leaf_mem_web0                      (wbs_leaf_mem_web0),
         .wbs_leaf_mem_addr0                     (wbs_leaf_mem_addr0),
         .wbs_leaf_mem_wleaf0                    (wbs_leaf_mem_wleaf0),
-        .wbs_leaf_mem_rleaf0                    (wbs_leaf_mem_rleaf0)
+        .wbs_leaf_mem_rleaf0                    (wbs_leaf_mem_rleaf0),
+        .wbs_node_mem_web                       (wbs_node_mem_web),
+        .wbs_node_mem_addr                      (wbs_node_mem_addr),
+        .wbs_node_mem_wdata                     (wbs_node_mem_wdata),
+        .wbs_node_mem_rdata                     (wbs_node_mem_rdata)
+
+
     );
 
     top #(
@@ -146,7 +157,11 @@ module top_wishbone_wrapper
         .wbs_leaf_mem_web0                      (wbs_leaf_mem_web0),
         .wbs_leaf_mem_addr0                     (wbs_leaf_mem_addr0),
         .wbs_leaf_mem_wleaf0                    (wbs_leaf_mem_wleaf0),
-        .wbs_leaf_mem_rleaf0                    (wbs_leaf_mem_rleaf0)   
+        .wbs_leaf_mem_rleaf0                    (wbs_leaf_mem_rleaf0),
+        .wbs_node_mem_web                       (wbs_node_mem_web),
+        .wbs_node_mem_addr                      (wbs_node_mem_addr),
+        .wbs_node_mem_wdata                     (wbs_node_mem_wdata),
+        .wbs_node_mem_rdata                     (wbs_node_mem_rdata)   
     );
 
 endmodule

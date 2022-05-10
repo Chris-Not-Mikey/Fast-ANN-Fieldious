@@ -38,6 +38,15 @@ module wbsCtrl
     output logic [63:0]                                             wbs_leaf_mem_wleaf0,
     input logic [63:0]                                              wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0]
 
+    output logic                                                    wbs_node_mem_web,
+    output logic [31:0]                                             wbs_node_mem_addr,
+    output logic [31:0]                                             wbs_node_mem_wdata,
+    input logic [31:0]                                              wbs_node_mem_rdata 
+
+
+    
+
+
 );
 
     localparam WBS_ADDR_MASK        = 32'hFF00_0000;
@@ -46,6 +55,7 @@ module wbsCtrl
     localparam WBS_QUERY_ADDR       = 32'h3100_0000;
     localparam WBS_LEAF_ADDR        = 32'h3200_0000;
     localparam WBS_BEST_ADDR        = 32'h3300_0000;
+    localparam WBS_NODE_ADDR        = 32'h3400_0000;
 
     typedef enum {  Idle,
                     ReadMem,
@@ -102,6 +112,13 @@ module wbsCtrl
         wbs_leaf_mem_addr0 = '0;
         wbs_leaf_mem_wleaf0 = '0;
 
+
+        wbs_node_mem_web = 1'b0;
+        wbs_node_mem_addr = '0;
+        wbs_node_mem_wdata = '0;
+        wbs_node_mem_rdata = '0;
+
+
         unique case (currState)
             Idle: begin
                 if (wbs_valid) begin
@@ -131,6 +148,12 @@ module wbsCtrl
                     wbs_leaf_mem_web0[wbs_adr_i_q[3:1]] = 1'b1;
                     wbs_leaf_mem_addr0 = wbs_adr_i_q[9:4];
                 end
+
+                else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR) begin
+                    wbs_node_mem_web = 1'b0; //Write disable, hence read enabled
+                    wbs_node_mem_addr = wbs_adr_i_q;
+                    
+                end
             end
 
             RegMemRead: begin
@@ -141,6 +164,10 @@ module wbsCtrl
                     wbs_dat_o_d = wbs_adr_i_q[0] ?{9'b0, wbs_qp_mem_rpatch0[54:32]} :wbs_qp_mem_rpatch0[31:0];
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_LEAF_ADDR)
                     wbs_dat_o_d = wbs_adr_i_q[0] ?wbs_leaf_mem_rleaf0[wbs_adr_i_q[3:1]][63:32] :wbs_leaf_mem_rleaf0[wbs_adr_i_q[3:1]][31:0];
+
+                else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)
+                    wbs_dat_o_d = wbs_node_mem_rdata;
+                 
             end
 
             Ack: begin
@@ -156,6 +183,13 @@ module wbsCtrl
                     wbs_leaf_mem_web0[wbs_adr_i_q[3:1]] = 1'b0;
                     wbs_leaf_mem_addr0 = wbs_adr_i_q[9:4];
                     wbs_leaf_mem_wleaf0 = {wbs_dat_i_q, wbs_dat_i_lower_q};
+                end
+                else if (wbs_we_i_q & wbs_adr_i_q[0] & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)) begin
+                    wbs_node_mem_web = 1'b1; //Write enabled
+                    wbs_node_mem_wdata = wbs_dat_i_q;
+
+
+                    
                 end
             end
         endcase

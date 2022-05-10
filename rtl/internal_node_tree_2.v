@@ -10,8 +10,7 @@ module internal_node_tree
 #(
   parameter INTERNAL_WIDTH = 22,
   parameter PATCH_WIDTH = 55,
-  parameter ADDRESS_WIDTH = 8,
-  parameter WB_ADDRESS_OFFSET = 495
+  parameter ADDRESS_WIDTH = 8
 )
 (
   input clk,
@@ -28,96 +27,50 @@ module internal_node_tree
   output receiver_en,
   output receiver_two_en,
     input wb_mode,
-    input wb_clk_i, 
-    input wb_rst_i, 
-    input wbs_stb_i, 
-    input wbs_cyc_i, 
     input wbs_we_i, 
-    input [3:0] wbs_sel_i, 
-    input [31:0] wbs_dat_i, 
     input [31:0] wbs_adr_i, 
-    output wbs_ack_o, 
     output [31:0] wbs_dat_o
 
 
 );
 
 wire wen;
-
 assign wen = fsm_enable && sender_enable && (!wb_mode);
 
 
-//Wishbone interface
 
 reg [INTERNAL_WIDTH-1:0] rdata_storage [63:0]; //For index and median read from tree
-
 reg [INTERNAL_WIDTH - 1 : 0]  write_data;
 
+//Wishbone signals
 reg wb_wen;
 reg [31:0] wb_out;
-reg ack;
-wire signed [31:0] wb_addr; //Will only use top 6 bits of this
-
-assign wb_addr = wbs_adr_i - WB_ADDRESS_OFFSET;
- assign wbs_ack_o = ack;
- 
- 
-
-
- assign wbs_dat_o = {21'b0, wb_out[10:0]};
+wire signed [7:0] wb_addr; //Will only use top 6 bits of this
+assign wb_addr = wbs_adr_i[7:0] - 8'd1; //subtract one to index by 0
+assign wbs_dat_o = {10'b0, wb_out[21:0]}; //First 10 bits are 0's (11 + 11 bits read)
 
 
 always @(*) begin 
 
     if (wb_mode) begin
 
-
+        //Write
         if (wbs_we_i) begin //active high wen
-
-           if (wbs_dat_i[11] == 1'b0) begin
-                write_data[10:0] = wbs_dat_i[10:0]; //if index is 0
-                wb_wen = 1'b0;
-                ack = 1'b0;
-
-            end
-            else begin
-                write_data[21:11] = wbs_dat_i[10:0]; //second half
-                wb_wen = 1'b1; //written all data so set wen
-
-                ack = 1'b1;
-            
-            end
+            write_data[21:0] = sender_data[21:0]; //if index is 0
+            wb_wen = 1'b1;
         end
 
         //if not write, then read
-
         else begin
-         
-           wb_wen = 1'b0;
-
-           if (wbs_dat_i[11] == 1'b0) begin
- 
-
-                wb_out[10:0] = rdata_storage[wb_addr[5:0]][10:0]; //read address is same as write address
-                ack = 1'b1;
-
-            end
-            else begin
-                wb_out[10:0] = rdata_storage[wb_addr[5:0]][21:11]; //read address is same as write address
-                ack = 1'b1;
-            
-            end
-
+           
+            wb_out[21:0] = rdata_storage[wb_addr[5:0]][21:0]; //read address is same as write address
+            wb_wen = 1'b0;
         end
-
-
-
 
     end
     //Normal I/O mode
     else begin 
-        write_data = sender_data;
-       
+        write_data = sender_data[21:0];
     end
 
 end
@@ -175,7 +128,7 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
       latency_track_reciever_two_en[4] <= latency_track_reciever_two_en[3];
       latency_track_reciever_two_en[5] <= latency_track_reciever_two_en[4];
       latency_track_reciever_two_en[6] <= latency_track_reciever_two_en[5];
-     latency_track_reciever_two_en[7] <= latency_track_reciever_two_en[6];
+      latency_track_reciever_two_en[7] <= latency_track_reciever_two_en[6];
     end
   
  end
@@ -237,11 +190,7 @@ reg level_valid_two [63:0][7:0]; //for storing valid signals
 wire level_valid_storage [63:0][7:0]; //for storing valid signals
 wire level_valid_storage_two [63:0][7:0]; //for storing valid signals
 
- 
- wire [PATCH_WIDTH-1:0] debug_one; 
- assign debug_one  = level_patches[0];
- wire [PATCH_WIDTH-1:0] debug_two;
- assign debug_two = level_patches[1];
+
  
  
  
@@ -291,55 +240,12 @@ generate
             
         end
 
-
-
-    //SYNTHESIS CHANGE: The following was not synthesized as intended, so has been broken into individual components as seen below ~Chris
-    
-        //Create register per depth that holds current patch and valids
-
-//         always @ (posedge clk) begin
-
-//             if (rst_n == 0) begin
-//                 level_patches[i+1] <= 0;
-//                 level_patches_two[i+1] <= 0 ;
-//                  for (int r = 0; r < 64; r++) begin
-//                      level_valid[r][i+1] = 1'b0;
-//                       level_valid_two[r][i+1] = 1'b0;
-//                  end
-             
-//             end
-//             else begin
-//                 level_patches[i+1] <= level_patches[i];
-//                 level_patches_two[i+1] <= level_patches_two[i];
-//                 //level_valid[i+1] <= level_valid[i];
-//                  for (int r = 0; r < 64; r++) begin
-//                     level_valid[r][i+1] = level_valid_storage[r][i];
-//                     level_valid_two[r][i+1] = level_valid_storage_two[r][i];
-//                  end
-//             end
-
-//         end
-
         
     end
 
 endgenerate
 
 
-//Registers for 
- 
- 
-  
-//  always @(*) begin
-//     level_valid[0][0] = 255'b1;
-//   level_valid_two[0][0] = 255'b1;
-
-//  end
- 
-//  always @(posedge clk) begin
-//   level_patches[0] <= patch_in;
-//   level_patches_two[0] <= patch_in_two;
-//  end
  
  //NEW register input
  always @ (posedge clk) begin

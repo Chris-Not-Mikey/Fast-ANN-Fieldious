@@ -36,7 +36,7 @@ module wbsCtrl
     output logic [LEAF_SIZE-1:0]                                    wbs_leaf_mem_web0,
     output logic [LEAF_ADDRW-1:0]                                   wbs_leaf_mem_addr0,
     output logic [63:0]                                             wbs_leaf_mem_wleaf0,
-    input logic [63:0]                                              wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0]
+    input logic [63:0]                                              wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0],
 
     output logic                                                    wbs_node_mem_web,
     output logic [31:0]                                             wbs_node_mem_addr,
@@ -116,7 +116,7 @@ module wbsCtrl
         wbs_node_mem_web = 1'b0;
         wbs_node_mem_addr = '0;
         wbs_node_mem_wdata = '0;
-        wbs_node_mem_rdata = '0;
+       // wbs_node_mem_rdata = '0;
 
 
         unique case (currState)

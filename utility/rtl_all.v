@@ -1,403 +1,243 @@
-module SortedList (
+module BitonicSorter (
   input logic clk,
-  input logic insert,
-  input logic [24:0] l2_dist_in,
-  input logic last_in,
-  input logic [14:0] merged_idx_in,
-  input logic restart,
+  input logic [24:0] data_in_0,
+  input logic [24:0] data_in_1,
+  input logic [24:0] data_in_2,
+  input logic [24:0] data_in_3,
+  input logic [24:0] data_in_4,
+  input logic [24:0] data_in_5,
+  input logic [24:0] data_in_6,
+  input logic [24:0] data_in_7,
+  input logic [14:0] idx_in_0,
+  input logic [14:0] idx_in_1,
+  input logic [14:0] idx_in_2,
+  input logic [14:0] idx_in_3,
+  input logic [14:0] idx_in_4,
+  input logic [14:0] idx_in_5,
+  input logic [14:0] idx_in_6,
+  input logic [14:0] idx_in_7,
+  input logic query_first_in,
+  input logic query_last_in,
   input logic rst_n,
-  output logic [24:0] l2_dist_0,
-  output logic [24:0] l2_dist_1,
-  output logic [24:0] l2_dist_2,
-  output logic [24:0] l2_dist_3,
-  output logic [14:0] merged_idx_0,
-  output logic [14:0] merged_idx_1,
-  output logic [14:0] merged_idx_2,
-  output logic [14:0] merged_idx_3,
+  input logic valid_in,
+  output logic [24:0] data_out_0,
+  output logic [24:0] data_out_1,
+  output logic [24:0] data_out_2,
+  output logic [24:0] data_out_3,
+  output logic [14:0] idx_out_0,
+  output logic [14:0] idx_out_1,
+  output logic [14:0] idx_out_2,
+  output logic [14:0] idx_out_3,
+  output logic query_first_out,
+  output logic query_last_out,
   output logic valid_out
 );
 
-logic [3:0] empty_n;
-logic [3:0] same_leafidx;
-logic [3:0] smaller;
+logic [5:0] query_first_shft;
+logic [5:0] query_last_shft;
+logic [24:0] stage0_data [7:0];
+logic [14:0] stage0_idx [7:0];
+logic stage0_valid;
+logic [24:0] stage1_data [7:0];
+logic [14:0] stage1_idx [7:0];
+logic stage1_valid;
+logic [24:0] stage2_data [7:0];
+logic [14:0] stage2_idx [7:0];
+logic stage2_valid;
+logic [24:0] stage3_data [3:0];
+logic [14:0] stage3_idx [3:0];
+logic stage3_valid;
+logic [24:0] stage4_data [3:0];
+logic [14:0] stage4_idx [3:0];
+logic stage4_valid;
+logic [24:0] stage5_data [3:0];
+logic [14:0] stage5_idx [3:0];
+logic stage5_valid;
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin
-    valid_out <= 1'h0;
+    query_first_shft <= 6'h0;
+    query_last_shft <= 6'h0;
   end
-  else valid_out <= last_in;
+  else begin
+    query_first_shft <= {query_first_shft[4:0], query_first_in};
+    query_last_shft <= {query_last_shft[4:0], query_last_in};
+  end
 end
-assign smaller[0] = l2_dist_in <= l2_dist_0;
-assign same_leafidx[0] = merged_idx_0[14:9] == merged_idx_in[14:9];
-assign smaller[1] = l2_dist_in <= l2_dist_1;
-assign same_leafidx[1] = merged_idx_1[14:9] == merged_idx_in[14:9];
-assign smaller[2] = l2_dist_in <= l2_dist_2;
-assign same_leafidx[2] = merged_idx_2[14:9] == merged_idx_in[14:9];
-assign smaller[3] = l2_dist_in <= l2_dist_3;
-assign same_leafidx[3] = merged_idx_3[14:9] == merged_idx_in[14:9];
+assign query_first_out = query_first_shft[5];
+assign query_last_out = query_last_shft[5];
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin
-    empty_n <= 4'h0;
-    l2_dist_0 <= 25'h0;
-    merged_idx_0 <= 15'h0;
-    l2_dist_1 <= 25'h0;
-    merged_idx_1 <= 15'h0;
-    l2_dist_2 <= 25'h0;
-    merged_idx_2 <= 15'h0;
-    l2_dist_3 <= 25'h0;
-    merged_idx_3 <= 15'h0;
+    stage0_valid <= 1'h0;
+    for (int unsigned p = 0; p < 8; p += 1) begin
+        stage0_data[3'(p)] <= 25'h0;
+        stage0_idx[3'(p)] <= 15'h0;
+      end
   end
-  else if (restart) begin
-    empty_n <= 4'h0;
-    if (insert) begin
-      l2_dist_0 <= l2_dist_in;
-      merged_idx_0 <= merged_idx_in;
-      empty_n[0] <= 1'h1;
-    end
-  end
-  else if (insert) begin
-    if (|(same_leafidx & (same_leafidx ^ (~empty_n)))) begin
-      if (same_leafidx[0] & smaller[0]) begin
-        l2_dist_0 <= l2_dist_in;
-      end
-      else if (same_leafidx[1] & smaller[1]) begin
-        if (smaller[0]) begin
-          l2_dist_0 <= l2_dist_in;
-          merged_idx_0 <= merged_idx_in;
-          l2_dist_1 <= l2_dist_0;
-          merged_idx_1 <= merged_idx_0;
-        end
-        else l2_dist_1 <= l2_dist_in;
-      end
-      else if (same_leafidx[2] & smaller[2]) begin
-        if (smaller[0]) begin
-          l2_dist_0 <= l2_dist_in;
-          merged_idx_0 <= merged_idx_in;
-          l2_dist_1 <= l2_dist_0;
-          merged_idx_1 <= merged_idx_0;
-          l2_dist_2 <= l2_dist_1;
-          merged_idx_2 <= merged_idx_1;
-        end
-        else if (smaller[1]) begin
-          l2_dist_1 <= l2_dist_in;
-          merged_idx_1 <= merged_idx_in;
-          l2_dist_2 <= l2_dist_1;
-          merged_idx_2 <= merged_idx_1;
-        end
-        else l2_dist_2 <= l2_dist_in;
-      end
-      else if (same_leafidx[3] & smaller[3]) begin
-        if (smaller[0]) begin
-          l2_dist_0 <= l2_dist_in;
-          merged_idx_0 <= merged_idx_in;
-          l2_dist_1 <= l2_dist_0;
-          merged_idx_1 <= merged_idx_0;
-          l2_dist_2 <= l2_dist_1;
-          merged_idx_2 <= merged_idx_1;
-          l2_dist_3 <= l2_dist_2;
-          merged_idx_3 <= merged_idx_2;
-        end
-        else if (smaller[1]) begin
-          l2_dist_1 <= l2_dist_in;
-          merged_idx_1 <= merged_idx_in;
-          l2_dist_2 <= l2_dist_1;
-          merged_idx_2 <= merged_idx_1;
-          l2_dist_3 <= l2_dist_2;
-          merged_idx_3 <= merged_idx_2;
-        end
-        else if (smaller[2]) begin
-          l2_dist_2 <= l2_dist_in;
-          merged_idx_2 <= merged_idx_in;
-          l2_dist_3 <= l2_dist_2;
-          merged_idx_3 <= merged_idx_2;
-        end
-        else l2_dist_3 <= l2_dist_in;
-      end
-    end
-    else begin
-      if ((~empty_n[3]) | (smaller[3] & (~same_leafidx[3]))) begin
-        l2_dist_3 <= l2_dist_in;
-        merged_idx_3 <= merged_idx_in;
-        empty_n[3] <= 1'h1;
-      end
-      if ((~empty_n[2]) | (smaller[2] & (~same_leafidx[2]))) begin
-        l2_dist_2 <= l2_dist_in;
-        merged_idx_2 <= merged_idx_in;
-        empty_n[2] <= 1'h1;
-        l2_dist_3 <= l2_dist_2;
-        merged_idx_3 <= merged_idx_2;
-        empty_n[3] <= empty_n[2];
-      end
-      if ((~empty_n[1]) | (smaller[1] & (~same_leafidx[1]))) begin
-        l2_dist_1 <= l2_dist_in;
-        merged_idx_1 <= merged_idx_in;
-        empty_n[1] <= 1'h1;
-        l2_dist_2 <= l2_dist_1;
-        merged_idx_2 <= merged_idx_1;
-        empty_n[2] <= empty_n[1];
-        l2_dist_3 <= l2_dist_2;
-        merged_idx_3 <= merged_idx_2;
-        empty_n[3] <= empty_n[2];
-      end
-      if ((~empty_n[0]) | (smaller[0] & (~same_leafidx[0]))) begin
-        l2_dist_0 <= l2_dist_in;
-        merged_idx_0 <= merged_idx_in;
-        empty_n[0] <= 1'h1;
-        l2_dist_1 <= l2_dist_0;
-        merged_idx_1 <= merged_idx_0;
-        empty_n[1] <= empty_n[0];
-        l2_dist_2 <= l2_dist_1;
-        merged_idx_2 <= merged_idx_1;
-        empty_n[2] <= empty_n[1];
-        l2_dist_3 <= l2_dist_2;
-        merged_idx_3 <= merged_idx_2;
-        empty_n[3] <= empty_n[2];
-      end
+  else begin
+    stage0_valid <= valid_in;
+    if (valid_in) begin
+      stage0_data[0] <= (data_in_0 < data_in_1) ? data_in_0: data_in_1;
+      stage0_data[1] <= (data_in_0 < data_in_1) ? data_in_1: data_in_0;
+      stage0_data[2] <= (data_in_2 > data_in_3) ? data_in_2: data_in_3;
+      stage0_data[3] <= (data_in_2 > data_in_3) ? data_in_3: data_in_2;
+      stage0_data[4] <= (data_in_4 < data_in_5) ? data_in_4: data_in_5;
+      stage0_data[5] <= (data_in_4 < data_in_5) ? data_in_5: data_in_4;
+      stage0_data[6] <= (data_in_6 > data_in_7) ? data_in_6: data_in_7;
+      stage0_data[7] <= (data_in_6 > data_in_7) ? data_in_7: data_in_6;
+      stage0_idx[0] <= (data_in_0 < data_in_1) ? idx_in_0: idx_in_1;
+      stage0_idx[1] <= (data_in_0 < data_in_1) ? idx_in_1: idx_in_0;
+      stage0_idx[2] <= (data_in_2 > data_in_3) ? idx_in_2: idx_in_3;
+      stage0_idx[3] <= (data_in_2 > data_in_3) ? idx_in_3: idx_in_2;
+      stage0_idx[4] <= (data_in_4 < data_in_5) ? idx_in_4: idx_in_5;
+      stage0_idx[5] <= (data_in_4 < data_in_5) ? idx_in_5: idx_in_4;
+      stage0_idx[6] <= (data_in_6 > data_in_7) ? idx_in_6: idx_in_7;
+      stage0_idx[7] <= (data_in_6 > data_in_7) ? idx_in_7: idx_in_6;
     end
   end
 end
-endmodule   // SortedList
 
-
-
-module QueryPatchMem2
-#(
-  parameter DATA_WIDTH = 11,
-  parameter PATCH_SIZE = 5,
-  parameter ADDR_WIDTH = 9,
-  parameter DEPTH = 512
-)
-(
-
-    input logic                                       clk,
-    input logic                                       csb0,
-    input logic                                       web0,
-    input logic [ADDR_WIDTH-1:0]                      addr0,
-    input logic [DATA_WIDTH*PATCH_SIZE-1:0]           wpatch0,
-    output logic  [DATA_WIDTH*PATCH_SIZE-1:0]         rpatch0,
-    input logic                                       csb1,
-    input logic [ADDR_WIDTH-1:0]                      addr1,
-    output logic  [DATA_WIDTH*PATCH_SIZE-1:0]         rpatch1
-
-);
-
-    logic [63:0] wdata0;
-    logic [63:0] rdata0;
-    logic [63:0] rdata1;
-
-    assign wdata0 = {'0, wpatch0};
-    assign rpatch0 = rdata0[PATCH_SIZE*DATA_WIDTH-1:0];
-    assign rpatch1 = rdata1[PATCH_SIZE*DATA_WIDTH-1:0];
-
-    sram_1kbyte_1rw1r
-    #(
-        .DATA_WIDTH(64), // round_up(PATCH_SIZE * DATA_WIDTH)
-        .ADDR_WIDTH(ADDR_WIDTH),
-        .RAM_DEPTH(DEPTH) // round_up(26*19)
-    ) ram_patch_inst (
-        .clk0(clk),
-        .csb0(csb0),
-        .web0(web0),
-        .addr0(addr0),
-        .din0(wdata0),
-        .dout0(rdata0),
-        .clk1(clk),
-        .csb1(csb1),
-        .addr1(addr1),
-        .dout1(rdata1)
-    );
-
-endmodule
-
-/*
-  A Wrapper for a 1w1r Ram that will hold the current patch queries.
-  The idea is that as query image patches are read in via I/O, they are stored in this SRAM
-  so that they can be used later for computation.
-  There is an internal register that holds the current address counter for writing. 
-  Currently assums to read in 5 patches at a time, and to read out 5 patches at a time.
-  
-  Author: Chris Calloway, cmc2374@stanford.edu
-*/
-
-
-module QueryPatchMem
-#(
-  parameter DATA_WIDTH = 11,
-  parameter PATCH_SIZE = 5,
-  parameter ADDR_WIDTH = 9,
-  parameter DEPTH = 512
-)
-(
-
-    input logic                                       clk,
-    input logic                                       csb0,
-    input logic                                       web0,
-    input logic [ADDR_WIDTH-1:0]                      addr0,
-    input logic [DATA_WIDTH*PATCH_SIZE-1:0]         wpatch0,
-    output logic  [DATA_WIDTH*PATCH_SIZE-1:0]       rpatch0,
-    input logic                                       csb1,
-    input logic [ADDR_WIDTH-1:0]                      addr1,
-    output logic  [DATA_WIDTH*PATCH_SIZE-1:0]       rpatch1
-
-);
-  
-  reg macro_select_0;
-  reg macro_select_1;
-  
-  
-  wire [64-1:0]       rpatch0_0;
-  wire [64-1:0]       rpatch0_1;
-  wire [64-1:0]       rpatch1_0;
-  wire [64-1:0]       rpatch1_1;
-  wire [10:0] debug;
-  wire [10:0] debug_write;
-  
-        
-  
-//   reg macro_select_2;
-//   reg macro_select_3;
-  
-
-  
-  //ACTIVE LOW!!!
-  always @(*) begin
-    case(addr0[8])
-       1'b0 :   begin
-         macro_select_0 = 0;
-         macro_select_1 = 1;
-//          macro_select_2 = 0;
-//          macro_select_3 = 0;
-       end
-       
-      1'b1 :   begin
-         macro_select_0 = 1;
-         macro_select_1 = 0;
-//          macro_select_2 = 0;
-//          macro_select_3 = 0;
-       end
-      
-      
-      
-      default :   begin
-         macro_select_0 = 0;
-         macro_select_1 = 1;
-//          macro_select_2 = 0;
-//          macro_select_3 = 0;
-       end
-         
-    endcase 
-    
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    stage1_valid <= 1'h0;
+    for (int unsigned p = 0; p < 8; p += 1) begin
+        stage1_data[3'(p)] <= 25'h0;
+        stage1_idx[3'(p)] <= 15'h0;
+      end
   end
-  
-  assign debug_write = wpatch0[10:0];
-  assign debug = rpatch0_1[10:0];
-  
-  always @ (posedge clk) begin
-    
-    if (!macro_select_0) begin
-      rpatch0 <= rpatch0_0[54:0];
-      rpatch1 <= rpatch1_0[54:0];
-      
+  else begin
+    stage1_valid <= stage0_valid;
+    if (stage0_valid) begin
+      stage1_data[0] <= (stage0_data[0] < stage0_data[2]) ? stage0_data[0]: stage0_data[2];
+      stage1_data[2] <= (stage0_data[0] < stage0_data[2]) ? stage0_data[2]: stage0_data[0];
+      stage1_data[1] <= (stage0_data[1] < stage0_data[3]) ? stage0_data[1]: stage0_data[3];
+      stage1_data[3] <= (stage0_data[1] < stage0_data[3]) ? stage0_data[3]: stage0_data[1];
+      stage1_data[4] <= (stage0_data[4] > stage0_data[6]) ? stage0_data[4]: stage0_data[6];
+      stage1_data[6] <= (stage0_data[4] > stage0_data[6]) ? stage0_data[6]: stage0_data[4];
+      stage1_data[5] <= (stage0_data[5] > stage0_data[7]) ? stage0_data[5]: stage0_data[7];
+      stage1_data[7] <= (stage0_data[5] > stage0_data[7]) ? stage0_data[7]: stage0_data[5];
+      stage1_idx[0] <= (stage0_data[0] < stage0_data[2]) ? stage0_idx[0]: stage0_idx[2];
+      stage1_idx[2] <= (stage0_data[0] < stage0_data[2]) ? stage0_idx[2]: stage0_idx[0];
+      stage1_idx[1] <= (stage0_data[1] < stage0_data[3]) ? stage0_idx[1]: stage0_idx[3];
+      stage1_idx[3] <= (stage0_data[1] < stage0_data[3]) ? stage0_idx[3]: stage0_idx[1];
+      stage1_idx[4] <= (stage0_data[4] > stage0_data[6]) ? stage0_idx[4]: stage0_idx[6];
+      stage1_idx[6] <= (stage0_data[4] > stage0_data[6]) ? stage0_idx[6]: stage0_idx[4];
+      stage1_idx[5] <= (stage0_data[5] > stage0_data[7]) ? stage0_idx[5]: stage0_idx[7];
+      stage1_idx[7] <= (stage0_data[5] > stage0_data[7]) ? stage0_idx[7]: stage0_idx[5];
     end
-   
-    else begin
-      rpatch0 <= rpatch0_1[54:0];
-      rpatch1 <= rpatch1_1[54:0];
-    end
-    
   end
-  
+end
 
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    stage2_valid <= 1'h0;
+    for (int unsigned p = 0; p < 8; p += 1) begin
+        stage2_data[3'(p)] <= 25'h0;
+        stage2_idx[3'(p)] <= 15'h0;
+      end
+  end
+  else begin
+    stage2_valid <= stage1_valid;
+    if (stage1_valid) begin
+      stage2_data[0] <= (stage1_data[0] < stage1_data[1]) ? stage1_data[0]: stage1_data[1];
+      stage2_data[1] <= (stage1_data[0] < stage1_data[1]) ? stage1_data[1]: stage1_data[0];
+      stage2_data[2] <= (stage1_data[2] < stage1_data[3]) ? stage1_data[2]: stage1_data[3];
+      stage2_data[3] <= (stage1_data[2] < stage1_data[3]) ? stage1_data[3]: stage1_data[2];
+      stage2_data[4] <= (stage1_data[4] > stage1_data[5]) ? stage1_data[4]: stage1_data[5];
+      stage2_data[5] <= (stage1_data[4] > stage1_data[5]) ? stage1_data[5]: stage1_data[4];
+      stage2_data[6] <= (stage1_data[6] > stage1_data[7]) ? stage1_data[6]: stage1_data[7];
+      stage2_data[7] <= (stage1_data[6] > stage1_data[7]) ? stage1_data[7]: stage1_data[6];
+      stage2_idx[0] <= (stage1_data[0] < stage1_data[1]) ? stage1_idx[0]: stage1_idx[1];
+      stage2_idx[1] <= (stage1_data[0] < stage1_data[1]) ? stage1_idx[1]: stage1_idx[0];
+      stage2_idx[2] <= (stage1_data[2] < stage1_data[3]) ? stage1_idx[2]: stage1_idx[3];
+      stage2_idx[3] <= (stage1_data[2] < stage1_data[3]) ? stage1_idx[3]: stage1_idx[2];
+      stage2_idx[4] <= (stage1_data[4] > stage1_data[5]) ? stage1_idx[4]: stage1_idx[5];
+      stage2_idx[5] <= (stage1_data[4] > stage1_data[5]) ? stage1_idx[5]: stage1_idx[4];
+      stage2_idx[6] <= (stage1_data[6] > stage1_data[7]) ? stage1_idx[6]: stage1_idx[7];
+      stage2_idx[7] <= (stage1_data[6] > stage1_data[7]) ? stage1_idx[7]: stage1_idx[6];
+    end
+  end
+end
 
-  //Ram instantiaion (4 1k blocks
-  
-    sky130_sram_1kbyte_1rw1r_32x256_8
-    #(
-      .DATA_WIDTH(32), // round(PATCH_SIZE * DATA_WIDTH)
-      .ADDR_WIDTH(8),
-      .RAM_DEPTH(256) // NUM_LEAVES
-    ) ram_patch_inst_0_0 (
-        .clk0(clk),  // Port 0: W
-      .csb0(csb0 || macro_select_0),
-      .web0(web0 || macro_select_0),
-        .wmask0(4'hF), //TODO: investigate what mask exactly does?
-        .addr0(addr0[7:0]),
-        .din0(wpatch0[31:0]),
-        .dout0(rpatch0_0[31:0]),
-        .clk1(clk), // Port 1: R
-      .csb1(csb1 || macro_select_0),
-        .addr1(addr1[7:0]),
-        .dout1(rpatch1_0[31:0])
-    );
-  
-    
-    sky130_sram_1kbyte_1rw1r_32x256_8
-    #(
-      .DATA_WIDTH(32), // round(PATCH_SIZE * DATA_WIDTH)
-      .ADDR_WIDTH(8),
-      .RAM_DEPTH(256) // NUM_LEAVES
-    ) ram_patch_inst_0_1 (
-        .clk0(clk),  // Port 0: W
-      .csb0(csb0 || macro_select_0),
-      .web0(web0 || macro_select_0),
-        .wmask0(4'hF),
-        .addr0(addr0[7:0]),
-        .din0({9'b0, wpatch0[54:32]}),
-        .dout0(rpatch0_0[63:32]),
-        .clk1(clk), // Port 1: R
-      .csb1(csb1 || macro_select_0),
-        .addr1(addr1[7:0]),
-        .dout1(rpatch1_0[63:32])
-    );
-  
-  
-  
- 
-    sky130_sram_1kbyte_1rw1r_32x256_8
-    #(
-      .DATA_WIDTH(32), // round(PATCH_SIZE * DATA_WIDTH)
-      .ADDR_WIDTH(8),
-      .RAM_DEPTH(256) // NUM_LEAVES
-    ) ram_patch_inst_1_0 (
-        .clk0(clk),
-        .csb0(csb0 || macro_select_1),
-        .web0(web0 || macro_select_1),
-        .wmask0(4'hF),
-        .addr0(addr0[7:0]),
-        .din0(wpatch0[31:0]),
-        .dout0(rpatch0_1[31:0]),
-        .clk1(clk),
-        .csb1(csb1 || macro_select_1),
-        .addr1(addr1[7:0]),
-        .dout1(rpatch1_1[31:0])
-    );
-  
-  
-    sky130_sram_1kbyte_1rw1r_32x256_8
-    #(
-      .DATA_WIDTH(32), // round(PATCH_SIZE * DATA_WIDTH)
-      .ADDR_WIDTH(8),
-      .RAM_DEPTH(256) // NUM_LEAVES
-    ) ram_patch_inst_1_1 (
-        .clk0(clk),
-        .csb0(csb0 || macro_select_1),
-        .web0(web0 || macro_select_1),
-         .wmask0(4'hF),
-        .addr0(addr0[7:0]),
-        .din0({9'b0, wpatch0[54:32]}),
-        .dout0(rpatch0_1[63:32]),
-        .clk1(clk),
-      .csb1(csb1 || macro_select_1),
-        .addr1(addr1[7:0]),
-        .dout1(rpatch1_1[63:32])
-    );
-  
-  
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    stage3_valid <= 1'h0;
+    for (int unsigned p = 0; p < 4; p += 1) begin
+        stage3_data[2'(p)] <= 25'h0;
+        stage3_idx[2'(p)] <= 15'h0;
+      end
+  end
+  else begin
+    stage3_valid <= stage2_valid;
+    if (stage2_valid) begin
+      stage3_data[0] <= (stage2_data[0] < stage2_data[4]) ? stage2_data[0]: stage2_data[4];
+      stage3_data[1] <= (stage2_data[1] < stage2_data[5]) ? stage2_data[1]: stage2_data[5];
+      stage3_data[2] <= (stage2_data[2] < stage2_data[6]) ? stage2_data[2]: stage2_data[6];
+      stage3_data[3] <= (stage2_data[3] < stage2_data[7]) ? stage2_data[3]: stage2_data[7];
+      stage3_idx[0] <= (stage2_data[0] < stage2_data[4]) ? stage2_idx[0]: stage2_idx[4];
+      stage3_idx[1] <= (stage2_data[1] < stage2_data[5]) ? stage2_idx[1]: stage2_idx[5];
+      stage3_idx[2] <= (stage2_data[2] < stage2_data[6]) ? stage2_idx[2]: stage2_idx[6];
+      stage3_idx[3] <= (stage2_data[3] < stage2_data[7]) ? stage2_idx[3]: stage2_idx[7];
+    end
+  end
+end
 
-endmodule
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    stage4_valid <= 1'h0;
+    for (int unsigned p = 0; p < 4; p += 1) begin
+        stage4_data[2'(p)] <= 25'h0;
+        stage4_idx[2'(p)] <= 15'h0;
+      end
+  end
+  else begin
+    stage4_valid <= stage3_valid;
+    if (stage3_valid) begin
+      stage4_data[0] <= (stage3_data[0] < stage3_data[2]) ? stage3_data[0]: stage3_data[2];
+      stage4_data[2] <= (stage3_data[0] < stage3_data[2]) ? stage3_data[2]: stage3_data[0];
+      stage4_data[1] <= (stage3_data[1] < stage3_data[3]) ? stage3_data[1]: stage3_data[3];
+      stage4_data[3] <= (stage3_data[1] < stage3_data[3]) ? stage3_data[3]: stage3_data[1];
+      stage4_idx[0] <= (stage3_data[0] < stage3_data[2]) ? stage3_idx[0]: stage3_idx[2];
+      stage4_idx[2] <= (stage3_data[0] < stage3_data[2]) ? stage3_idx[2]: stage3_idx[0];
+      stage4_idx[1] <= (stage3_data[1] < stage3_data[3]) ? stage3_idx[1]: stage3_idx[3];
+      stage4_idx[3] <= (stage3_data[1] < stage3_data[3]) ? stage3_idx[3]: stage3_idx[1];
+    end
+  end
+end
 
-
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    stage5_valid <= 1'h0;
+    for (int unsigned p = 0; p < 4; p += 1) begin
+        stage5_data[2'(p)] <= 25'h0;
+        stage5_idx[2'(p)] <= 15'h0;
+      end
+  end
+  else begin
+    stage5_valid <= stage4_valid;
+    if (stage4_valid) begin
+      stage5_data[0] <= (stage4_data[0] < stage4_data[1]) ? stage4_data[0]: stage4_data[1];
+      stage5_data[1] <= (stage4_data[0] < stage4_data[1]) ? stage4_data[1]: stage4_data[0];
+      stage5_data[2] <= (stage4_data[2] < stage4_data[3]) ? stage4_data[2]: stage4_data[3];
+      stage5_data[3] <= (stage4_data[2] < stage4_data[3]) ? stage4_data[3]: stage4_data[2];
+      stage5_idx[0] <= (stage4_data[0] < stage4_data[1]) ? stage4_idx[0]: stage4_idx[1];
+      stage5_idx[1] <= (stage4_data[0] < stage4_data[1]) ? stage4_idx[1]: stage4_idx[0];
+      stage5_idx[2] <= (stage4_data[2] < stage4_data[3]) ? stage4_idx[2]: stage4_idx[3];
+      stage5_idx[3] <= (stage4_data[2] < stage4_data[3]) ? stage4_idx[3]: stage4_idx[2];
+    end
+  end
+end
+assign valid_out = stage5_valid;
+assign data_out_0 = stage5_data[0];
+assign idx_out_0 = stage5_idx[0];
+assign data_out_1 = stage5_data[1];
+assign idx_out_1 = stage5_idx[1];
+assign data_out_2 = stage5_data[2];
+assign idx_out_2 = stage5_idx[2];
+assign data_out_3 = stage5_data[3];
+assign idx_out_3 = stage5_idx[3];
+endmodule   // BitonicSorter
 
 
 
@@ -1253,300 +1093,6 @@ endmodule   // L2Kernel
 
 
 
-module LeavesMem
-#(
-    parameter DATA_WIDTH = 11,
-    parameter IDX_WIDTH = 9,
-    parameter LEAF_SIZE = 8,
-    parameter PATCH_SIZE = 5,
-    parameter NUM_LEAVES = 64,
-    parameter LEAF_ADDRW = $clog2(NUM_LEAVES)
-)
-(
-    input logic clk,
-
-    input logic [LEAF_SIZE-1:0]                         csb0,
-    input logic [LEAF_SIZE-1:0]                         web0,
-    input logic [LEAF_ADDRW-1:0]                        addr0,
-    input logic [PATCH_SIZE*DATA_WIDTH+IDX_WIDTH-1:0]   wleaf0,
-    output logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]      rpatch_data0 [LEAF_SIZE-1:0],
-    output logic [IDX_WIDTH-1:0]                        rpatch_idx0 [LEAF_SIZE-1:0],
-    input logic                                         csb1,
-    input logic [LEAF_ADDRW-1:0]                        addr1,
-    output logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]      rpatch_data1 [LEAF_SIZE-1:0],
-    output logic [IDX_WIDTH-1:0]                        rpatch_idx1 [LEAF_SIZE-1:0]
-);
-
-    logic [7:0] ram_addr0;
-    logic [7:0] ram_addr1;
-    logic [63:0] rdata0 [LEAF_SIZE-1:0];
-    logic [63:0] rdata1 [LEAF_SIZE-1:0];
-
-    assign ram_addr0 = {'0, addr0};
-    assign ram_addr1 = {'0, addr1};
-    
-    genvar i;
-    generate
-    for (i=0; i<LEAF_SIZE; i=i+1) begin : loop_ram_patch_gen
-        sram_1kbyte_1rw1r
-        #(
-            .DATA_WIDTH(64), // round(PATCH_SIZE * DATA_WIDTH)
-            .ADDR_WIDTH(8),
-            .RAM_DEPTH(256) // NUM_LEAVES
-        ) ram_patch_inst (
-            .clk0(clk),
-            .csb0(csb0[i]),
-            .web0(web0[i]),
-            .addr0(ram_addr0),
-            .din0(wleaf0),
-            .dout0(rdata0[i]),
-            .clk1(clk),
-            .csb1(csb1),
-            .addr1(ram_addr1),
-            .dout1(rdata1[i])
-        );
-
-        assign rpatch_data0[i] = rdata0[i][PATCH_SIZE*DATA_WIDTH-1:0];
-        assign rpatch_idx0[i] = rdata0[i][63:PATCH_SIZE*DATA_WIDTH];
-        assign rpatch_data1[i] = rdata1[i][PATCH_SIZE*DATA_WIDTH-1:0];
-        assign rpatch_idx1[i] = rdata1[i][63:PATCH_SIZE*DATA_WIDTH];
-    end
-    endgenerate
-
-endmodule
-
-module aggregator
-#(
-  parameter DATA_WIDTH = 16,
-  parameter FETCH_WIDTH = 40 //40 is the most we will use, so we will use this by default
-)
-(
-  input clk,
-  input rst_n,
-  input [DATA_WIDTH - 1 : 0] sender_data,
-  input sender_empty_n,
-  output sender_deq,
-  output [FETCH_WIDTH*DATA_WIDTH - 1 : 0] receiver_data, //For Internal Nodes and Query patches this is too large by defualy
-  input receiver_full_n,
-  output reg receiver_enq,
-  input change_fetch_width,
-  input [2:0] input_fetch_width
-  
-);
-
-  localparam COUNTER_WIDTH = $clog2(FETCH_WIDTH);
-  reg [COUNTER_WIDTH - 1 : 0] count_r;
-  
-  reg [DATA_WIDTH - 1 : 0] receiver_data_unpacked [FETCH_WIDTH - 1 : 0]; 
-  wire sender_deq_w;
-
-  assign sender_deq_w = rst_n && sender_empty_n && receiver_full_n;
-  assign sender_deq = sender_deq_w;
-
-  genvar i;
-  generate
-    for (i = 0; i < FETCH_WIDTH; i++) begin: unpack
-      assign receiver_data[(i + 1)*DATA_WIDTH - 1 : i*DATA_WIDTH] = receiver_data_unpacked[i];
-    end
-  endgenerate
-  
-  
-  reg [5:0] LOCAL_FETCH_WIDTH;
-  always @ (posedge clk) begin
-    if (!rst_n) begin
-       LOCAL_FETCH_WIDTH <= FETCH_WIDTH;
-      count_r <= 0;
-    end
-    
-    else if (change_fetch_width) begin
-      LOCAL_FETCH_WIDTH <= {3'b0, input_fetch_width};
-    end
-    
-    else begin
-      LOCAL_FETCH_WIDTH <= LOCAL_FETCH_WIDTH;
-    end
-    
-  end
-
-  always @ (posedge clk) begin
-    if (rst_n) begin
-      if (sender_deq_w) begin
-        receiver_data_unpacked[count_r] <= sender_data;
-        count_r <= (count_r == LOCAL_FETCH_WIDTH) ? 0 : count_r + 1;
-        receiver_enq <= (count_r == LOCAL_FETCH_WIDTH); 
-      end else begin
-        receiver_enq <= 0;
-      end
-    end else begin
-      receiver_enq <= 0;
-      count_r <= 0;
-    end
-  end
-endmodule
-
-
-module sram_1kbyte_1rw1r#(
-  parameter NUM_WMASKS = 4,
-  parameter DATA_WIDTH = 32,
-  parameter ADDR_WIDTH = 8,
-  parameter RAM_DEPTH = 256,
-  parameter DELAY = 1
-)(
-  input  clk0, // clock
-  input   csb0, // active low chip select
-  input  web0, // active low write control
-  input [ADDR_WIDTH-1:0]  addr0,
-  input [DATA_WIDTH-1:0]  din0,
-  output [DATA_WIDTH-1:0] dout0,
-  input  clk1, // clock
-  input   csb1, // active low chip select
-  input [ADDR_WIDTH-1:0]  addr1,
-  output [DATA_WIDTH-1:0] dout1
-);
-
-  reg [ADDR_WIDTH-1:0]  addr0_r;
-  reg [ADDR_WIDTH-1:0]  addr1_r;
-  always @ (posedge clk1) begin
-    addr0_r <= addr0;
-    addr1_r <= addr1;
-  end
-
-  wire [DATA_WIDTH-1:0] dout0_w [RAM_DEPTH/256-1:0];
-  wire [DATA_WIDTH-1:0] dout1_w [RAM_DEPTH/256-1:0];
-  genvar i, j;
-  generate 
-    for (i=0; i<RAM_DEPTH/256; i=i+1) begin : loop_depth_gen
-      for (j=0; j<DATA_WIDTH/32; j=j+1) begin : loop_width_gen
-        if (ADDR_WIDTH == 8) begin
-          sky130_sram_1kbyte_1rw1r_32x256_8 #(.DELAY(DELAY)) 
-          sram_macro (
-            .clk0(clk0),.csb0(csb0),.web0(web0),.wmask0(4'hF),.addr0(addr0[7:0]),.din0(din0[j*32+:32]), .dout0(dout0_w[i][j*32+:32]),
-            .clk1(clk1),.csb1(csb1),.addr1(addr1[7:0]),.dout1(dout1_w[i][j*32+:32])
-          );
-        end
-        else begin
-          sky130_sram_1kbyte_1rw1r_32x256_8 #(.DELAY(DELAY)) 
-          sram_macro (
-            .clk0(clk0),.csb0(addr0[ADDR_WIDTH-1:8] == i ? csb0 : 1'b1),.web0(web0),.wmask0(4'hF),.addr0(addr0[7:0]),.din0(din0[j*32+:32]), .dout0(dout0_w[i][j*32+:32]),
-            .clk1(clk1),.csb1(addr1[ADDR_WIDTH-1:8] == i ? csb1 : 1'b1),.addr1(addr1[7:0]),.dout1(dout1_w[i][j*32+:32])
-          );
-        end
-      end
-    end
-    
-    if (ADDR_WIDTH == 8)
-      assign dout0 = dout0_w[0];
-    else 
-      assign dout0 = dout0_w[addr0_r[ADDR_WIDTH-1:8]];
-
-    if (ADDR_WIDTH == 8)
-      assign dout1 = dout1_w[0];
-    else 
-      assign dout1 = dout1_w[addr1_r[ADDR_WIDTH-1:8]];
-  endgenerate
-
-
-endmodule
-
-// OpenRAM SRAM model
-// Words: 256
-// Word size: 32
-// Write size: 8
-// synopsys translate_off
-// module sky130_sram_1kbyte_1rw1r_32x256_8#(
-//   parameter NUM_WMASKS = 4,
-//   parameter DATA_WIDTH = 32,
-//   parameter ADDR_WIDTH = 8,
-//   parameter RAM_DEPTH = 256,
-//   parameter DELAY = 0
-// )(
-//   input  clk0, // clock
-//   input   csb0, // active low chip select
-//   input  web0, // active low write control
-//   input [NUM_WMASKS-1:0]   wmask0, // write mask
-//   input [ADDR_WIDTH-1:0]  addr0,
-//   input [DATA_WIDTH-1:0]  din0,
-//   output reg [DATA_WIDTH-1:0] dout0,
-//   input  clk1, // clock
-//   input   csb1, // active low chip select
-//   input [ADDR_WIDTH-1:0]  addr1,
-//   output reg [DATA_WIDTH-1:0] dout1
-// );
-
-//   reg  csb0_reg;
-//   reg  web0_reg;
-//   reg [NUM_WMASKS-1:0]   wmask0_reg;
-//   reg [ADDR_WIDTH-1:0]  addr0_reg;
-//   reg [DATA_WIDTH-1:0]  din0_reg;
-
-//   reg  csb1_reg;
-//   reg [ADDR_WIDTH-1:0]  addr1_reg;
-// reg [DATA_WIDTH-1:0]    mem [0:RAM_DEPTH-1];
-
-//   // All inputs are registers
-//   always @(posedge clk0)
-//   begin
-//     csb0_reg = csb0;
-//     web0_reg = web0;
-//     wmask0_reg = wmask0;
-//     addr0_reg = addr0;
-//     din0_reg = din0;
-//     dout0 = 32'bx;
-//     // if ( !csb0_reg && web0_reg ) 
-//     //   $display($time," Reading %m addr0=%b dout0=%b",addr0_reg,mem[addr0_reg]);
-//     // if ( !csb0_reg && !web0_reg )
-//     //   $display($time," Writing %m addr0=%b din0=%b wmask0=%b",addr0_reg,din0_reg,wmask0_reg);
-//   end
-
-//   // All inputs are registers
-//   always @(posedge clk1)
-//   begin
-//     csb1_reg = csb1;
-//     addr1_reg = addr1;
-//     if (!csb0 && !web0 && !csb1 && (addr0 == addr1))
-//          $display($time," WARNING: Writing and reading addr0=%b and addr1=%b simultaneously!",addr0,addr1);
-//     dout1 = 32'bx;
-//     // if ( !csb1_reg ) 
-//     //   $display($time," Reading %m addr1=%b dout1=%b",addr1_reg,mem[addr1_reg]);
-//   end
-
-
-//   // Memory Write Block Port 0
-//   // Write Operation : When web0 = 0, csb0 = 0
-//   always @ (negedge clk0)
-//   begin : MEM_WRITE0
-//     if ( !csb0_reg && !web0_reg ) begin
-//         if (wmask0_reg[0])
-//                 mem[addr0_reg][7:0] = din0_reg[7:0];
-//         if (wmask0_reg[1])
-//                 mem[addr0_reg][15:8] = din0_reg[15:8];
-//         if (wmask0_reg[2])
-//                 mem[addr0_reg][23:16] = din0_reg[23:16];
-//         if (wmask0_reg[3])
-//                 mem[addr0_reg][31:24] = din0_reg[31:24];
-//     end
-//   end
-
-//   // Memory Read Block Port 0
-//   // Read Operation : When web0 = 1, csb0 = 0
-//   always @ (negedge clk0)
-//   begin : MEM_READ0
-//     if (!csb0_reg && web0_reg)
-//        dout0 <= #(DELAY) mem[addr0_reg];
-//   end
-
-//   // Memory Read Block Port 1
-//   // Read Operation : When web1 = 1, csb1 = 0
-//   always @ (negedge clk1)
-//   begin : MEM_READ1
-//     if (!csb1_reg)
-//        dout1 <= #(DELAY) mem[addr1_reg];
-//   end
-
-// endmodule
-// // synopsys translate_on
-
-
 module MainFSM #(
     parameter DATA_WIDTH = 11,
     parameter LEAF_SIZE = 8,
@@ -1902,6 +1448,7 @@ module MainFSM #(
                 end
             end
 
+            // Send query to InternalNode 2 cycles earlier to match the schedule
             SLPR0: begin
                 counter_in = 1;
                 counter_en = 1'b1;
@@ -1973,7 +1520,7 @@ module MainFSM #(
                 leaf_mem_csb1 = '0;
                 leaf_mem_addr1 = prop_leaf_idx_r1[row_blocking_cnt][2];
 
-                if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1))) begin
+                if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1) && (NUM_LAST_BLOCK != BLOCKING))) begin
                     qp_mem_csb0 = 1'b0;
                     qp_mem_web0 = 1'b1;
                     qp_mem_addr0 = qp_mem_rd_addr;
@@ -1998,9 +1545,10 @@ module MainFSM #(
                 leaf_mem_csb1 = '0;
                 leaf_mem_addr1 = prop_leaf_idx_r1[row_blocking_cnt][3];
                 
-                if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1)))
+                if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1) && (NUM_LAST_BLOCK != BLOCKING))) begin
                     int_node_patch_en = 1'b1;
                     int_node_patch_en2 = 1'b1;
+                end
             end
 
             // send prop 3 and query to l2_k0
@@ -2009,7 +1557,7 @@ module MainFSM #(
                 if ((col_query_cnt == COL_SIZE - 1) && (row_blocking_cnt == BLOCKING - 1))
                     nextState = SLPR7;
                 else begin
-                    if ((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1))
+                    if ((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1) && (NUM_LAST_BLOCK != BLOCKING))
                         nextState = SLPR9;
                     else
                         nextState = SLPR6;
@@ -2235,7 +1783,7 @@ module MainFSM #(
 
     // ExactFstRow and SearchLeaf: used to read from the query patch memory
     always_ff @(posedge clk, negedge rst_n) begin
-        if (~rst_n | qp_mem_rd_addr_rst) begin
+        if (~rst_n | qp_mem_rd_addr_rst) begin //TODO: Synthesis Investigation (https://stackoverflow.com/questions/44517945/what-happens-when-one-declares-more-signalsvariables-than-needed-in-the-sensit)
             qp_mem_rd_addr <= '0;
             qp_mem_rd_addr2 <= '0;
         end else if (qp_mem_rd_addr_set) begin
@@ -2258,7 +1806,7 @@ module MainFSM #(
 
     // stores the next addr of best arrays
     always_ff @(posedge clk, negedge rst_n) begin
-        if (~rst_n | best_arr_addr_rst) best_arr_addr_r <= '0;
+        if (~rst_n | best_arr_addr_rst) best_arr_addr_r <= '0; //TODO: Synthesis Investigation (https://stackoverflow.com/questions/44517945/what-happens-when-one-declares-more-signalsvariables-than-needed-in-the-sensit
         else if (sl0_valid_out) begin
             best_arr_addr_r <= best_arr_addr_r + 1'b1;
         end
@@ -2351,607 +1899,6 @@ module MainFSM #(
     end
 
 endmodule
-
-module BitonicSorter (
-  input logic clk,
-  input logic [24:0] data_in_0,
-  input logic [24:0] data_in_1,
-  input logic [24:0] data_in_2,
-  input logic [24:0] data_in_3,
-  input logic [24:0] data_in_4,
-  input logic [24:0] data_in_5,
-  input logic [24:0] data_in_6,
-  input logic [24:0] data_in_7,
-  input logic [14:0] idx_in_0,
-  input logic [14:0] idx_in_1,
-  input logic [14:0] idx_in_2,
-  input logic [14:0] idx_in_3,
-  input logic [14:0] idx_in_4,
-  input logic [14:0] idx_in_5,
-  input logic [14:0] idx_in_6,
-  input logic [14:0] idx_in_7,
-  input logic query_first_in,
-  input logic query_last_in,
-  input logic rst_n,
-  input logic valid_in,
-  output logic [24:0] data_out_0,
-  output logic [24:0] data_out_1,
-  output logic [24:0] data_out_2,
-  output logic [24:0] data_out_3,
-  output logic [14:0] idx_out_0,
-  output logic [14:0] idx_out_1,
-  output logic [14:0] idx_out_2,
-  output logic [14:0] idx_out_3,
-  output logic query_first_out,
-  output logic query_last_out,
-  output logic valid_out
-);
-
-logic [5:0] query_first_shft;
-logic [5:0] query_last_shft;
-logic [24:0] stage0_data [7:0];
-logic [14:0] stage0_idx [7:0];
-logic stage0_valid;
-logic [24:0] stage1_data [7:0];
-logic [14:0] stage1_idx [7:0];
-logic stage1_valid;
-logic [24:0] stage2_data [7:0];
-logic [14:0] stage2_idx [7:0];
-logic stage2_valid;
-logic [24:0] stage3_data [3:0];
-logic [14:0] stage3_idx [3:0];
-logic stage3_valid;
-logic [24:0] stage4_data [3:0];
-logic [14:0] stage4_idx [3:0];
-logic stage4_valid;
-logic [24:0] stage5_data [3:0];
-logic [14:0] stage5_idx [3:0];
-logic stage5_valid;
-
-always_ff @(posedge clk, negedge rst_n) begin
-  if (~rst_n) begin
-    query_first_shft <= 6'h0;
-    query_last_shft <= 6'h0;
-  end
-  else begin
-    query_first_shft <= {query_first_shft[4:0], query_first_in};
-    query_last_shft <= {query_last_shft[4:0], query_last_in};
-  end
-end
-assign query_first_out = query_first_shft[5];
-assign query_last_out = query_last_shft[5];
-
-always_ff @(posedge clk, negedge rst_n) begin
-  if (~rst_n) begin
-    stage0_valid <= 1'h0;
-    for (int unsigned p = 0; p < 8; p += 1) begin
-        stage0_data[3'(p)] <= 25'h0;
-        stage0_idx[3'(p)] <= 15'h0;
-      end
-  end
-  else begin
-    stage0_valid <= valid_in;
-    if (valid_in) begin
-      stage0_data[0] <= (data_in_0 < data_in_1) ? data_in_0: data_in_1;
-      stage0_data[1] <= (data_in_0 < data_in_1) ? data_in_1: data_in_0;
-      stage0_data[2] <= (data_in_2 > data_in_3) ? data_in_2: data_in_3;
-      stage0_data[3] <= (data_in_2 > data_in_3) ? data_in_3: data_in_2;
-      stage0_data[4] <= (data_in_4 < data_in_5) ? data_in_4: data_in_5;
-      stage0_data[5] <= (data_in_4 < data_in_5) ? data_in_5: data_in_4;
-      stage0_data[6] <= (data_in_6 > data_in_7) ? data_in_6: data_in_7;
-      stage0_data[7] <= (data_in_6 > data_in_7) ? data_in_7: data_in_6;
-      stage0_idx[0] <= (data_in_0 < data_in_1) ? idx_in_0: idx_in_1;
-      stage0_idx[1] <= (data_in_0 < data_in_1) ? idx_in_1: idx_in_0;
-      stage0_idx[2] <= (data_in_2 > data_in_3) ? idx_in_2: idx_in_3;
-      stage0_idx[3] <= (data_in_2 > data_in_3) ? idx_in_3: idx_in_2;
-      stage0_idx[4] <= (data_in_4 < data_in_5) ? idx_in_4: idx_in_5;
-      stage0_idx[5] <= (data_in_4 < data_in_5) ? idx_in_5: idx_in_4;
-      stage0_idx[6] <= (data_in_6 > data_in_7) ? idx_in_6: idx_in_7;
-      stage0_idx[7] <= (data_in_6 > data_in_7) ? idx_in_7: idx_in_6;
-    end
-  end
-end
-
-always_ff @(posedge clk, negedge rst_n) begin
-  if (~rst_n) begin
-    stage1_valid <= 1'h0;
-    for (int unsigned p = 0; p < 8; p += 1) begin
-        stage1_data[3'(p)] <= 25'h0;
-        stage1_idx[3'(p)] <= 15'h0;
-      end
-  end
-  else begin
-    stage1_valid <= stage0_valid;
-    if (stage0_valid) begin
-      stage1_data[0] <= (stage0_data[0] < stage0_data[2]) ? stage0_data[0]: stage0_data[2];
-      stage1_data[2] <= (stage0_data[0] < stage0_data[2]) ? stage0_data[2]: stage0_data[0];
-      stage1_data[1] <= (stage0_data[1] < stage0_data[3]) ? stage0_data[1]: stage0_data[3];
-      stage1_data[3] <= (stage0_data[1] < stage0_data[3]) ? stage0_data[3]: stage0_data[1];
-      stage1_data[4] <= (stage0_data[4] > stage0_data[6]) ? stage0_data[4]: stage0_data[6];
-      stage1_data[6] <= (stage0_data[4] > stage0_data[6]) ? stage0_data[6]: stage0_data[4];
-      stage1_data[5] <= (stage0_data[5] > stage0_data[7]) ? stage0_data[5]: stage0_data[7];
-      stage1_data[7] <= (stage0_data[5] > stage0_data[7]) ? stage0_data[7]: stage0_data[5];
-      stage1_idx[0] <= (stage0_data[0] < stage0_data[2]) ? stage0_idx[0]: stage0_idx[2];
-      stage1_idx[2] <= (stage0_data[0] < stage0_data[2]) ? stage0_idx[2]: stage0_idx[0];
-      stage1_idx[1] <= (stage0_data[1] < stage0_data[3]) ? stage0_idx[1]: stage0_idx[3];
-      stage1_idx[3] <= (stage0_data[1] < stage0_data[3]) ? stage0_idx[3]: stage0_idx[1];
-      stage1_idx[4] <= (stage0_data[4] > stage0_data[6]) ? stage0_idx[4]: stage0_idx[6];
-      stage1_idx[6] <= (stage0_data[4] > stage0_data[6]) ? stage0_idx[6]: stage0_idx[4];
-      stage1_idx[5] <= (stage0_data[5] > stage0_data[7]) ? stage0_idx[5]: stage0_idx[7];
-      stage1_idx[7] <= (stage0_data[5] > stage0_data[7]) ? stage0_idx[7]: stage0_idx[5];
-    end
-  end
-end
-
-always_ff @(posedge clk, negedge rst_n) begin
-  if (~rst_n) begin
-    stage2_valid <= 1'h0;
-    for (int unsigned p = 0; p < 8; p += 1) begin
-        stage2_data[3'(p)] <= 25'h0;
-        stage2_idx[3'(p)] <= 15'h0;
-      end
-  end
-  else begin
-    stage2_valid <= stage1_valid;
-    if (stage1_valid) begin
-      stage2_data[0] <= (stage1_data[0] < stage1_data[1]) ? stage1_data[0]: stage1_data[1];
-      stage2_data[1] <= (stage1_data[0] < stage1_data[1]) ? stage1_data[1]: stage1_data[0];
-      stage2_data[2] <= (stage1_data[2] < stage1_data[3]) ? stage1_data[2]: stage1_data[3];
-      stage2_data[3] <= (stage1_data[2] < stage1_data[3]) ? stage1_data[3]: stage1_data[2];
-      stage2_data[4] <= (stage1_data[4] > stage1_data[5]) ? stage1_data[4]: stage1_data[5];
-      stage2_data[5] <= (stage1_data[4] > stage1_data[5]) ? stage1_data[5]: stage1_data[4];
-      stage2_data[6] <= (stage1_data[6] > stage1_data[7]) ? stage1_data[6]: stage1_data[7];
-      stage2_data[7] <= (stage1_data[6] > stage1_data[7]) ? stage1_data[7]: stage1_data[6];
-      stage2_idx[0] <= (stage1_data[0] < stage1_data[1]) ? stage1_idx[0]: stage1_idx[1];
-      stage2_idx[1] <= (stage1_data[0] < stage1_data[1]) ? stage1_idx[1]: stage1_idx[0];
-      stage2_idx[2] <= (stage1_data[2] < stage1_data[3]) ? stage1_idx[2]: stage1_idx[3];
-      stage2_idx[3] <= (stage1_data[2] < stage1_data[3]) ? stage1_idx[3]: stage1_idx[2];
-      stage2_idx[4] <= (stage1_data[4] > stage1_data[5]) ? stage1_idx[4]: stage1_idx[5];
-      stage2_idx[5] <= (stage1_data[4] > stage1_data[5]) ? stage1_idx[5]: stage1_idx[4];
-      stage2_idx[6] <= (stage1_data[6] > stage1_data[7]) ? stage1_idx[6]: stage1_idx[7];
-      stage2_idx[7] <= (stage1_data[6] > stage1_data[7]) ? stage1_idx[7]: stage1_idx[6];
-    end
-  end
-end
-
-always_ff @(posedge clk, negedge rst_n) begin
-  if (~rst_n) begin
-    stage3_valid <= 1'h0;
-    for (int unsigned p = 0; p < 4; p += 1) begin
-        stage3_data[2'(p)] <= 25'h0;
-        stage3_idx[2'(p)] <= 15'h0;
-      end
-  end
-  else begin
-    stage3_valid <= stage2_valid;
-    if (stage2_valid) begin
-      stage3_data[0] <= (stage2_data[0] < stage2_data[4]) ? stage2_data[0]: stage2_data[4];
-      stage3_data[1] <= (stage2_data[1] < stage2_data[5]) ? stage2_data[1]: stage2_data[5];
-      stage3_data[2] <= (stage2_data[2] < stage2_data[6]) ? stage2_data[2]: stage2_data[6];
-      stage3_data[3] <= (stage2_data[3] < stage2_data[7]) ? stage2_data[3]: stage2_data[7];
-      stage3_idx[0] <= (stage2_data[0] < stage2_data[4]) ? stage2_idx[0]: stage2_idx[4];
-      stage3_idx[1] <= (stage2_data[1] < stage2_data[5]) ? stage2_idx[1]: stage2_idx[5];
-      stage3_idx[2] <= (stage2_data[2] < stage2_data[6]) ? stage2_idx[2]: stage2_idx[6];
-      stage3_idx[3] <= (stage2_data[3] < stage2_data[7]) ? stage2_idx[3]: stage2_idx[7];
-    end
-  end
-end
-
-always_ff @(posedge clk, negedge rst_n) begin
-  if (~rst_n) begin
-    stage4_valid <= 1'h0;
-    for (int unsigned p = 0; p < 4; p += 1) begin
-        stage4_data[2'(p)] <= 25'h0;
-        stage4_idx[2'(p)] <= 15'h0;
-      end
-  end
-  else begin
-    stage4_valid <= stage3_valid;
-    if (stage3_valid) begin
-      stage4_data[0] <= (stage3_data[0] < stage3_data[2]) ? stage3_data[0]: stage3_data[2];
-      stage4_data[2] <= (stage3_data[0] < stage3_data[2]) ? stage3_data[2]: stage3_data[0];
-      stage4_data[1] <= (stage3_data[1] < stage3_data[3]) ? stage3_data[1]: stage3_data[3];
-      stage4_data[3] <= (stage3_data[1] < stage3_data[3]) ? stage3_data[3]: stage3_data[1];
-      stage4_idx[0] <= (stage3_data[0] < stage3_data[2]) ? stage3_idx[0]: stage3_idx[2];
-      stage4_idx[2] <= (stage3_data[0] < stage3_data[2]) ? stage3_idx[2]: stage3_idx[0];
-      stage4_idx[1] <= (stage3_data[1] < stage3_data[3]) ? stage3_idx[1]: stage3_idx[3];
-      stage4_idx[3] <= (stage3_data[1] < stage3_data[3]) ? stage3_idx[3]: stage3_idx[1];
-    end
-  end
-end
-
-always_ff @(posedge clk, negedge rst_n) begin
-  if (~rst_n) begin
-    stage5_valid <= 1'h0;
-    for (int unsigned p = 0; p < 4; p += 1) begin
-        stage5_data[2'(p)] <= 25'h0;
-        stage5_idx[2'(p)] <= 15'h0;
-      end
-  end
-  else begin
-    stage5_valid <= stage4_valid;
-    if (stage4_valid) begin
-      stage5_data[0] <= (stage4_data[0] < stage4_data[1]) ? stage4_data[0]: stage4_data[1];
-      stage5_data[1] <= (stage4_data[0] < stage4_data[1]) ? stage4_data[1]: stage4_data[0];
-      stage5_data[2] <= (stage4_data[2] < stage4_data[3]) ? stage4_data[2]: stage4_data[3];
-      stage5_data[3] <= (stage4_data[2] < stage4_data[3]) ? stage4_data[3]: stage4_data[2];
-      stage5_idx[0] <= (stage4_data[0] < stage4_data[1]) ? stage4_idx[0]: stage4_idx[1];
-      stage5_idx[1] <= (stage4_data[0] < stage4_data[1]) ? stage4_idx[1]: stage4_idx[0];
-      stage5_idx[2] <= (stage4_data[2] < stage4_data[3]) ? stage4_idx[2]: stage4_idx[3];
-      stage5_idx[3] <= (stage4_data[2] < stage4_data[3]) ? stage4_idx[3]: stage4_idx[2];
-    end
-  end
-end
-assign valid_out = stage5_valid;
-assign data_out_0 = stage5_data[0];
-assign idx_out_0 = stage5_idx[0];
-assign data_out_1 = stage5_data[1];
-assign idx_out_1 = stage5_idx[1];
-assign data_out_2 = stage5_data[2];
-assign idx_out_2 = stage5_idx[2];
-assign data_out_3 = stage5_data[3];
-assign idx_out_3 = stage5_idx[3];
-endmodule   // BitonicSorter
-
-
-
-/*
- A module for an register based tree of internal node of a KD-Tree
- A set of these nodes will be instantiated together to make an actual tree,
- this is a physical description of the node of the tree. 
-  Author: Chris Calloway, cmc2374@stanford.edu
-*/
-
-
-module internal_node_tree
-#(
-  parameter INTERNAL_WIDTH = 22,
-  parameter PATCH_WIDTH = 55,
-  parameter ADDRESS_WIDTH = 8,
-  parameter WB_ADDRESS_OFFSET = 495
-)
-(
-  input clk,
-  input rst_n,
-  input fsm_enable, //based on whether we are at the proper I/O portion
-  input sender_enable,
-  input [INTERNAL_WIDTH - 1 : 0] sender_data,
-  input patch_en,
-  input patch_two_en, 
-  input [PATCH_WIDTH - 1 : 0] patch_in,
-  input [PATCH_WIDTH - 1 : 0] patch_in_two,
-  output logic [ADDRESS_WIDTH - 1 : 0] leaf_index,
-  output logic [ADDRESS_WIDTH - 1 : 0] leaf_index_two,
-  output receiver_en,
-  output receiver_two_en,
-    input wb_mode,
-    input wb_clk_i, 
-    input wb_rst_i, 
-    input wbs_stb_i, 
-    input wbs_cyc_i, 
-    input wbs_we_i, 
-    input [3:0] wbs_sel_i, 
-    input [31:0] wbs_dat_i, 
-    input [31:0] wbs_adr_i, 
-    output wbs_ack_o, 
-    output [31:0] wbs_dat_o
-
-
-);
-
-wire wen;
-
-assign wen = fsm_enable && sender_enable && (!wb_mode);
-
-
-//Wishbone interface
-
-reg [INTERNAL_WIDTH-1:0] rdata_storage [63:0]; //For index and median read from tree
-
-reg [INTERNAL_WIDTH - 1 : 0]  write_data;
-
-reg wb_wen;
-reg [31:0] wb_out;
-reg ack;
-wire signed [31:0] wb_addr; //Will only use top 6 bits of this
-
-assign wb_addr = wbs_adr_i - WB_ADDRESS_OFFSET;
- assign wbs_ack_o = ack;
- 
- 
-
-
- assign wbs_dat_o = {21'b0, wb_out[10:0]};
-
-
-always @(*) begin 
-
-    if (wb_mode) begin
-
-
-        if (wbs_we_i) begin //active high wen
-
-           if (wbs_dat_i[11] == 1'b0) begin
-                write_data[10:0] = wbs_dat_i[10:0]; //if index is 0
-                wb_wen = 1'b0;
-                ack = 1'b0;
-
-            end
-            else begin
-                write_data[21:11] = wbs_dat_i[10:0]; //second half
-                wb_wen = 1'b1; //written all data so set wen
-
-                ack = 1'b1;
-            
-            end
-        end
-
-        //if not write, then read
-
-        else begin
-         
-           wb_wen = 1'b0;
-
-           if (wbs_dat_i[11] == 1'b0) begin
- 
-
-                wb_out[10:0] = rdata_storage[wb_addr[5:0]][10:0]; //read address is same as write address
-                ack = 1'b1;
-
-            end
-            else begin
-                wb_out[10:0] = rdata_storage[wb_addr[5:0]][21:11]; //read address is same as write address
-                ack = 1'b1;
-            
-            end
-
-        end
-
-
-
-
-    end
-    //Normal I/O mode
-    else begin 
-        write_data = sender_data;
-       
-    end
-
-end
-
- 
-
-
-
-reg [5:0] wadr; //Internal state holding current address to be read (2^6 internal nodes)
-reg  one_hot_address_en [63:0]; //TODO: Fix width on these
-wire [PATCH_WIDTH - 1 : 0] patch_out;
-
-
- 
-
- //Register for keeping track of whether output is valid (keeps track of pipelined inputs as well.
- // This handles the 6 cycle latency of this setup
-reg latency_track_reciever_en [5:0];
-reg latency_track_reciever_two_en [5:0];
- 
- always @ (posedge clk) begin
-     if (rst_n == 0) begin
-      latency_track_reciever_en[0] <= 0;
-      latency_track_reciever_en[1] <= 0;
-      latency_track_reciever_en[2] <= 0;
-      latency_track_reciever_en[3] <= 0;
-      latency_track_reciever_en[4] <= 0;
-      latency_track_reciever_en[5] <= 0;
-
-      latency_track_reciever_two_en[0] <= 0;
-      latency_track_reciever_two_en[1] <= 0;
-      latency_track_reciever_two_en[2] <= 0;
-      latency_track_reciever_two_en[3] <= 0;
-      latency_track_reciever_two_en[4] <= 0;
-      latency_track_reciever_two_en[5] <= 0;
-    end
-    else begin
-      latency_track_reciever_en[0] <= patch_en;
-      latency_track_reciever_en[1] <= latency_track_reciever_en[0];
-      latency_track_reciever_en[2] <= latency_track_reciever_en[1];
-      latency_track_reciever_en[3] <= latency_track_reciever_en[2];
-      latency_track_reciever_en[4] <= latency_track_reciever_en[3];
-      latency_track_reciever_en[5] <= latency_track_reciever_en[4];
-
-      latency_track_reciever_two_en[0] <= patch_two_en;
-      latency_track_reciever_two_en[1] <= latency_track_reciever_two_en[0];
-      latency_track_reciever_two_en[2] <= latency_track_reciever_two_en[1];
-      latency_track_reciever_two_en[3] <= latency_track_reciever_two_en[2];
-      latency_track_reciever_two_en[4] <= latency_track_reciever_two_en[3];
-      latency_track_reciever_two_en[5] <= latency_track_reciever_two_en[4];
-    end
-  
- end
- 
- assign receiver_en = latency_track_reciever_en[5];
- assign receiver_two_en = latency_track_reciever_two_en[5];
-
-
-//Register for storing and updating address
-always @ (posedge clk) begin
-
-    if (rst_n == 0) begin
-        wadr <= 0;
-    end
-    else if (wen) begin
-        wadr <= wadr + 1;
-    end
-    else begin
-        wadr <= wadr;
-    end
-
-end
-
-//Create 7:128 Decoder to create address system for writing to internal nodes
-//Result is a 1 hot signal, where the index that includes the 1 corresponds to the internal_node that will be written to.
-always @(*) begin 
-
-    for (int q = 0; q < 128; q++) begin
-
-        if (wb_mode) begin  //If in wishbone mode, this will read from the wb_addr
-            if (q == wb_addr) begin
-                one_hot_address_en[q] = 1'b1; 
-            end
-            else begin
-                one_hot_address_en[q] = 1'b0;
-            end
-
-        end
-        else begin
-            if (q == wadr) begin
-                one_hot_address_en[q] = 1'b1; //TODO: Does this synthesize well?
-            end
-            else begin
-                one_hot_address_en[q] = 1'b0;
-            end
-        end
-    end
-end
-
-
-
-
-// Generate the internal kd tree
-
-reg [PATCH_WIDTH-1:0] level_patches [7:0]; //For storing patch
-reg [PATCH_WIDTH-1:0] level_patches_two [7:0]; //For storing patch
-reg level_valid [63:0][7:0]; //for storing valid signals
-reg level_valid_two [63:0][7:0]; //for storing valid signals
-wire level_valid_storage [63:0][7:0]; //for storing valid signals
-wire level_valid_storage_two [63:0][7:0]; //for storing valid signals
-
-
- 
-
-
-always @(*) begin
-    
-    level_valid[0][0] = 255'b1;
-    level_valid_two[0][0] = 255'b1;
-    level_patches[0] = patch_in;
-    level_patches_two[0] = patch_in_two;
-
-end
- 
- 
- 
-genvar i, j;
-
-generate 
-    
-   for (i = 0; i < 6; i = i +1) begin
-
-        // wire [2*(2**i)] valid_output;
-        //Fan out like a tree (TODO: Check that 2**i doesn't cause synthesis problems)
-    
-       //NEW! We do patch pipeling in the outer loop. See the diagram of how the patch is moved through the registers
-      // For more clarity
-      //level_patches_storage[i] = level_patches[i];
-      
-        for (j =0; j < (2**i); j = j +1 ) begin
-         
-     
-         //((i * (2**i)) + j) i * (number of iterations of j)+ j //Keep track of one_hot_address_en
-         
-            internal_node
-            #(
-            .DATA_WIDTH(PATCH_WIDTH),
-            .STORAGE_WIDTH(INTERNAL_WIDTH)
-            )
-            node
-            (
-            .clk(clk),
-            .rst_n(rst_n),
-            .wen((wen || wb_wen ) && one_hot_address_en[(((2**i)) + j-1)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
-            .valid(level_valid[j][i]),
-            .valid_two(level_valid_two[j][i]),
-            .wdata(write_data), //writing mechanics are NOT pipelined
-            .patch_in(level_patches[i]),
-            .patch_in_two(level_patches_two[i]),
-            .valid_left(level_valid_storage[j*2][i]),
-            .valid_right(level_valid_storage[(j*2)+1][i]),
-            .valid_left_two(level_valid_storage_two[j*2][i]),
-            .valid_right_two(level_valid_storage_two[(j*2)+1][i]),
-            .rdata(rdata_storage[(((2**i)) + j-1)])
-            );
-
-        //  assign valid_output[(j*2)+1:(j*2)] = vl;
-        //  assign valid_output[(j*2)+2:(j*2)+1] = vr;
-      
-            
-        end
-
-
-
-        
-        //Create register per depth that holds current patch and valids
-
-        always @ (posedge clk) begin
-
-            if (rst_n == 0) begin
-                level_patches[i+1] <= 0;
-                level_patches_two[i+1] <= 0 ;
-                 for (int r = 0; r < 64; r++) begin
-                     level_valid[r][i+1] = 1'b0;
-                      level_valid_two[r][i+1] = 1'b0;
-                 end
-             
-            end
-            else begin
-                level_patches[i+1] <= level_patches[i];
-                level_patches_two[i+1] <= level_patches_two[i];
-                //level_valid[i+1] <= level_valid[i];
-                 for (int r = 0; r < 64; r++) begin
-                    level_valid[r][i+1] = level_valid_storage[r][i];
-                    level_valid_two[r][i+1] = level_valid_storage_two[r][i];
-                 end
-            end
-
-        end
-
-        
-    end
-
-
-endgenerate
-
-
-//From the last row, determine the leaf index
-//Algo source: https://stackoverflow.com/a/62776453
-
-always @(*) begin
-
-    leaf_index = 0;
-    for (int i = 0; i < 64; i++) begin
-        if (level_valid[i][6] == 1'b1) begin
-          leaf_index = i;
-        end
-    end
-
-
-    leaf_index_two = 0;
-    for (int i = 0; i < 64; i++) begin
-        if (level_valid_two[i][6] == 1'b1) begin
-          leaf_index_two = i;
-        end
-    end
-
-
-end
-
-endmodule
-
-
-
-
-
-
 
 
 module kBestArrays #(
@@ -3046,7 +1993,26 @@ module top
     output logic                                in_fifo_wfull_n,
     input logic                                 out_fifo_deq,
     output logic [DATA_WIDTH-1:0]               out_fifo_rdata,
-    output logic                                out_fifo_rempty_n
+    output logic                                out_fifo_rempty_n,
+
+    // Wishbone
+    input logic                                             wbs_debug,
+    input logic                                             wbs_qp_mem_csb0,
+    input logic                                             wbs_qp_mem_web0,
+    input logic [$clog2(NUM_QUERYS)-1:0]                    wbs_qp_mem_addr0,
+    input logic [PATCH_SIZE*DATA_WIDTH-1:0]                 wbs_qp_mem_wpatch0,
+    output logic [PATCH_SIZE*DATA_WIDTH-1:0]                wbs_qp_mem_rpatch0,
+    input logic [LEAF_SIZE-1:0]                             wbs_leaf_mem_csb0,
+    input logic [LEAF_SIZE-1:0]                             wbs_leaf_mem_web0,
+    input logic [LEAF_ADDRW-1:0]                            wbs_leaf_mem_addr0,
+    input logic [63:0]                                      wbs_leaf_mem_wleaf0,
+    output logic [63:0]                                     wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0],
+
+    input logic                                                    wbs_node_mem_web,
+    input logic [31:0]                                             wbs_node_mem_addr,
+    input logic [31:0]                                             wbs_node_mem_wdata,
+    output logic [31:0]                                              wbs_node_mem_rdata 
+
 );
 
 
@@ -3422,7 +2388,7 @@ module top
         .rst_n              (rst_n),
         .fsm_enable         (int_node_fsm_enable), //based on whether we are at the proper I/O portion
         .sender_enable      (int_node_sender_enable),
-        .sender_data        (int_node_sender_data),
+        .sender_data        (wbs_debug ? wbs_node_mem_wdata : int_node_sender_data),
         .patch_en           (int_node_patch_en),
         .patch_in           (int_node_patch_in),
         .leaf_index         (int_node_leaf_index),
@@ -3431,7 +2397,10 @@ module top
         .patch_in_two       (int_node_patch_in2),
         .leaf_index_two     (int_node_leaf_index2),
         .receiver_two_en    (int_node_leaf_valid2),
-        .wb_mode            (1'b0)
+        .wb_mode            (wbs_debug),
+        .wbs_we_i(wbs_node_mem_web), 
+        .wbs_adr_i(wbs_node_mem_addr), 
+        .wbs_dat_o(wbs_node_mem_rdata)
     );
 
     assign int_node_sender_enable = agg_receiver_enq;
@@ -3447,10 +2416,11 @@ module top
         .NUM_LEAVES         (NUM_LEAVES)
     ) leaf_mem_inst (
         .clk                (clk),
-        .csb0               (leaf_mem_csb0),
-        .web0               (leaf_mem_web0),
-        .addr0              (leaf_mem_addr0),
-        .wleaf0             (leaf_mem_wleaf0),
+        .csb0               (wbs_debug ?wbs_leaf_mem_csb0 :leaf_mem_csb0),
+        .web0               (wbs_debug ?wbs_leaf_mem_web0 :leaf_mem_web0),
+        .addr0              (wbs_debug ?wbs_leaf_mem_addr0 :leaf_mem_addr0),
+        .wleaf0             (wbs_debug ?wbs_leaf_mem_wleaf0 :leaf_mem_wleaf0),
+        .rleaf0             (wbs_leaf_mem_rleaf0),
         .rpatch_data0       (leaf_mem_rpatch_data0),
         .rpatch_idx0        (leaf_mem_rpatch_idx0),
         .csb1               (leaf_mem_csb1),
@@ -3468,16 +2438,17 @@ module top
         .DEPTH              (512)
     ) qp_mem_inst (
         .clk                (clk),
-        .csb0               (qp_mem_csb0),
-        .web0               (qp_mem_web0),
-        .addr0              (qp_mem_addr0),
-        .wpatch0            (qp_mem_wpatch0),
+        .csb0               (wbs_debug ?wbs_qp_mem_csb0 :qp_mem_csb0),
+        .web0               (wbs_debug ?wbs_qp_mem_web0 :qp_mem_web0),
+        .addr0              (wbs_debug ?wbs_qp_mem_addr0 :qp_mem_addr0),
+        .wpatch0            (wbs_debug ?wbs_qp_mem_wpatch0 :qp_mem_wpatch0),
         .rpatch0            (qp_mem_rpatch0),
         .csb1               (qp_mem_csb1),
         .addr1              (qp_mem_addr1),
         .rpatch1            (qp_mem_rpatch1)
     );
 
+    assign wbs_qp_mem_rpatch0 = qp_mem_rpatch0;
     assign qp_mem_wpatch0 = agg_receiver_data;
 
     kBestArrays #(
@@ -3853,124 +2824,693 @@ module top
 
 endmodule
 
+module sram_1kbyte_1rw1r#(
+  parameter NUM_WMASKS = 4,
+  parameter DATA_WIDTH = 32,
+  parameter ADDR_WIDTH = 8,
+  parameter RAM_DEPTH = 256,
+  parameter DELAY = 1
+)(
+  input  clk0, // clock
+  input   csb0, // active low chip select
+  input  web0, // active low write control
+  input [ADDR_WIDTH-1:0]  addr0,
+  input [DATA_WIDTH-1:0]  din0,
+  output [DATA_WIDTH-1:0] dout0,
+  input  clk1, // clock
+  input   csb1, // active low chip select
+  input [ADDR_WIDTH-1:0]  addr1,
+  output [DATA_WIDTH-1:0] dout1
+);
+
+  reg [ADDR_WIDTH-1:0]  addr0_r;
+  reg [ADDR_WIDTH-1:0]  addr1_r;
+  always @ (posedge clk1) begin
+    addr0_r <= addr0;
+    addr1_r <= addr1;
+  end
+
+  wire [DATA_WIDTH-1:0] dout0_w [RAM_DEPTH/256-1:0];
+  wire [DATA_WIDTH-1:0] dout1_w [RAM_DEPTH/256-1:0];
+  genvar i, j;
+  generate 
+    for (i=0; i<RAM_DEPTH/256; i=i+1) begin : loop_depth_gen
+      for (j=0; j<DATA_WIDTH/32; j=j+1) begin : loop_width_gen
+        if (ADDR_WIDTH == 8) begin
+          sky130_sram_1kbyte_1rw1r_32x256_8 #(.DELAY(DELAY)) 
+          sram_macro (
+            .clk0(clk0),.csb0(csb0),.web0(web0),.wmask0(4'hF),.addr0(addr0[7:0]),.din0(din0[j*32+:32]), .dout0(dout0_w[i][j*32+:32]),
+            .clk1(clk1),.csb1(csb1),.addr1(addr1[7:0]),.dout1(dout1_w[i][j*32+:32])
+          );
+        end
+        else begin
+          sky130_sram_1kbyte_1rw1r_32x256_8 #(.DELAY(DELAY)) 
+          sram_macro (
+            .clk0(clk0),.csb0(addr0[ADDR_WIDTH-1:8] == i ? csb0 : 1'b1),.web0(web0),.wmask0(4'hF),.addr0(addr0[7:0]),.din0(din0[j*32+:32]), .dout0(dout0_w[i][j*32+:32]),
+            .clk1(clk1),.csb1(addr1[ADDR_WIDTH-1:8] == i ? csb1 : 1'b1),.addr1(addr1[7:0]),.dout1(dout1_w[i][j*32+:32])
+          );
+        end
+      end
+    end
+    
+    if (ADDR_WIDTH == 8)
+      assign dout0 = dout0_w[0];
+    else 
+      assign dout0 = dout0_w[addr0_r[ADDR_WIDTH-1:8]];
+
+    if (ADDR_WIDTH == 8)
+      assign dout1 = dout1_w[0];
+    else 
+      assign dout1 = dout1_w[addr1_r[ADDR_WIDTH-1:8]];
+  endgenerate
+
+
+endmodule
+
 // OpenRAM SRAM model
 // Words: 256
 // Word size: 32
 // Write size: 8
+// synopsys translate_off
+// module sky130_sram_1kbyte_1rw1r_32x256_8#(
+//   parameter NUM_WMASKS = 4,
+//   parameter DATA_WIDTH = 32,
+//   parameter ADDR_WIDTH = 8,
+//   parameter RAM_DEPTH = 256,
+//   parameter DELAY = 0
+// )(
+//   input  clk0, // clock
+//   input   csb0, // active low chip select
+//   input  web0, // active low write control
+//   input [NUM_WMASKS-1:0]   wmask0, // write mask
+//   input [ADDR_WIDTH-1:0]  addr0,
+//   input [DATA_WIDTH-1:0]  din0,
+//   output reg [DATA_WIDTH-1:0] dout0,
+//   input  clk1, // clock
+//   input   csb1, // active low chip select
+//   input [ADDR_WIDTH-1:0]  addr1,
+//   output reg [DATA_WIDTH-1:0] dout1
+// );
 
-module sky130_sram_1kbyte_1rw1r_32x256_8(
-`ifdef USE_POWER_PINS
-    vccd1,
-    vssd1,
-`endif
-// Port 0: RW
-    clk0,csb0,web0,wmask0,addr0,din0,dout0,
-// Port 1: R
-    clk1,csb1,addr1,dout1
-  );
+//   reg  csb0_reg;
+//   reg  web0_reg;
+//   reg [NUM_WMASKS-1:0]   wmask0_reg;
+//   reg [ADDR_WIDTH-1:0]  addr0_reg;
+//   reg [DATA_WIDTH-1:0]  din0_reg;
 
-  parameter NUM_WMASKS = 4 ;
-  parameter DATA_WIDTH = 32 ;
-  parameter ADDR_WIDTH = 8 ;
-  parameter RAM_DEPTH = 1 << ADDR_WIDTH;
-  // FIXME: This delay is arbitrary.
-  parameter DELAY = 3 ;
-  parameter VERBOSE = 0 ; //Set to 0 to only display warnings
-  parameter T_HOLD = 1 ; //Delay to hold dout value after posedge. Value is arbitrary
+//   reg  csb1_reg;
+//   reg [ADDR_WIDTH-1:0]  addr1_reg;
+// reg [DATA_WIDTH-1:0]    mem [0:RAM_DEPTH-1];
 
-`ifdef USE_POWER_PINS
-    inout vccd1;
-    inout vssd1;
-`endif
-  input  clk0; // clock
-  input   csb0; // active low chip select
-  input  web0; // active low write control
-  input [NUM_WMASKS-1:0]   wmask0; // write mask
-  input [ADDR_WIDTH-1:0]  addr0;
-  input [DATA_WIDTH-1:0]  din0;
-  output [DATA_WIDTH-1:0] dout0;
-  input  clk1; // clock
-  input   csb1; // active low chip select
-  input [ADDR_WIDTH-1:0]  addr1;
-  output [DATA_WIDTH-1:0] dout1;
+//   // All inputs are registers
+//   always @(posedge clk0)
+//   begin
+//     csb0_reg = csb0;
+//     web0_reg = web0;
+//     wmask0_reg = wmask0;
+//     addr0_reg = addr0;
+//     din0_reg = din0;
+//     dout0 = 32'bx;
+//     // if ( !csb0_reg && web0_reg ) 
+//     //   $display($time," Reading %m addr0=%b dout0=%b",addr0_reg,mem[addr0_reg]);
+//     // if ( !csb0_reg && !web0_reg )
+//     //   $display($time," Writing %m addr0=%b din0=%b wmask0=%b",addr0_reg,din0_reg,wmask0_reg);
+//   end
 
-  reg  csb0_reg;
-  reg  web0_reg;
-  reg [NUM_WMASKS-1:0]   wmask0_reg;
-  reg [ADDR_WIDTH-1:0]  addr0_reg;
-  reg [DATA_WIDTH-1:0]  din0_reg;
-  reg [DATA_WIDTH-1:0]  dout0;
-
-
-  reg [DATA_WIDTH-1:0]    mem [0:RAM_DEPTH-1];
-
-  // All inputs are registers
-  always @(posedge clk0)
-  begin
-    csb0_reg = csb0;
-    web0_reg = web0;
-    wmask0_reg = wmask0;
-    addr0_reg = addr0;
-    din0_reg = din0;
-    #(T_HOLD) dout0 = 32'bx;
-    if ( !csb0_reg && web0_reg && VERBOSE ) 
-      $display($time," Reading %m addr0=%b dout0=%b",addr0_reg,mem[addr0_reg]);
-    if ( !csb0_reg && !web0_reg && VERBOSE )
-      $display($time," Writing %m addr0=%b din0=%b wmask0=%b",addr0_reg,din0_reg,wmask0_reg);
-  end
-
-  reg  csb1_reg;
-  reg [ADDR_WIDTH-1:0]  addr1_reg;
-  reg [DATA_WIDTH-1:0]  dout1;
-
-  // All inputs are registers
-  always @(posedge clk1)
-  begin
-    csb1_reg = csb1;
-    addr1_reg = addr1;
-    if (!csb0 && !web0 && !csb1 && (addr0 == addr1))
-         $display($time," WARNING: Writing and reading addr0=%b and addr1=%b simultaneously!",addr0,addr1);
-    #(T_HOLD) dout1 = 32'bx;
-    if ( !csb1_reg && VERBOSE ) 
-      $display($time," Reading %m addr1=%b dout1=%b",addr1_reg,mem[addr1_reg]);
-  end
+//   // All inputs are registers
+//   always @(posedge clk1)
+//   begin
+//     csb1_reg = csb1;
+//     addr1_reg = addr1;
+//     if (!csb0 && !web0 && !csb1 && (addr0 == addr1))
+//          $display($time," WARNING: Writing and reading addr0=%b and addr1=%b simultaneously!",addr0,addr1);
+//     dout1 = 32'bx;
+//     // if ( !csb1_reg ) 
+//     //   $display($time," Reading %m addr1=%b dout1=%b",addr1_reg,mem[addr1_reg]);
+//   end
 
 
+//   // Memory Write Block Port 0
+//   // Write Operation : When web0 = 0, csb0 = 0
+//   always @ (negedge clk0)
+//   begin : MEM_WRITE0
+//     if ( !csb0_reg && !web0_reg ) begin
+//         if (wmask0_reg[0])
+//                 mem[addr0_reg][7:0] = din0_reg[7:0];
+//         if (wmask0_reg[1])
+//                 mem[addr0_reg][15:8] = din0_reg[15:8];
+//         if (wmask0_reg[2])
+//                 mem[addr0_reg][23:16] = din0_reg[23:16];
+//         if (wmask0_reg[3])
+//                 mem[addr0_reg][31:24] = din0_reg[31:24];
+//     end
+//   end
 
-  // Memory Write Block Port 0
-  // Write Operation : When web0 = 0, csb0 = 0
-  always @ (negedge clk0)
-  begin : MEM_WRITE0
-    if ( !csb0_reg && !web0_reg ) begin
-        if (wmask0_reg[0])
-                mem[addr0_reg][7:0] = din0_reg[7:0];
-        if (wmask0_reg[1])
-                mem[addr0_reg][15:8] = din0_reg[15:8];
-        if (wmask0_reg[2])
-                mem[addr0_reg][23:16] = din0_reg[23:16];
-        if (wmask0_reg[3])
-                mem[addr0_reg][31:24] = din0_reg[31:24];
+//   // Memory Read Block Port 0
+//   // Read Operation : When web0 = 1, csb0 = 0
+//   always @ (negedge clk0)
+//   begin : MEM_READ0
+//     if (!csb0_reg && web0_reg)
+//        dout0 <= #(DELAY) mem[addr0_reg];
+//   end
+
+//   // Memory Read Block Port 1
+//   // Read Operation : When web1 = 1, csb1 = 0
+//   always @ (negedge clk1)
+//   begin : MEM_READ1
+//     if (!csb1_reg)
+//        dout1 <= #(DELAY) mem[addr1_reg];
+//   end
+
+// endmodule
+// // synopsys translate_on
+
+
+/*
+ A module for an internal node of a KD-Tree
+ A set of these nodes will be instantiated together to make an actual tree,
+ this is a physical description of the node of the tree. 
+  Author: Chris Calloway, cmc2374@stanford.edu
+*/
+
+
+module internal_node
+#(
+  parameter DATA_WIDTH = 55,
+  parameter STORAGE_WIDTH = 22
+)
+(
+  input clk,
+  input rst_n,
+  input wen, //Determined by FSM, reciever enq, and DECODER from KD Tree
+  input valid,
+  input valid_two,
+  input [STORAGE_WIDTH -1 : 0] wdata,
+  input [DATA_WIDTH - 1 : 0] patch_in,
+  input [DATA_WIDTH - 1 : 0] patch_in_two,
+  output [DATA_WIDTH - 1 : 0] patch_out, //Same patch, but we will be pipeling so it will be useful to adopt this input/ouput scheme
+  output valid_left,
+  output valid_right,
+  output valid_left_two,
+  output valid_right_two,
+  output [STORAGE_WIDTH-1: 0] rdata
+
+);
+
+
+reg [2:0] idx;
+reg signed [10: 0] median; 
+reg signed [10: 0] sliced_patch;
+reg signed [10: 0] sliced_patch_two;
+
+ 
+ 
+
+wire comparison;
+wire comparison_two;
+
+//Wdata: 1st 11 bits is Index (which can slice to the  3 LSB bits) since we gave 5 indeces, and 5 < 2^3.
+// 2nd 11 bits are the Median, for which we must store the entire 11 bits
+
+//IDX Storage
+always @ (clk) begin
+
+    if (rst_n == 0) begin
+        idx <= 3'b111; //-1 is an invalid index, this by default we know this to be untrue
     end
-  end
+    else if (wen) begin
+        idx <= wdata[2:0]; //Get 3 LSB
+    end
+    else begin
+        idx <= idx; //No change / persist in memory 
+    end
 
-  // Memory Read Block Port 0
-  // Read Operation : When web0 = 1, csb0 = 0
-  always @ (negedge clk0)
-  begin : MEM_READ0
-    if (!csb0_reg && web0_reg)
-       dout0 <= #(DELAY) mem[addr0_reg];
-  end
+end
 
-  // Memory Read Block Port 1
-  // Read Operation : When web1 = 1, csb1 = 0
-  always @ (negedge clk1)
-  begin : MEM_READ1
-    if (!csb1_reg)
-       dout1 <= #(DELAY) mem[addr1_reg];
-  end
+
+//Median Storage
+always @ (clk) begin
+
+    if (rst_n == 0) begin
+        median <= 0; //0 is an urealistic median, this by default we (likely) know this to be untrue. The -1 idx is the true debug test
+    end
+    else if (wen) begin
+        median <= wdata[21:11]; //Get Median
+    end
+    else begin
+        median <= median; //No change / persist in memory 
+    end
+
+end
+
+//Slice Component to get the proper value from the incoming patch based on stored dimension.
+ //NOTE: some testbenches have this order flipped (think endianess) You may need to flip the order of these case statements
+always @(*) begin 
+    case(idx)
+       3'b000 :   begin
+                sliced_patch = patch_in[10:0];
+                sliced_patch_two = patch_in_two[10:0];
+       end
+       3'b001 :  begin
+            sliced_patch = patch_in[21:11];
+             sliced_patch_two = patch_in_two[21:11];
+       end
+       3'b010 : begin
+            sliced_patch = patch_in[32:22];
+            sliced_patch_two = patch_in_two[32:22];
+       end   
+ 
+       3'b011 :   begin
+            sliced_patch = patch_in[43:33];
+            sliced_patch_two = patch_in_two[43:33];
+       end    
+       3'b100 :  begin
+            sliced_patch = patch_in[54:44];
+            sliced_patch_two = patch_in_two[54:44];
+       end
+
+       default :  begin
+            sliced_patch = 11'b0;;
+            sliced_patch_two =11'b0;;
+       end
+       
+       
+        // sliced_patch = 11'b0;
+    endcase 
+end
+
+
+assign comparison = (sliced_patch < median);
+assign comparison_two = (sliced_patch_two < median);
+
+assign valid_left = comparison && valid;
+assign valid_right = (!comparison) && valid;
+
+
+assign valid_left_two = comparison_two && valid_two;
+assign valid_right_two = (!comparison_two) && valid_two;
+
+
+
+assign patch_out = patch_in; //deprecated
+
+assign rdata = {median, 8'b0, idx}; //fill to 22 in width
+
+
 
 endmodule
 
+
+
+module wbsCtrl
+#(
+    parameter DATA_WIDTH = 11,
+    parameter IDX_WIDTH = 9, // index of patch in the original image
+    parameter LEAF_SIZE = 8,
+    parameter PATCH_SIZE = 5, //excluding the index
+    parameter ROW_SIZE = 26,
+    parameter COL_SIZE = 19,
+    parameter NUM_QUERYS = ROW_SIZE * COL_SIZE,
+    parameter K = 4,
+    parameter NUM_LEAVES = 64,
+    parameter LEAF_ADDRW = $clog2(NUM_LEAVES)
+)
+(
+    input  logic wb_clk_i,
+    input  logic wb_rst_i,
+    input  logic wbs_stb_i,
+    input  logic wbs_cyc_i,
+    input  logic wbs_we_i,
+    input  logic [3:0] wbs_sel_i,
+    input  logic [31:0] wbs_dat_i,
+    input  logic [31:0] wbs_adr_i,
+    output logic wbs_ack_o,
+    output logic [31:0] wbs_dat_o,
+
+    output logic wbs_mode,
+    output logic wbs_debug,
+
+    output logic                                                    wbs_qp_mem_csb0,
+    output logic                                                    wbs_qp_mem_web0,
+    output logic [$clog2(NUM_QUERYS)-1:0]                           wbs_qp_mem_addr0,
+    output logic [PATCH_SIZE*DATA_WIDTH-1:0]                        wbs_qp_mem_wpatch0,
+    input logic [PATCH_SIZE*DATA_WIDTH-1:0]                         wbs_qp_mem_rpatch0,
+
+    output logic [LEAF_SIZE-1:0]                                    wbs_leaf_mem_csb0,
+    output logic [LEAF_SIZE-1:0]                                    wbs_leaf_mem_web0,
+    output logic [LEAF_ADDRW-1:0]                                   wbs_leaf_mem_addr0,
+    output logic [63:0]                                             wbs_leaf_mem_wleaf0,
+    input logic [63:0]                                              wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0],
+
+    output logic                                                    wbs_node_mem_web,
+    output logic [31:0]                                             wbs_node_mem_addr,
+    output logic [31:0]                                             wbs_node_mem_wdata,
+    input logic [31:0]                                              wbs_node_mem_rdata 
+
+
+    
+
+
+);
+
+    localparam WBS_ADDR_MASK        = 32'hFF00_0000;
+    localparam WBS_MODE_ADDR        = 32'h3000_0000;
+    localparam WBS_DEBUG_ADDR       = 32'h3000_0001;
+    localparam WBS_QUERY_ADDR       = 32'h3100_0000;
+    localparam WBS_LEAF_ADDR        = 32'h3200_0000;
+    localparam WBS_BEST_ADDR        = 32'h3300_0000;
+    localparam WBS_NODE_ADDR        = 32'h3400_0000;
+
+    typedef enum {  Idle,
+                    ReadMem,
+                    RegMemRead,
+                    Ack                    
+    } stateCoding_t;
+
+    (* fsm_encoding = "one_hot" *) stateCoding_t currState;
+    // stateCoding_t currState;
+    stateCoding_t nextState;
+
+    logic wbs_input_reg_en;
+    logic wbs_valid;
+    logic wbs_valid_q;
+    logic wbs_we_i_q;
+    logic [3:0] wbs_sel_i_q;
+    logic [31:0] wbs_dat_i_q;
+    logic [31:0] wbs_adr_i_q;
+    logic [31:0] wbs_dat_i_lower_q;
+    logic wbs_ack_o_q;
+    logic wbs_ack_o_d;
+    logic [31:0] wbs_dat_o_q;
+    logic [31:0] wbs_dat_o_d;
+    logic wbs_dat_o_d_valid;
+
+    assign wbs_valid = wbs_cyc_i & wbs_stb_i;
+    assign wbs_ack_o = wbs_ack_o_q;
+    assign wbs_dat_o = wbs_dat_o_q;
+
+    // CONTROLLER
+
+    always_ff @(posedge wb_clk_i or posedge wb_rst_i) begin
+        if (wb_rst_i) begin
+            currState <= Idle;
+        end else begin
+            currState <= nextState;
+        end
+    end
+
+    always_comb begin
+        nextState = currState;
+        wbs_input_reg_en = 1'b0;
+        wbs_ack_o_d = 1'b0;
+        wbs_dat_o_d = '0;
+        wbs_dat_o_d_valid = 1'b0;
+
+        wbs_qp_mem_csb0 = 1'b1;
+        wbs_qp_mem_web0 = 1'b1;
+        wbs_qp_mem_addr0 = '0;
+        wbs_qp_mem_wpatch0 = '0;
+
+        wbs_leaf_mem_csb0 = '1;
+        wbs_leaf_mem_web0 = '1;
+        wbs_leaf_mem_addr0 = '0;
+        wbs_leaf_mem_wleaf0 = '0;
+
+
+        wbs_node_mem_web = 1'b0;
+        wbs_node_mem_addr = '0;
+        wbs_node_mem_wdata = '0;
+       // wbs_node_mem_rdata = '0;
+
+
+        unique case (currState)
+            Idle: begin
+                if (wbs_valid) begin
+                    wbs_input_reg_en = 1'b1;
+                    if (wbs_we_i) begin
+                        nextState = Ack;
+                        wbs_ack_o_d = 1'b1;
+                    end else begin
+                        nextState = ReadMem;
+                    end
+                end
+            end
+
+            ReadMem: begin
+                nextState = RegMemRead;
+                if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_QUERY_ADDR) begin
+                    wbs_qp_mem_csb0 = 1'b0;
+                    wbs_qp_mem_web0 = 1'b1;
+                    // the last bit determines which 32bit it is accessing of the 55 bit query data
+                    wbs_qp_mem_addr0 = wbs_adr_i_q[$clog2(NUM_QUERYS):1];
+                end
+                
+                else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_LEAF_ADDR) begin
+                    // bit 0 is because each patch is 64 bit
+                    // bit 3:1 is the patch index within a leaf
+                    wbs_leaf_mem_csb0[wbs_adr_i_q[3:1]] = 1'b0;
+                    wbs_leaf_mem_web0[wbs_adr_i_q[3:1]] = 1'b1;
+                    wbs_leaf_mem_addr0 = wbs_adr_i_q[9:4];
+                end
+
+                else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR) begin
+                    wbs_node_mem_web = 1'b0; //Write disable, hence read enabled
+                    wbs_node_mem_addr = wbs_adr_i_q;
+                    
+                end
+            end
+
+            RegMemRead: begin
+                nextState = Ack;
+                wbs_ack_o_d = 1'b1;
+                wbs_dat_o_d_valid = 1'b1;
+                if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_QUERY_ADDR)
+                    wbs_dat_o_d = wbs_adr_i_q[0] ?{9'b0, wbs_qp_mem_rpatch0[54:32]} :wbs_qp_mem_rpatch0[31:0];
+                else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_LEAF_ADDR)
+                    wbs_dat_o_d = wbs_adr_i_q[0] ?wbs_leaf_mem_rleaf0[wbs_adr_i_q[3:1]][63:32] :wbs_leaf_mem_rleaf0[wbs_adr_i_q[3:1]][31:0];
+
+                else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)
+                    wbs_dat_o_d = wbs_node_mem_rdata;
+                 
+            end
+
+            Ack: begin
+                nextState = Idle;
+                if (wbs_we_i_q & wbs_adr_i_q[0] & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_QUERY_ADDR)) begin
+                    wbs_qp_mem_csb0 = 1'b0;
+                    wbs_qp_mem_web0 = 1'b0;
+                    wbs_qp_mem_addr0 = wbs_adr_i_q[$clog2(NUM_QUERYS):1];
+                    wbs_qp_mem_wpatch0 = {wbs_dat_i_q, wbs_dat_i_lower_q};
+                end
+                else if (wbs_we_i_q & wbs_adr_i_q[0] & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_LEAF_ADDR)) begin
+                    wbs_leaf_mem_csb0[wbs_adr_i_q[3:1]] = 1'b0;
+                    wbs_leaf_mem_web0[wbs_adr_i_q[3:1]] = 1'b0;
+                    wbs_leaf_mem_addr0 = wbs_adr_i_q[9:4];
+                    wbs_leaf_mem_wleaf0 = {wbs_dat_i_q, wbs_dat_i_lower_q};
+                end
+                else if (wbs_we_i_q & wbs_adr_i_q[0] & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)) begin
+                    wbs_node_mem_web = 1'b1; //Write enabled
+                    wbs_node_mem_wdata = wbs_dat_i_q;
+
+
+                    
+                end
+            end
+        endcase
+    end
+
+
+    // input registers
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) wbs_valid_q <= '0;
+        else begin
+            wbs_valid_q <= wbs_valid;
+        end
+    end
+
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) begin
+            wbs_we_i_q <= '0;
+            wbs_sel_i_q <= '0;
+            wbs_dat_i_q <= '0;
+            wbs_adr_i_q <= '0;
+        end else if (wbs_input_reg_en) begin
+            wbs_we_i_q <= wbs_we_i;
+            wbs_sel_i_q <= wbs_sel_i;
+            wbs_dat_i_q <= wbs_dat_i;
+            wbs_adr_i_q <= wbs_adr_i;
+        end
+    end
+
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) begin
+            wbs_dat_i_lower_q <= '0;
+        end else begin
+            wbs_dat_i_lower_q <= wbs_dat_i_q;
+        end
+    end
+
+    // output registers
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) wbs_ack_o_q <= '0;
+        else begin
+            wbs_ack_o_q <= wbs_ack_o_d;
+        end
+    end
+
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) wbs_dat_o_q <= '0;
+        else if (wbs_dat_o_d_valid) begin
+            wbs_dat_o_q <= wbs_dat_o_d;
+        end
+    end
+
+
+    // Wishbone mapped accelerator control registers
+    
+    // if 1, makes the entire chip use the wishbone clock and reset
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) wbs_mode <= '0;
+        else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_MODE_ADDR)) begin
+            wbs_mode <= wbs_dat_i_q[0];
+        end
+    end
+
+    // if 1, occupies all memory's control
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) wbs_debug <= '0;
+        else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_DEBUG_ADDR)) begin
+            wbs_debug <= wbs_dat_i_q[0];
+        end
+    end
+
+
+endmodule
+
+
+module aggregator
+#(
+  parameter DATA_WIDTH = 16,
+  parameter FETCH_WIDTH = 40 //40 is the most we will use, so we will use this by default
+)
+(
+  input clk,
+  input rst_n,
+  input [DATA_WIDTH - 1 : 0] sender_data,
+  input sender_empty_n,
+  output sender_deq,
+  output [FETCH_WIDTH*DATA_WIDTH - 1 : 0] receiver_data, //For Internal Nodes and Query patches this is too large by defualy
+  input receiver_full_n,
+  output reg receiver_enq,
+  input change_fetch_width,
+  input [2:0] input_fetch_width
+  
+);
+
+  localparam COUNTER_WIDTH = $clog2(FETCH_WIDTH);
+  reg [COUNTER_WIDTH - 1 : 0] count_r;
+  
+  reg [DATA_WIDTH - 1 : 0] receiver_data_unpacked [FETCH_WIDTH - 1 : 0]; 
+  wire sender_deq_w;
+
+  assign sender_deq_w = rst_n && sender_empty_n && receiver_full_n;
+  assign sender_deq = sender_deq_w;
+
+  genvar i;
+  generate
+    for (i = 0; i < FETCH_WIDTH; i++) begin: unpack
+      assign receiver_data[(i + 1)*DATA_WIDTH - 1 : i*DATA_WIDTH] = receiver_data_unpacked[i];
+    end
+  endgenerate
+  
+  
+  reg [5:0] LOCAL_FETCH_WIDTH;
+  always @ (posedge clk) begin
+    if (!rst_n) begin
+       LOCAL_FETCH_WIDTH <= FETCH_WIDTH;
+       //count_r <= 0; //Causes synthesis error
+    end
+    
+    else if (change_fetch_width) begin
+      LOCAL_FETCH_WIDTH <= {3'b0, input_fetch_width};
+    end
+    
+    else begin
+      LOCAL_FETCH_WIDTH <= LOCAL_FETCH_WIDTH;
+    end
+    
+  end
+
+  always @ (posedge clk) begin
+    if (rst_n) begin
+      if (sender_deq_w) begin
+        receiver_data_unpacked[count_r] <= sender_data;
+        count_r <= (count_r == LOCAL_FETCH_WIDTH) ? 0 : count_r + 1;
+        receiver_enq <= (count_r == LOCAL_FETCH_WIDTH); 
+      end else begin
+        receiver_enq <= 0;
+      end
+    end else begin
+      receiver_enq <= 0;
+      count_r <= 0;
+    end
+  end
+endmodule
+
+
+
+module ClockMux (
+    input select,
+    input clk0,
+    input clk1,
+    output out_clk
+);
+    wire q_t0;
+    wire q_t1;
+    wire q_b0;
+    wire q_b1;
+
+    CW_ff #(1) t0
+    (
+        .CLK(clk1),
+        .D(!q_b1 & select),
+        .Q(q_t0)
+    );
+
+    CW_ff #(1) t1
+    (
+        .CLK(!clk1),
+        .D(q_t0),
+        .Q(q_t1)
+    );
+
+    CW_ff #(1) b0
+    (
+        .CLK(clk0),
+        .D(!q_t1 & !select),
+        .Q(q_b0)
+    );
+
+    CW_ff #(1) b1
+    (
+        .CLK(!clk0),
+        .D(q_b0),
+        .Q(q_b1)
+    );
+
+    assign out_clk = (clk1 & q_t1) | (clk0 & q_b1);
+
+endmodule
+
+module CW_ff(CLK,D,Q);
+parameter wD=1;
+input CLK;
+input [wD-1:0] D;
+output [wD-1:0] Q;
+reg [wD-1:0] Q;
+wire [wD-1:0] D2 = D;
+always @(posedge CLK) Q <= D2;
+endmodule
 
 `ifdef BSV_ASSIGNMENT_DELAY
 `else
@@ -4284,139 +3824,1064 @@ endmodule // FIFOSync
 
 
 /*
- A module for an internal node of a KD-Tree
+ A module for an register based tree of internal node of a KD-Tree
  A set of these nodes will be instantiated together to make an actual tree,
  this is a physical description of the node of the tree. 
   Author: Chris Calloway, cmc2374@stanford.edu
 */
 
 
-module internal_node
+module internal_node_tree
 #(
-  parameter DATA_WIDTH = 55,
-  parameter STORAGE_WIDTH = 22
+  parameter INTERNAL_WIDTH = 22,
+  parameter PATCH_WIDTH = 55,
+  parameter ADDRESS_WIDTH = 8
 )
 (
   input clk,
   input rst_n,
-  input wen, //Determined by FSM, reciever enq, and DECODER from KD Tree
-  input valid,
-  input valid_two,
-  input [STORAGE_WIDTH -1 : 0] wdata,
-  input [DATA_WIDTH - 1 : 0] patch_in,
-  input [DATA_WIDTH - 1 : 0] patch_in_two,
-  output [DATA_WIDTH - 1 : 0] patch_out, //Same patch, but we will be pipeling so it will be useful to adopt this input/ouput scheme
-  output valid_left,
-  output valid_right,
-  output valid_left_two,
-  output valid_right_two,
-  output [STORAGE_WIDTH-1: 0] rdata
+  input fsm_enable, //based on whether we are at the proper I/O portion
+  input sender_enable,
+  input [INTERNAL_WIDTH - 1 : 0] sender_data,
+  input patch_en,
+  input patch_two_en, 
+  input [PATCH_WIDTH - 1 : 0] patch_in,
+  input [PATCH_WIDTH - 1 : 0] patch_in_two,
+  output logic [ADDRESS_WIDTH - 1 : 0] leaf_index,
+  output logic [ADDRESS_WIDTH - 1 : 0] leaf_index_two,
+  output receiver_en,
+  output receiver_two_en,
+    input wb_mode,
+    input wbs_we_i, 
+    input [31:0] wbs_adr_i, 
+    output [31:0] wbs_dat_o
+
 
 );
 
-
-reg [2:0] idx;
-reg signed [10: 0] median; 
-reg signed [10: 0] sliced_patch;
-reg signed [10: 0] sliced_patch_two;
-
- 
- 
-
-wire comparison;
-wire comparison_two;
-
-//Wdata: 1st 11 bits is Index (which can slice to the  3 LSB bits) since we gave 5 indeces, and 5 < 2^3.
-// 2nd 11 bits are the Median, for which we must store the entire 11 bits
-
-//IDX Storage
-always @ (clk) begin
-
-    if (rst_n == 0) begin
-        idx <= 3'b111; //-1 is an invalid index, this by default we know this to be untrue
-    end
-    else if (wen) begin
-        idx <= wdata[2:0]; //Get 3 LSB
-    end
-    else begin
-        idx <= idx; //No change / persist in memory 
-    end
-
-end
+wire wen;
+assign wen = fsm_enable && sender_enable && (!wb_mode);
 
 
-//Median Storage
-always @ (clk) begin
 
-    if (rst_n == 0) begin
-        median <= 0; //0 is an urealistic median, this by default we (likely) know this to be untrue. The -1 idx is the true debug test
-    end
-    else if (wen) begin
-        median <= wdata[21:11]; //Get Median
-    end
-    else begin
-        median <= median; //No change / persist in memory 
-    end
+reg [INTERNAL_WIDTH-1:0] rdata_storage [63:0]; //For index and median read from tree
+reg [INTERNAL_WIDTH - 1 : 0]  write_data;
 
-end
+//Wishbone signals
+reg wb_wen;
+reg [31:0] wb_out;
+wire signed [7:0] wb_addr; //Will only use top 6 bits of this
+assign wb_addr = wbs_adr_i[7:0] - 8'd1; //subtract one to index by 0
+assign wbs_dat_o = {10'b0, wb_out[21:0]}; //First 10 bits are 0's (11 + 11 bits read)
 
-//Slice Component to get the proper value from the incoming patch based on stored dimension.
- //NOTE: some testbenches have this order flipped (think endianess) You may need to flip the order of these case statements
+
 always @(*) begin 
-    case(idx)
-       3'b000 :   begin
-                sliced_patch = patch_in[10:0];
-                sliced_patch_two = patch_in_two[10:0];
-       end
-       3'b001 :  begin
-            sliced_patch = patch_in[21:11];
-             sliced_patch_two = patch_in_two[21:11];
-       end
-       3'b010 : begin
-            sliced_patch = patch_in[32:22];
-            sliced_patch_two = patch_in_two[32:22];
-       end   
- 
-       3'b011 :   begin
-            sliced_patch = patch_in[43:33];
-            sliced_patch_two = patch_in_two[43:33];
-       end    
-       3'b100 :  begin
-            sliced_patch = patch_in[54:44];
-            sliced_patch_two = patch_in_two[54:44];
-       end
 
-       default :  begin
-            sliced_patch = 11'b0;;
-            sliced_patch_two =11'b0;;
-       end
-       
-       
-        // sliced_patch = 11'b0;
-    endcase 
+    if (wb_mode) begin
+
+        //Write
+        if (wbs_we_i) begin //active high wen
+            write_data[21:0] = sender_data[21:0]; //if index is 0
+            wb_wen = 1'b1;
+        end
+
+        //if not write, then read
+        else begin
+           
+            wb_out[21:0] = rdata_storage[wb_addr[5:0]][21:0]; //read address is same as write address
+            wb_wen = 1'b0;
+        end
+
+    end
+    //Normal I/O mode
+    else begin 
+        write_data = sender_data[21:0];
+    end
+
+end
+
+ 
+
+
+
+reg [5:0] wadr; //Internal state holding current address to be read (2^6 internal nodes)
+reg  one_hot_address_en [63:0]; //TODO: Fix width on these
+wire [PATCH_WIDTH - 1 : 0] patch_out;
+
+
+ 
+
+ //Register for keeping track of whether output is valid (keeps track of pipelined inputs as well.
+ // This handles the 6 cycle latency of this setup
+ reg latency_track_reciever_en [7:0];
+ reg latency_track_reciever_two_en [7:0];
+ 
+ always @ (posedge clk) begin
+     if (rst_n == 0) begin
+      latency_track_reciever_en[0] <= 0;
+      latency_track_reciever_en[1] <= 0;
+      latency_track_reciever_en[2] <= 0;
+      latency_track_reciever_en[3] <= 0;
+      latency_track_reciever_en[4] <= 0;
+      latency_track_reciever_en[5] <= 0;
+      latency_track_reciever_en[6] <= 0;
+      latency_track_reciever_en[7] <= 0;
+
+      latency_track_reciever_two_en[0] <= 0;
+      latency_track_reciever_two_en[1] <= 0;
+      latency_track_reciever_two_en[2] <= 0;
+      latency_track_reciever_two_en[3] <= 0;
+      latency_track_reciever_two_en[4] <= 0;
+      latency_track_reciever_two_en[5] <= 0;
+      latency_track_reciever_two_en[6] <= 0;
+      latency_track_reciever_two_en[7] <= 0;
+    end
+    else begin
+      latency_track_reciever_en[0] <= patch_en;
+      latency_track_reciever_en[1] <= latency_track_reciever_en[0];
+      latency_track_reciever_en[2] <= latency_track_reciever_en[1];
+      latency_track_reciever_en[3] <= latency_track_reciever_en[2];
+      latency_track_reciever_en[4] <= latency_track_reciever_en[3];
+      latency_track_reciever_en[5] <= latency_track_reciever_en[4];
+      latency_track_reciever_en[6] <= latency_track_reciever_en[5];
+       latency_track_reciever_en[7] <= latency_track_reciever_en[6];
+
+      latency_track_reciever_two_en[0] <= patch_two_en;
+      latency_track_reciever_two_en[1] <= latency_track_reciever_two_en[0];
+      latency_track_reciever_two_en[2] <= latency_track_reciever_two_en[1];
+      latency_track_reciever_two_en[3] <= latency_track_reciever_two_en[2];
+      latency_track_reciever_two_en[4] <= latency_track_reciever_two_en[3];
+      latency_track_reciever_two_en[5] <= latency_track_reciever_two_en[4];
+      latency_track_reciever_two_en[6] <= latency_track_reciever_two_en[5];
+      latency_track_reciever_two_en[7] <= latency_track_reciever_two_en[6];
+    end
+  
+ end
+ 
+ assign receiver_en = latency_track_reciever_en[6];
+ assign receiver_two_en = latency_track_reciever_two_en[6];
+
+
+//Register for storing and updating address
+always @ (posedge clk) begin
+
+    if (rst_n == 0) begin
+        wadr <= 0;
+    end
+    else if (wen) begin
+        wadr <= wadr + 1;
+    end
+    else begin
+        wadr <= wadr;
+    end
+
+end
+
+//Create 7:128 Decoder to create address system for writing to internal nodes
+//Result is a 1 hot signal, where the index that includes the 1 corresponds to the internal_node that will be written to.
+always @(*) begin 
+
+    for (int q = 0; q < 128; q++) begin
+
+        if (wb_mode) begin  //If in wishbone mode, this will read from the wb_addr
+            if (q == wb_addr) begin
+                one_hot_address_en[q] = 1'b1; 
+            end
+            else begin
+                one_hot_address_en[q] = 1'b0;
+            end
+
+        end
+        else begin
+            if (q == wadr) begin
+                one_hot_address_en[q] = 1'b1; //TODO: Does this synthesize well?
+            end
+            else begin
+                one_hot_address_en[q] = 1'b0;
+            end
+        end
+    end
 end
 
 
-assign comparison = (sliced_patch < median);
-assign comparison_two = (sliced_patch_two < median);
-
-assign valid_left = comparison && valid;
-assign valid_right = (!comparison) && valid;
 
 
-assign valid_left_two = comparison_two && valid_two;
-assign valid_right_two = (!comparison_two) && valid_two;
+// Generate the internal kd tree
+
+reg [PATCH_WIDTH-1:0] level_patches [7:0]; //For storing patch
+reg [PATCH_WIDTH-1:0] level_patches_two [7:0]; //For storing patch
+reg level_valid [63:0][7:0]; //for storing valid signals
+reg level_valid_two [63:0][7:0]; //for storing valid signals
+wire level_valid_storage [63:0][7:0]; //for storing valid signals
+wire level_valid_storage_two [63:0][7:0]; //for storing valid signals
+
+
+ 
+ 
+ 
+genvar i, j;
+
+generate 
+    
+   for (i = 0; i < 6; i = i +1) begin
+
+        // wire [2*(2**i)] valid_output;
+        //Fan out like a tree (TODO: Check that 2**i doesn't cause synthesis problems)
+    
+       //NEW! We do patch pipeling in the outer loop. See the diagram of how the patch is moved through the registers
+      // For more clarity
+      //level_patches_storage[i] = level_patches[i];
+      
+        for (j =0; j < (2**i); j = j +1 ) begin
+         
+     
+         //((i * (2**i)) + j) i * (number of iterations of j)+ j //Keep track of one_hot_address_en
+         
+            internal_node
+            #(
+            .DATA_WIDTH(PATCH_WIDTH),
+            .STORAGE_WIDTH(INTERNAL_WIDTH)
+            )
+            node
+            (
+            .clk(clk),
+            .rst_n(rst_n),
+            .wen((wen || wb_wen ) && one_hot_address_en[(((2**i)) + j-1)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
+            .valid(level_valid[j][i]),
+            .valid_two(level_valid_two[j][i]),
+            .wdata(write_data), //writing mechanics are NOT pipelined
+            .patch_in(level_patches[i]),
+            .patch_in_two(level_patches_two[i]),
+            .valid_left(level_valid_storage[j*2][i]),
+            .valid_right(level_valid_storage[(j*2)+1][i]),
+            .valid_left_two(level_valid_storage_two[j*2][i]),
+            .valid_right_two(level_valid_storage_two[(j*2)+1][i]),
+            .rdata(rdata_storage[(((2**i)) + j-1)])
+            );
+
+        //  assign valid_output[(j*2)+1:(j*2)] = vl;
+        //  assign valid_output[(j*2)+2:(j*2)+1] = vr;
+      
+            
+        end
+
+        
+    end
+
+endgenerate
+
+
+ 
+ //NEW register input
+ always @ (posedge clk) begin
+
+    if (rst_n == 0) begin
+     level_patches[0] <= 55'b0;
+     level_patches_two[0] <=  55'b0; 
+
+        for (int r = 0; r < 64; r++) begin
+         level_valid[r][0] <= 1'b0;
+         level_valid_two[r][0] <= 1'b0;
+        end
+    end
+
+  else if (patch_en && patch_two_en) begin //Only update patch when enabled
+     level_patches[0] <= patch_in;
+     level_patches_two[0] <= patch_in_two;
+     
+     level_valid[0][0] <= 1'b1;
+     level_valid_two[0][0] <=  1'b1;
+
+        for (int r = 1; r < 64; r++) begin
+         level_valid[r][0] <= 1'b0;
+         level_valid_two[r][0] <= 1'b0;
+        end
+    end
+  
+   else begin
+    
+     level_patches[0] <= level_patches[0];
+     level_patches_two[0] <= level_patches_two[0];
+     
+     level_valid[0][0] <= 1'b1;
+     level_valid_two[0][0] <=  1'b1;
+
+        for (int r = 1; r < 64; r++) begin
+         level_valid[r][0] <= 1'b0;
+         level_valid_two[r][0] <= 1'b0;
+        end
+    
+   end
+  
+end
+ 
+ 
+always @ (posedge clk) begin
+
+    if (rst_n == 0) begin
+        level_patches[1] <= 55'b0;
+        level_patches_two[1] <=  55'b0; 
+
+        for (int r = 0; r < 64; r++) begin
+         level_valid[r][1] <= 1'b0;
+         level_valid_two[r][1] <= 1'b0;
+        end
+    end
+
+    else begin
+        level_patches[1] <= level_patches[0];
+        level_patches_two[1] <= level_patches_two[0];
+
+          for (int r = 0; r < 64; r++) begin
+           level_valid[r][1] <= level_valid_storage[r][0];
+           level_valid_two[r][1] <= level_valid_storage_two[r][0];
+        end
+    end
+end
+
+
+always @ (posedge clk) begin
+
+    if (rst_n == 0) begin
+        level_patches[2] <= 55'b0;
+        level_patches_two[2] <=  55'b0; 
+
+        for (int r = 0; r < 64; r++) begin
+         level_valid[r][2] <= 1'b0;
+         level_valid_two[r][2] <= 1'b0;
+        end
+    end
+
+    else begin
+        level_patches[2] <= level_patches[1];
+        level_patches_two[2] <= level_patches_two[1];
+
+          for (int r = 0; r < 64; r++) begin
+           level_valid[r][2] <= level_valid_storage[r][1];
+           level_valid_two[r][2] <= level_valid_storage_two[r][1];
+        end
+    end
+end
+
+
+always @ (posedge clk) begin
+
+    if (rst_n == 0) begin
+        level_patches[3] <= 55'b0;
+        level_patches_two[3] <=  55'b0; 
+
+        for (int r = 0; r < 64; r++) begin
+         level_valid[r][3] <= 1'b0;
+         level_valid_two[r][3] <= 1'b0;
+        end
+    end
+
+    else begin
+        level_patches[3] <= level_patches[1];
+        level_patches_two[3] <= level_patches_two[1];
+
+          for (int r = 0; r < 64; r++) begin
+           level_valid[r][3] <= level_valid_storage[r][2];
+           level_valid_two[r][3] <= level_valid_storage_two[r][2];
+        end
+    end
+end
 
 
 
-assign patch_out = patch_in; //deprecated
+always @ (posedge clk) begin
 
-assign rdata = {median, 8'b0, idx}; //fill to 22 in width
+    if (rst_n == 0) begin
+        level_patches[4] <= 55'b0;
+        level_patches_two[4] <=  55'b0; 
+
+        for (int r = 0; r < 64; r++) begin
+         level_valid[r][4] <= 1'b0;
+         level_valid_two[r][4] <= 1'b0;
+        end
+    end
+
+    else begin
+        level_patches[4] <= level_patches[3];
+        level_patches_two[4] <= level_patches_two[3];
+
+          for (int r = 0; r < 64; r++) begin
+           level_valid[r][4] <= level_valid_storage[r][3];
+           level_valid_two[r][4] <= level_valid_storage_two[r][3];
+        end
+    end
+end
 
 
+always @ (posedge clk) begin
+
+    if (rst_n == 0) begin
+        level_patches[5] <= 55'b0;
+        level_patches_two[5] <=  55'b0; 
+
+        for (int r = 0; r < 64; r++) begin
+         level_valid[r][5] <= 1'b0;
+         level_valid_two[r][5] <= 1'b0;
+        end
+    end
+
+    else begin
+        level_patches[5] <= level_patches[4];
+        level_patches_two[5] <= level_patches_two[4];
+
+          for (int r = 0; r < 64; r++) begin
+           level_valid[r][5] <= level_valid_storage[r][4];
+           level_valid_two[r][5] <= level_valid_storage_two[r][4];
+        end
+    end
+end
+
+
+always @ (posedge clk) begin
+
+    if (rst_n == 0) begin
+        level_patches[6] <= 55'b0;
+        level_patches_two[6] <=  55'b0; 
+
+        for (int r = 0; r < 64; r++) begin
+         level_valid[r][6] <= 1'b0;
+         level_valid_two[r][6] <= 1'b0;
+        end
+    end
+
+    else begin
+        level_patches[6] <= level_patches[5];
+        level_patches_two[6] <= level_patches_two[5];
+
+          for (int r = 0; r < 64; r++) begin
+           level_valid[r][6] <= level_valid_storage[r][5];
+           level_valid_two[r][6] <= level_valid_storage_two[r][5];
+        end
+    end
+end
+ 
+ 
+ 
+
+//From the last row, determine the leaf index
+//Algo source: https://stackoverflow.com/a/62776453
+
+always @(*) begin
+
+    leaf_index = 0;
+    for (int i = 0; i < 64; i++) begin
+        if (level_valid[i][6] == 1'b1) begin
+          leaf_index = i;
+        end
+    end
+
+
+    leaf_index_two = 0;
+    for (int i = 0; i < 64; i++) begin
+        if (level_valid_two[i][6] == 1'b1) begin
+          leaf_index_two = i;
+        end
+    end
+
+
+end
 
 endmodule
 
+
+
+
+
+
+
+
+
+
+
+module LeavesMem
+#(
+    parameter DATA_WIDTH = 11,
+    parameter IDX_WIDTH = 9,
+    parameter LEAF_SIZE = 8,
+    parameter PATCH_SIZE = 5,
+    parameter NUM_LEAVES = 64,
+    parameter LEAF_ADDRW = $clog2(NUM_LEAVES)
+)
+(
+    input logic clk,
+
+    input logic [LEAF_SIZE-1:0]                         csb0,
+    input logic [LEAF_SIZE-1:0]                         web0,
+    input logic [LEAF_ADDRW-1:0]                        addr0,
+    input logic [PATCH_SIZE*DATA_WIDTH+IDX_WIDTH-1:0]   wleaf0,
+    output logic [63:0]                                 rleaf0 [LEAF_SIZE-1:0],  // for wishbone
+    output logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]      rpatch_data0 [LEAF_SIZE-1:0],
+    output logic [IDX_WIDTH-1:0]                        rpatch_idx0 [LEAF_SIZE-1:0],
+    input logic                                         csb1,
+    input logic [LEAF_ADDRW-1:0]                        addr1,
+    output logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]      rpatch_data1 [LEAF_SIZE-1:0],
+    output logic [IDX_WIDTH-1:0]                        rpatch_idx1 [LEAF_SIZE-1:0]
+);
+
+    logic [7:0] ram_addr0;
+    logic [7:0] ram_addr1;
+    logic [63:0] rdata0 [LEAF_SIZE-1:0];
+    logic [63:0] rdata1 [LEAF_SIZE-1:0];
+
+    assign ram_addr0 = {'0, addr0};
+    assign ram_addr1 = {'0, addr1};
+    
+    genvar i;
+    generate
+    for (i=0; i<LEAF_SIZE; i=i+1) begin : loop_ram_patch_gen
+        sram_1kbyte_1rw1r
+        #(
+            .DATA_WIDTH(64), // round(PATCH_SIZE * DATA_WIDTH)
+            .ADDR_WIDTH(8),
+            .RAM_DEPTH(256) // NUM_LEAVES
+        ) ram_patch_inst (
+            .clk0(clk),
+            .csb0(csb0[i]),
+            .web0(web0[i]),
+            .addr0(ram_addr0),
+            .din0(wleaf0),
+            .dout0(rdata0[i]),
+            .clk1(clk),
+            .csb1(csb1),
+            .addr1(ram_addr1),
+            .dout1(rdata1[i])
+        );
+
+        assign rpatch_data0[i] = rdata0[i][PATCH_SIZE*DATA_WIDTH-1:0];
+        assign rpatch_idx0[i] = rdata0[i][63:PATCH_SIZE*DATA_WIDTH];
+        assign rpatch_data1[i] = rdata1[i][PATCH_SIZE*DATA_WIDTH-1:0];
+        assign rpatch_idx1[i] = rdata1[i][63:PATCH_SIZE*DATA_WIDTH];
+        assign rleaf0 = rdata0;
+    end
+    endgenerate
+
+endmodule
+
+module SortedList (
+  input logic clk,
+  input logic insert,
+  input logic [24:0] l2_dist_in,
+  input logic last_in,
+  input logic [14:0] merged_idx_in,
+  input logic restart,
+  input logic rst_n,
+  output logic [24:0] l2_dist_0,
+  output logic [24:0] l2_dist_1,
+  output logic [24:0] l2_dist_2,
+  output logic [24:0] l2_dist_3,
+  output logic [14:0] merged_idx_0,
+  output logic [14:0] merged_idx_1,
+  output logic [14:0] merged_idx_2,
+  output logic [14:0] merged_idx_3,
+  output logic valid_out
+);
+
+logic [3:0] empty_n;
+logic [3:0] same_leafidx;
+logic [3:0] smaller;
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    valid_out <= 1'h0;
+  end
+  else valid_out <= last_in;
+end
+assign smaller[0] = l2_dist_in <= l2_dist_0;
+assign same_leafidx[0] = merged_idx_0[14:9] == merged_idx_in[14:9];
+assign smaller[1] = l2_dist_in <= l2_dist_1;
+assign same_leafidx[1] = merged_idx_1[14:9] == merged_idx_in[14:9];
+assign smaller[2] = l2_dist_in <= l2_dist_2;
+assign same_leafidx[2] = merged_idx_2[14:9] == merged_idx_in[14:9];
+assign smaller[3] = l2_dist_in <= l2_dist_3;
+assign same_leafidx[3] = merged_idx_3[14:9] == merged_idx_in[14:9];
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    empty_n <= 4'h0;
+    l2_dist_0 <= 25'h0;
+    merged_idx_0 <= 15'h0;
+    l2_dist_1 <= 25'h0;
+    merged_idx_1 <= 15'h0;
+    l2_dist_2 <= 25'h0;
+    merged_idx_2 <= 15'h0;
+    l2_dist_3 <= 25'h0;
+    merged_idx_3 <= 15'h0;
+  end
+  else if (restart) begin
+    empty_n <= 4'h0;
+    if (insert) begin
+      l2_dist_0 <= l2_dist_in;
+      merged_idx_0 <= merged_idx_in;
+      empty_n[0] <= 1'h1;
+    end
+  end
+  else if (insert) begin
+    if (|(same_leafidx & (same_leafidx ^ (~empty_n)))) begin
+      if (same_leafidx[0] & smaller[0]) begin
+        l2_dist_0 <= l2_dist_in;
+      end
+      else if (same_leafidx[1] & smaller[1]) begin
+        if (smaller[0]) begin
+          l2_dist_0 <= l2_dist_in;
+          merged_idx_0 <= merged_idx_in;
+          l2_dist_1 <= l2_dist_0;
+          merged_idx_1 <= merged_idx_0;
+        end
+        else l2_dist_1 <= l2_dist_in;
+      end
+      else if (same_leafidx[2] & smaller[2]) begin
+        if (smaller[0]) begin
+          l2_dist_0 <= l2_dist_in;
+          merged_idx_0 <= merged_idx_in;
+          l2_dist_1 <= l2_dist_0;
+          merged_idx_1 <= merged_idx_0;
+          l2_dist_2 <= l2_dist_1;
+          merged_idx_2 <= merged_idx_1;
+        end
+        else if (smaller[1]) begin
+          l2_dist_1 <= l2_dist_in;
+          merged_idx_1 <= merged_idx_in;
+          l2_dist_2 <= l2_dist_1;
+          merged_idx_2 <= merged_idx_1;
+        end
+        else l2_dist_2 <= l2_dist_in;
+      end
+      else if (same_leafidx[3] & smaller[3]) begin
+        if (smaller[0]) begin
+          l2_dist_0 <= l2_dist_in;
+          merged_idx_0 <= merged_idx_in;
+          l2_dist_1 <= l2_dist_0;
+          merged_idx_1 <= merged_idx_0;
+          l2_dist_2 <= l2_dist_1;
+          merged_idx_2 <= merged_idx_1;
+          l2_dist_3 <= l2_dist_2;
+          merged_idx_3 <= merged_idx_2;
+        end
+        else if (smaller[1]) begin
+          l2_dist_1 <= l2_dist_in;
+          merged_idx_1 <= merged_idx_in;
+          l2_dist_2 <= l2_dist_1;
+          merged_idx_2 <= merged_idx_1;
+          l2_dist_3 <= l2_dist_2;
+          merged_idx_3 <= merged_idx_2;
+        end
+        else if (smaller[2]) begin
+          l2_dist_2 <= l2_dist_in;
+          merged_idx_2 <= merged_idx_in;
+          l2_dist_3 <= l2_dist_2;
+          merged_idx_3 <= merged_idx_2;
+        end
+        else l2_dist_3 <= l2_dist_in;
+      end
+    end
+    else begin
+      if ((~empty_n[3]) | (smaller[3] & (~same_leafidx[3]))) begin
+        l2_dist_3 <= l2_dist_in;
+        merged_idx_3 <= merged_idx_in;
+        empty_n[3] <= 1'h1;
+      end
+      if ((~empty_n[2]) | (smaller[2] & (~same_leafidx[2]))) begin
+        l2_dist_2 <= l2_dist_in;
+        merged_idx_2 <= merged_idx_in;
+        empty_n[2] <= 1'h1;
+        l2_dist_3 <= l2_dist_2;
+        merged_idx_3 <= merged_idx_2;
+        empty_n[3] <= empty_n[2];
+      end
+      if ((~empty_n[1]) | (smaller[1] & (~same_leafidx[1]))) begin
+        l2_dist_1 <= l2_dist_in;
+        merged_idx_1 <= merged_idx_in;
+        empty_n[1] <= 1'h1;
+        l2_dist_2 <= l2_dist_1;
+        merged_idx_2 <= merged_idx_1;
+        empty_n[2] <= empty_n[1];
+        l2_dist_3 <= l2_dist_2;
+        merged_idx_3 <= merged_idx_2;
+        empty_n[3] <= empty_n[2];
+      end
+      if ((~empty_n[0]) | (smaller[0] & (~same_leafidx[0]))) begin
+        l2_dist_0 <= l2_dist_in;
+        merged_idx_0 <= merged_idx_in;
+        empty_n[0] <= 1'h1;
+        l2_dist_1 <= l2_dist_0;
+        merged_idx_1 <= merged_idx_0;
+        empty_n[1] <= empty_n[0];
+        l2_dist_2 <= l2_dist_1;
+        merged_idx_2 <= merged_idx_1;
+        empty_n[2] <= empty_n[1];
+        l2_dist_3 <= l2_dist_2;
+        merged_idx_3 <= merged_idx_2;
+        empty_n[3] <= empty_n[2];
+      end
+    end
+  end
+end
+endmodule   // SortedList
+
+
+
+module QueryPatchMem2
+#(
+  parameter DATA_WIDTH = 11,
+  parameter PATCH_SIZE = 5,
+  parameter ADDR_WIDTH = 9,
+  parameter DEPTH = 512
+)
+(
+
+    input logic                                       clk,
+    input logic                                       csb0,
+    input logic                                       web0,
+    input logic [ADDR_WIDTH-1:0]                      addr0,
+    input logic [DATA_WIDTH*PATCH_SIZE-1:0]           wpatch0,
+    output logic  [DATA_WIDTH*PATCH_SIZE-1:0]         rpatch0,
+    input logic                                       csb1,
+    input logic [ADDR_WIDTH-1:0]                      addr1,
+    output logic  [DATA_WIDTH*PATCH_SIZE-1:0]         rpatch1
+
+);
+
+    logic [63:0] wdata0;
+    logic [63:0] rdata0;
+    logic [63:0] rdata1;
+
+    assign wdata0 = {'0, wpatch0};
+    assign rpatch0 = rdata0[PATCH_SIZE*DATA_WIDTH-1:0];
+    assign rpatch1 = rdata1[PATCH_SIZE*DATA_WIDTH-1:0];
+
+    sram_1kbyte_1rw1r
+    #(
+        .DATA_WIDTH(64), // round_up(PATCH_SIZE * DATA_WIDTH)
+        .ADDR_WIDTH(ADDR_WIDTH),
+        .RAM_DEPTH(DEPTH) // round_up(26*19)
+    ) ram_patch_inst (
+        .clk0(clk),
+        .csb0(csb0),
+        .web0(web0),
+        .addr0(addr0),
+        .din0(wdata0),
+        .dout0(rdata0),
+        .clk1(clk),
+        .csb1(csb1),
+        .addr1(addr1),
+        .dout1(rdata1)
+    );
+
+endmodule
+
+/*
+  A Wrapper for a 1w1r Ram that will hold the current patch queries.
+  The idea is that as query image patches are read in via I/O, they are stored in this SRAM
+  so that they can be used later for computation.
+  There is an internal register that holds the current address counter for writing. 
+  Currently assums to read in 5 patches at a time, and to read out 5 patches at a time.
+  
+  Author: Chris Calloway, cmc2374@stanford.edu
+*/
+
+
+module QueryPatchMem
+#(
+  parameter DATA_WIDTH = 11,
+  parameter PATCH_SIZE = 5,
+  parameter ADDR_WIDTH = 9,
+  parameter DEPTH = 512
+)
+(
+
+    input logic                                       clk,
+    input logic                                       csb0,
+    input logic                                       web0,
+    input logic [ADDR_WIDTH-1:0]                      addr0,
+    input logic [DATA_WIDTH*PATCH_SIZE-1:0]         wpatch0,
+    output logic  [DATA_WIDTH*PATCH_SIZE-1:0]       rpatch0,
+    input logic                                       csb1,
+    input logic [ADDR_WIDTH-1:0]                      addr1,
+    output logic  [DATA_WIDTH*PATCH_SIZE-1:0]       rpatch1
+
+);
+  
+  reg macro_select_0;
+  reg macro_select_1;
+  
+  
+  wire [64-1:0]       rpatch0_0;
+  wire [64-1:0]       rpatch0_1;
+  wire [64-1:0]       rpatch1_0;
+  wire [64-1:0]       rpatch1_1;
+  wire [10:0] debug;
+  wire [10:0] debug_write;
+  
+        
+  
+//   reg macro_select_2;
+//   reg macro_select_3;
+  
+
+  
+  //ACTIVE LOW!!!
+  always @(*) begin
+    case(addr0[8])
+       1'b0 :   begin
+         macro_select_0 = 0;
+         macro_select_1 = 1;
+//          macro_select_2 = 0;
+//          macro_select_3 = 0;
+       end
+       
+      1'b1 :   begin
+         macro_select_0 = 1;
+         macro_select_1 = 0;
+//          macro_select_2 = 0;
+//          macro_select_3 = 0;
+       end
+      
+      
+      
+      default :   begin
+         macro_select_0 = 0;
+         macro_select_1 = 1;
+//          macro_select_2 = 0;
+//          macro_select_3 = 0;
+       end
+         
+    endcase 
+    
+  end
+  
+  assign debug_write = wpatch0[10:0];
+  assign debug = rpatch0_1[10:0];
+  
+  always @ (posedge clk) begin
+    
+    if (!macro_select_0) begin
+      rpatch0 <= rpatch0_0[54:0];
+      rpatch1 <= rpatch1_0[54:0];
+      
+    end
+   
+    else begin
+      rpatch0 <= rpatch0_1[54:0];
+      rpatch1 <= rpatch1_1[54:0];
+    end
+    
+  end
+  
+
+
+  //Ram instantiaion (4 1k blocks
+  
+    sky130_sram_1kbyte_1rw1r_32x256_8
+    #(
+      .DATA_WIDTH(32), // round(PATCH_SIZE * DATA_WIDTH)
+      .ADDR_WIDTH(8),
+      .RAM_DEPTH(256) // NUM_LEAVES
+    ) ram_patch_inst_0_0 (
+        .clk0(clk),  // Port 0: W
+      .csb0(csb0 || macro_select_0),
+      .web0(web0 || macro_select_0),
+        .wmask0(4'hF), //TODO: investigate what mask exactly does?
+        .addr0(addr0[7:0]),
+        .din0(wpatch0[31:0]),
+        .dout0(rpatch0_0[31:0]),
+        .clk1(clk), // Port 1: R
+      .csb1(csb1 || macro_select_0),
+        .addr1(addr1[7:0]),
+        .dout1(rpatch1_0[31:0])
+    );
+  
+    
+    sky130_sram_1kbyte_1rw1r_32x256_8
+    #(
+      .DATA_WIDTH(32), // round(PATCH_SIZE * DATA_WIDTH)
+      .ADDR_WIDTH(8),
+      .RAM_DEPTH(256) // NUM_LEAVES
+    ) ram_patch_inst_0_1 (
+        .clk0(clk),  // Port 0: W
+      .csb0(csb0 || macro_select_0),
+      .web0(web0 || macro_select_0),
+        .wmask0(4'hF),
+        .addr0(addr0[7:0]),
+        .din0({9'b0, wpatch0[54:32]}),
+        .dout0(rpatch0_0[63:32]),
+        .clk1(clk), // Port 1: R
+      .csb1(csb1 || macro_select_0),
+        .addr1(addr1[7:0]),
+        .dout1(rpatch1_0[63:32])
+    );
+  
+  
+  
+ 
+    sky130_sram_1kbyte_1rw1r_32x256_8
+    #(
+      .DATA_WIDTH(32), // round(PATCH_SIZE * DATA_WIDTH)
+      .ADDR_WIDTH(8),
+      .RAM_DEPTH(256) // NUM_LEAVES
+    ) ram_patch_inst_1_0 (
+        .clk0(clk),
+        .csb0(csb0 || macro_select_1),
+        .web0(web0 || macro_select_1),
+        .wmask0(4'hF),
+        .addr0(addr0[7:0]),
+        .din0(wpatch0[31:0]),
+        .dout0(rpatch0_1[31:0]),
+        .clk1(clk),
+        .csb1(csb1 || macro_select_1),
+        .addr1(addr1[7:0]),
+        .dout1(rpatch1_1[31:0])
+    );
+  
+  
+    sky130_sram_1kbyte_1rw1r_32x256_8
+    #(
+      .DATA_WIDTH(32), // round(PATCH_SIZE * DATA_WIDTH)
+      .ADDR_WIDTH(8),
+      .RAM_DEPTH(256) // NUM_LEAVES
+    ) ram_patch_inst_1_1 (
+        .clk0(clk),
+        .csb0(csb0 || macro_select_1),
+        .web0(web0 || macro_select_1),
+         .wmask0(4'hF),
+        .addr0(addr0[7:0]),
+        .din0({9'b0, wpatch0[54:32]}),
+        .dout0(rpatch0_1[63:32]),
+        .clk1(clk),
+      .csb1(csb1 || macro_select_1),
+        .addr1(addr1[7:0]),
+        .dout1(rpatch1_1[63:32])
+    );
+  
+  
+
+endmodule
+
+
+
+
+
+// OpenRAM SRAM model
+// Words: 256
+// Word size: 32
+// Write size: 8
+
+module sky130_sram_1kbyte_1rw1r_32x256_8(
+`ifdef USE_POWER_PINS
+    vccd1,
+    vssd1,
+`endif
+// Port 0: RW
+    clk0,csb0,web0,wmask0,addr0,din0,dout0,
+// Port 1: R
+    clk1,csb1,addr1,dout1
+  );
+
+  parameter NUM_WMASKS = 4 ;
+  parameter DATA_WIDTH = 32 ;
+  parameter ADDR_WIDTH = 8 ;
+  parameter RAM_DEPTH = 1 << ADDR_WIDTH;
+  // FIXME: This delay is arbitrary.
+  parameter DELAY = 3 ;
+  parameter VERBOSE = 0 ; //Set to 0 to only display warnings
+  parameter T_HOLD = 1 ; //Delay to hold dout value after posedge. Value is arbitrary
+
+`ifdef USE_POWER_PINS
+    inout vccd1;
+    inout vssd1;
+`endif
+  input  clk0; // clock
+  input   csb0; // active low chip select
+  input  web0; // active low write control
+  input [NUM_WMASKS-1:0]   wmask0; // write mask
+  input [ADDR_WIDTH-1:0]  addr0;
+  input [DATA_WIDTH-1:0]  din0;
+  output [DATA_WIDTH-1:0] dout0;
+  input  clk1; // clock
+  input   csb1; // active low chip select
+  input [ADDR_WIDTH-1:0]  addr1;
+  output [DATA_WIDTH-1:0] dout1;
+
+  reg  csb0_reg;
+  reg  web0_reg;
+  reg [NUM_WMASKS-1:0]   wmask0_reg;
+  reg [ADDR_WIDTH-1:0]  addr0_reg;
+  reg [DATA_WIDTH-1:0]  din0_reg;
+  reg [DATA_WIDTH-1:0]  dout0;
+
+
+  reg [DATA_WIDTH-1:0]    mem [0:RAM_DEPTH-1];
+
+  // All inputs are registers
+  always @(posedge clk0)
+  begin
+    csb0_reg = csb0;
+    web0_reg = web0;
+    wmask0_reg = wmask0;
+    addr0_reg = addr0;
+    din0_reg = din0;
+    #(T_HOLD) dout0 = 32'bx;
+    if ( !csb0_reg && web0_reg && VERBOSE ) 
+      $display($time," Reading %m addr0=%b dout0=%b",addr0_reg,mem[addr0_reg]);
+    if ( !csb0_reg && !web0_reg && VERBOSE )
+      $display($time," Writing %m addr0=%b din0=%b wmask0=%b",addr0_reg,din0_reg,wmask0_reg);
+  end
+
+  reg  csb1_reg;
+  reg [ADDR_WIDTH-1:0]  addr1_reg;
+  reg [DATA_WIDTH-1:0]  dout1;
+
+  // All inputs are registers
+  always @(posedge clk1)
+  begin
+    csb1_reg = csb1;
+    addr1_reg = addr1;
+    if (!csb0 && !web0 && !csb1 && (addr0 == addr1))
+         $display($time," WARNING: Writing and reading addr0=%b and addr1=%b simultaneously!",addr0,addr1);
+    #(T_HOLD) dout1 = 32'bx;
+    if ( !csb1_reg && VERBOSE ) 
+      $display($time," Reading %m addr1=%b dout1=%b",addr1_reg,mem[addr1_reg]);
+  end
+
+
+
+  // Memory Write Block Port 0
+  // Write Operation : When web0 = 0, csb0 = 0
+  always @ (negedge clk0)
+  begin : MEM_WRITE0
+    if ( !csb0_reg && !web0_reg ) begin
+        if (wmask0_reg[0])
+                mem[addr0_reg][7:0] = din0_reg[7:0];
+        if (wmask0_reg[1])
+                mem[addr0_reg][15:8] = din0_reg[15:8];
+        if (wmask0_reg[2])
+                mem[addr0_reg][23:16] = din0_reg[23:16];
+        if (wmask0_reg[3])
+                mem[addr0_reg][31:24] = din0_reg[31:24];
+    end
+  end
+
+  // Memory Read Block Port 0
+  // Read Operation : When web0 = 1, csb0 = 0
+  always @ (negedge clk0)
+  begin : MEM_READ0
+    if (!csb0_reg && web0_reg)
+       dout0 <= #(DELAY) mem[addr0_reg];
+  end
+
+  // Memory Read Block Port 1
+  // Read Operation : When web1 = 1, csb1 = 0
+  always @ (negedge clk1)
+  begin : MEM_READ1
+    if (!csb1_reg)
+       dout1 <= #(DELAY) mem[addr1_reg];
+  end
+
+endmodule
 
 
 module RunningMin (

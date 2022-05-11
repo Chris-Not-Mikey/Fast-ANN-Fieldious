@@ -37,6 +37,7 @@ module top_tb();
         .COL_SIZE(COL_SIZE),
         .NUM_QUERYS(NUM_QUERYS),
         .K(4),
+        .BEST_ARRAY_K(1),
         .NUM_LEAVES(NUM_LEAVES),
         .BLOCKING(BLOCKING),
         .LEAF_ADDRW(ADDR_WIDTH)

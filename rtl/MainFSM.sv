@@ -631,7 +631,7 @@ module MainFSM #(
             // results of computes0
             SendBestIdx: begin
                 counter_in = NUM_QUERYS / 2 - 1;
-                out_fifo_wdata_sel = 1'b1;
+                out_fifo_wdata_sel = 1'b0;
                 if (~out_fifo_wenq & out_fifo_wfull_n) begin
                     // reads only the best
                     best_arr_csb1 = {{(K-1){1'b1}}, 1'b0};
@@ -648,7 +648,7 @@ module MainFSM #(
             // results of computes1
             SendBestIdx2: begin
                 counter_in = NUM_QUERYS / 2 - 1;
-                out_fifo_wdata_sel = 1'b0;
+                out_fifo_wdata_sel = 1'b1;
                 if (~out_fifo_wenq & out_fifo_wfull_n) begin
                     // reads only the best
                     best_arr_csb1 = {{(K-1){1'b1}}, 1'b0};

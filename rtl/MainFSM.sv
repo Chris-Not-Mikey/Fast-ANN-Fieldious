@@ -355,7 +355,7 @@ module MainFSM #(
 
             // Send query to InternalNode 2 cycles earlier to match the schedule
             SLPR0: begin
-                counter_in = 1;
+                counter_in = 2;
                 counter_en = 1'b1;
                 
                 if (counter == 0) begin
@@ -407,6 +407,14 @@ module MainFSM #(
                 // store the query for reuse
                 qp_mem_rvalid0 = 1'b1;
                 qp_mem_rvalid1 = 1'b1;
+
+                if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1) && (NUM_LAST_BLOCK != BLOCKING))) begin
+                    qp_mem_csb0 = 1'b0;
+                    qp_mem_web0 = 1'b1;
+                    qp_mem_addr0 = qp_mem_rd_addr;
+                    qp_mem_csb1 = 1'b0;
+                    qp_mem_addr1 = qp_mem_rd_addr2;
+                end
             end
 
             // send prop 1 and query to l2_k0
@@ -424,13 +432,10 @@ module MainFSM #(
                 leaf_mem_addr0 = prop_leaf_idx_r0[row_blocking_cnt][2];
                 leaf_mem_csb1 = '0;
                 leaf_mem_addr1 = prop_leaf_idx_r1[row_blocking_cnt][2];
-
+                
                 if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1) && (NUM_LAST_BLOCK != BLOCKING))) begin
-                    qp_mem_csb0 = 1'b0;
-                    qp_mem_web0 = 1'b1;
-                    qp_mem_addr0 = qp_mem_rd_addr;
-                    qp_mem_csb1 = 1'b0;
-                    qp_mem_addr1 = qp_mem_rd_addr2;
+                    int_node_patch_en = 1'b1;
+                    int_node_patch_en2 = 1'b1;
                 end
             end
 
@@ -449,11 +454,6 @@ module MainFSM #(
                 leaf_mem_addr0 = prop_leaf_idx_r0[row_blocking_cnt][3];
                 leaf_mem_csb1 = '0;
                 leaf_mem_addr1 = prop_leaf_idx_r1[row_blocking_cnt][3];
-                
-                if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1) && (NUM_LAST_BLOCK != BLOCKING))) begin
-                    int_node_patch_en = 1'b1;
-                    int_node_patch_en2 = 1'b1;
-                end
             end
 
             // send prop 3 and query to l2_k0
@@ -589,7 +589,7 @@ module MainFSM #(
                 end
 
                 // read next query for SearchLeaf
-                if (counter == (BLOCKING - NUM_LAST_BLOCK) * 5 - 3) begin
+                if (counter == (BLOCKING - NUM_LAST_BLOCK) * 5 - 4) begin
                     qp_mem_csb0 = 1'b0;
                     qp_mem_web0 = 1'b1;
                     qp_mem_addr0 = qp_mem_rd_addr;
@@ -598,7 +598,7 @@ module MainFSM #(
                 end
 
                 // send to SearchLeaf
-                if (counter == (BLOCKING - NUM_LAST_BLOCK) * 5 - 2) begin
+                if (counter == (BLOCKING - NUM_LAST_BLOCK) * 5 - 3) begin
                     int_node_patch_en = 1'b1;
                     int_node_patch_en2 = 1'b1;
                 end

@@ -29,7 +29,7 @@ module kBestArrays #(
         #(
             .DATA_WIDTH(32), // round(PATCH_SIZE * DATA_WIDTH)
             .ADDR_WIDTH(9),
-            .RAM_DEPTH(512) // NUM_PATCHES
+            .RAM_DEPTH(256) // NUM_PATCHES
         ) best_dist_array_inst (
             .clk0(clk),
             .csb0(csb0),

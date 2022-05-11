@@ -114,7 +114,7 @@ module top_tb();
         // $readmemh("leaves_mem_dummy1.txt", dut.leaf_mem_inst.loop_ram_patch_gen[6].ram_patch_inst.loop_depth_gen[0].loop_width_gen[1].genblk1.sram_macro.mem);
         // $readmemh("leaves_mem_dummy1.txt", dut.leaf_mem_inst.loop_ram_patch_gen[7].ram_patch_inst.loop_depth_gen[0].loop_width_gen[1].genblk1.sram_macro.mem);
         
-        expected_idx_data_file = $fopen("C:/Users/jakeke/wsl/Fast-ANN-Fieldious/data/IO_data/walking1/expectedIndex.txt", "r");
+        expected_idx_data_file = $fopen("./data/IO_data/expectedIndex.txt", "r");
         // expected_idx_data_file = $fopen("data/IO_data/topToBottomLeafIndex.txt", "r");
         if (expected_idx_data_file == 0) begin
             $display("expected_idx_data_file handle was NULL");
@@ -124,19 +124,19 @@ module top_tb();
             scan_file = $fscanf(expected_idx_data_file, "%d\n", expected_idx[i]);
         end
         
-        int_nodes_data_file = $fopen("C:/Users/jakeke/wsl/Fast-ANN-Fieldious/data/IO_data/walking1/internalNodes.txt", "r");
+        int_nodes_data_file = $fopen("./data/IO_data/internalNodes.txt", "r");
         if (int_nodes_data_file == 0) begin
             $display("int_nodes_data_file handle was NULL");
             $finish;
         end
         
-        leaves_data_file = $fopen("C:/Users/jakeke/wsl/Fast-ANN-Fieldious/data/IO_data/walking1/leafNodes.txt", "r");
+        leaves_data_file = $fopen("./data/IO_data/leafNodes.txt", "r");
         if (leaves_data_file == 0) begin
             $display("leaves_data_file handle was NULL");
             $finish;
         end
         
-        query_data_file = $fopen("C:/Users/jakeke/wsl/Fast-ANN-Fieldious/data/IO_data/walking1/patches.txt", "r");
+        query_data_file = $fopen("./data/IO_data/patches.txt", "r");
         if (query_data_file == 0) begin
             $display("query_data_file handle was NULL");
             $finish;
@@ -213,7 +213,6 @@ module top_tb();
         wait(fsm_done == 1'b1);
         $display("[T=%0t] Finished algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
         fsmtime = $realtime - simtime;
-        #120 // FIXME, does not work without it
 
         @(negedge io_clk) send_best_arr = 1'b1;
         $display("[T=%0t] Start receiving outputs", $realtime);
@@ -240,7 +239,7 @@ module top_tb();
         $display("[T=%0t] Finished receiving outputs", $realtime);
         outputtime = $realtime - simtime;
 
-        received_idx_data_file = $fopen("C:/Users/jakeke/wsl/Fast-ANN-Fieldious/data/IO_data/walking1/received_idx.txt", "w");
+        received_idx_data_file = $fopen("data/IO_data/received_idx.txt", "w");
         for(int i=0; i<NUM_QUERYS; i=i+1) begin
             $fwrite(received_idx_data_file, "%d\n", received_idx[i]);
             if (expected_idx[i] != received_idx[i])
@@ -261,12 +260,12 @@ module top_tb();
 
     end
     
-    // initial begin
-    //     $dumpfile("dump.vcd");
-    //     $dumpvars;
+    initial begin
+        $dumpfile("dump.vcd");
+        $dumpvars;
 
-    //     #166780000;
-    //     $finish(2);
-    // end
+        #166780000;
+        $finish(2);
+    end
 
 endmodule

@@ -91,6 +91,36 @@ module WishBoneCtrl_tb();
         .wbs_node_mem_wdata                     (wbs_node_mem_wdata),
         .wbs_node_mem_rdata                     (wbs_node_mem_rdata)
     );
+	
+	
+	logic [7:0] leaf_index;
+	logic [7:0] leaf_index_two;
+	logic leaf_en;
+	logic leaf_two_en;
+    internal_node_tree
+	  #(
+	   .INTERNAL_WIDTH(22),
+	   .PATCH_WIDTH(55),
+	   .ADDRESS_WIDTH(8)
+	  ) tree_dut (
+	  .clk(wb_clk_i),
+	  .rst_n(wb_rst_i),
+	  .fsm_enable(wbs_we_i), //based on whether we are at the proper I/O portion
+	  .sender_enable(wbs_we_i),
+	  .sender_data(wbs_dat_i),
+	  .patch_en(1'b0),
+	  .patch_two_en(1'b0),
+	  .patch_in(55'b0),
+	  .patch_in_two(55'b0),
+	  .leaf_index(leaf_index),
+	  .leaf_index_two(leaf_index_two),
+	  .receiver_en(leaf_en),
+	  .receiver_two_en(leaf_two_en),
+	  .wb_mode(wb_mode),
+	  .wbs_we_i(wbs_we_i), 
+	  .wbs_adr_i(wbs_adr_i), 
+	  .wbs_dat_o(wbs_dat_o)
+     );
 
     initial begin
         $dumpfile("dump.vcd");

@@ -113,7 +113,7 @@ module wbsCtrl
         wbs_leaf_mem_wleaf0 = '0;
 
 
-        wbs_node_mem_web = 1'b0;
+        wbs_node_mem_web = 1'b1;
         wbs_node_mem_addr = '0;
         wbs_node_mem_wdata = '0;
        // wbs_node_mem_rdata = '0;

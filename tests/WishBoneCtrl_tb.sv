@@ -98,6 +98,7 @@ module WishBoneCtrl_tb();
 	logic leaf_en;
 	logic leaf_two_en;
 	logic [31:0]                                            wbs_dat_nod_o;
+	
     internal_node_tree
 	  #(
 	   .INTERNAL_WIDTH(22),
@@ -134,6 +135,7 @@ module WishBoneCtrl_tb();
         wbs_sel_i = '1;
         wbs_dat_i = '0;
         wbs_adr_i = '0;
+	wbs_mode = 1'b1;
         #10;
 
         wb_rst_i = 1'b0;

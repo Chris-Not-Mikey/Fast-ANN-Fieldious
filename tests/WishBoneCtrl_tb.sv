@@ -334,6 +334,7 @@ module WishBoneCtrl_tb();
         wbs_stb_i = 1'b0;
         wbs_we_i = 1'b0;
         wbs_dat_i = '0;
+	assert(wbs_dat_o == {10'b0, 11'd55, 8'b0, 3'b1});
         //wbs_adr_i = '0;
 
 	#1000

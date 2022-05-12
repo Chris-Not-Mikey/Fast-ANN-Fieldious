@@ -206,7 +206,7 @@ def test_l2_kernel_tb():
 
 def test_wbs_ctrl_tb():
     print("Running wbs_ctrl_tb")
-    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/WishBoneCtrl_tb.sv', 'rtl/WishBoneCtrl.sv'])
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/WishBoneCtrl_tb.sv', 'rtl/WishBoneCtrl.sv', 'rtl/internal_node_2.v', 'rtl/internal_node_tree_2.v'])
 
 
 # def test_search_containing_leaf_tb():

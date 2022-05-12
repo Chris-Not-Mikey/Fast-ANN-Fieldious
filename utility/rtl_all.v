@@ -1450,7 +1450,7 @@ module MainFSM #(
 
             // Send query to InternalNode 2 cycles earlier to match the schedule
             SLPR0: begin
-                counter_in = 1;
+                counter_in = 2;
                 counter_en = 1'b1;
                 
                 if (counter == 0) begin
@@ -1502,6 +1502,14 @@ module MainFSM #(
                 // store the query for reuse
                 qp_mem_rvalid0 = 1'b1;
                 qp_mem_rvalid1 = 1'b1;
+
+                if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1) && (NUM_LAST_BLOCK != BLOCKING))) begin
+                    qp_mem_csb0 = 1'b0;
+                    qp_mem_web0 = 1'b1;
+                    qp_mem_addr0 = qp_mem_rd_addr;
+                    qp_mem_csb1 = 1'b0;
+                    qp_mem_addr1 = qp_mem_rd_addr2;
+                end
             end
 
             // send prop 1 and query to l2_k0
@@ -1519,13 +1527,10 @@ module MainFSM #(
                 leaf_mem_addr0 = prop_leaf_idx_r0[row_blocking_cnt][2];
                 leaf_mem_csb1 = '0;
                 leaf_mem_addr1 = prop_leaf_idx_r1[row_blocking_cnt][2];
-
+                
                 if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1) && (NUM_LAST_BLOCK != BLOCKING))) begin
-                    qp_mem_csb0 = 1'b0;
-                    qp_mem_web0 = 1'b1;
-                    qp_mem_addr0 = qp_mem_rd_addr;
-                    qp_mem_csb1 = 1'b0;
-                    qp_mem_addr1 = qp_mem_rd_addr2;
+                    int_node_patch_en = 1'b1;
+                    int_node_patch_en2 = 1'b1;
                 end
             end
 
@@ -1544,11 +1549,6 @@ module MainFSM #(
                 leaf_mem_addr0 = prop_leaf_idx_r0[row_blocking_cnt][3];
                 leaf_mem_csb1 = '0;
                 leaf_mem_addr1 = prop_leaf_idx_r1[row_blocking_cnt][3];
-                
-                if (~((row_outer_cnt == NUM_OUTER_BLOCK) && (row_blocking_cnt == NUM_LAST_BLOCK - 1) && (NUM_LAST_BLOCK != BLOCKING))) begin
-                    int_node_patch_en = 1'b1;
-                    int_node_patch_en2 = 1'b1;
-                end
             end
 
             // send prop 3 and query to l2_k0
@@ -1684,7 +1684,7 @@ module MainFSM #(
                 end
 
                 // read next query for SearchLeaf
-                if (counter == (BLOCKING - NUM_LAST_BLOCK) * 5 - 3) begin
+                if (counter == (BLOCKING - NUM_LAST_BLOCK) * 5 - 4) begin
                     qp_mem_csb0 = 1'b0;
                     qp_mem_web0 = 1'b1;
                     qp_mem_addr0 = qp_mem_rd_addr;
@@ -1693,7 +1693,7 @@ module MainFSM #(
                 end
 
                 // send to SearchLeaf
-                if (counter == (BLOCKING - NUM_LAST_BLOCK) * 5 - 2) begin
+                if (counter == (BLOCKING - NUM_LAST_BLOCK) * 5 - 3) begin
                     int_node_patch_en = 1'b1;
                     int_node_patch_en2 = 1'b1;
                 end
@@ -1726,7 +1726,7 @@ module MainFSM #(
             // results of computes0
             SendBestIdx: begin
                 counter_in = NUM_QUERYS / 2 - 1;
-                out_fifo_wdata_sel = 1'b1;
+                out_fifo_wdata_sel = 1'b0;
                 if (~out_fifo_wenq & out_fifo_wfull_n) begin
                     // reads only the best
                     best_arr_csb1 = {{(K-1){1'b1}}, 1'b0};
@@ -1743,7 +1743,7 @@ module MainFSM #(
             // results of computes1
             SendBestIdx2: begin
                 counter_in = NUM_QUERYS / 2 - 1;
-                out_fifo_wdata_sel = 1'b0;
+                out_fifo_wdata_sel = 1'b1;
                 if (~out_fifo_wenq & out_fifo_wfull_n) begin
                     // reads only the best
                     best_arr_csb1 = {{(K-1){1'b1}}, 1'b0};
@@ -1783,7 +1783,10 @@ module MainFSM #(
 
     // ExactFstRow and SearchLeaf: used to read from the query patch memory
     always_ff @(posedge clk, negedge rst_n) begin
-        if (~rst_n | qp_mem_rd_addr_rst) begin //TODO: Synthesis Investigation (https://stackoverflow.com/questions/44517945/what-happens-when-one-declares-more-signalsvariables-than-needed-in-the-sensit)
+        if (~rst_n) begin
+            qp_mem_rd_addr <= '0;
+            qp_mem_rd_addr2 <= '0;
+        end else if (qp_mem_rd_addr_rst) begin
             qp_mem_rd_addr <= '0;
             qp_mem_rd_addr2 <= '0;
         end else if (qp_mem_rd_addr_set) begin
@@ -1806,7 +1809,8 @@ module MainFSM #(
 
     // stores the next addr of best arrays
     always_ff @(posedge clk, negedge rst_n) begin
-        if (~rst_n | best_arr_addr_rst) best_arr_addr_r <= '0; //TODO: Synthesis Investigation (https://stackoverflow.com/questions/44517945/what-happens-when-one-declares-more-signalsvariables-than-needed-in-the-sensit
+        if (~rst_n) best_arr_addr_r <= '0;
+        else if (best_arr_addr_rst) best_arr_addr_r <= '0;
         else if (sl0_valid_out) begin
             best_arr_addr_r <= best_arr_addr_r + 1'b1;
         end
@@ -1913,17 +1917,14 @@ module kBestArrays #(
     input logic                                         csb0,
     input logic                                         web0,
     input logic [8:0]                                   addr0,
-    input logic [DATA_WIDTH-1:0]                        wdist_0 [K-1:0],
-    input logic [IDX_WIDTH-1:0]                         widx_0 [K-1:0],
-    input logic [LEAF_ADDRW-1:0]                        wleaf_idx_0 [K-1:0],
-    output logic [DATA_WIDTH-1:0]                       rdist_0 [K-1:0],
-    output logic [IDX_WIDTH-1:0]                        ridx_0 [K-1:0],
-    output logic [LEAF_ADDRW-1:0]                       rleaf_idx_0 [K-1:0],
+    input logic [LEAF_ADDRW+IDX_WIDTH-1:0]              compute0_widx_0 [K-1:0],
+    input logic [LEAF_ADDRW+IDX_WIDTH-1:0]              compute1_widx_0 [K-1:0],
+    output logic [LEAF_ADDRW+IDX_WIDTH-1:0]             compute0_ridx_0 [K-1:0],
+    output logic [LEAF_ADDRW+IDX_WIDTH-1:0]             compute1_ridx_0 [K-1:0],
     input logic [K-1:0]                                 csb1,
     input logic [8:0]                                   addr1,
-    output logic [DATA_WIDTH-1:0]                       rdist_1 [K-1:0],
-    output logic [IDX_WIDTH-1:0]                        ridx_1 [K-1:0],
-    output logic [LEAF_ADDRW-1:0]                       rleaf_idx_1 [K-1:0]
+    output logic [LEAF_ADDRW+IDX_WIDTH-1:0]             compute0_ridx_1 [K-1:0],
+    output logic [LEAF_ADDRW+IDX_WIDTH-1:0]             compute1_ridx_1 [K-1:0]
 );
 
     logic [31:0] dout0 [K-1:0];
@@ -1941,19 +1942,17 @@ module kBestArrays #(
             .csb0(csb0),
             .web0(web0),
             .addr0(addr0),
-            .din0({{(32 - LEAF_ADDRW - IDX_WIDTH - DATA_WIDTH){1'b0}}, wleaf_idx_0[i], widx_0[i], wdist_0[i]}),
+            .din0({{(32 - LEAF_ADDRW * 2 - IDX_WIDTH * 2){1'b0}}, compute1_widx_0[i], compute0_widx_0[i]}),
             .dout0(dout0[i]),
             .clk1(clk),
             .csb1(csb1[i]),
             .addr1(addr1),
             .dout1(dout1[i])
         );
-        assign rdist_0[i] = dout0[i][DATA_WIDTH-1:0];
-        assign ridx_0[i] = dout0[i][DATA_WIDTH+IDX_WIDTH-1:DATA_WIDTH];
-        assign rleaf_idx_0[i] = dout0[i][DATA_WIDTH+IDX_WIDTH+LEAF_ADDRW-1:DATA_WIDTH+IDX_WIDTH];
-        assign rdist_1[i] = dout1[i][DATA_WIDTH-1:0];
-        assign ridx_1[i] = dout1[i][DATA_WIDTH+IDX_WIDTH-1:DATA_WIDTH];
-        assign rleaf_idx_1[i] = dout1[i][DATA_WIDTH+IDX_WIDTH+LEAF_ADDRW-1:DATA_WIDTH+IDX_WIDTH];
+        assign compute0_ridx_0[i] = dout0[i][LEAF_ADDRW+IDX_WIDTH-1:0];
+        assign compute1_ridx_0[i] = dout0[i][31-2:LEAF_ADDRW+IDX_WIDTH];
+        assign compute0_ridx_1[i] = dout1[i][LEAF_ADDRW+IDX_WIDTH-1:0];
+        assign compute1_ridx_1[i] = dout1[i][31-2:LEAF_ADDRW+IDX_WIDTH];
     end
     endgenerate
 
@@ -1970,6 +1969,7 @@ module top
     parameter COL_SIZE = 19,
     parameter NUM_QUERYS = ROW_SIZE * COL_SIZE,
     parameter K = 4,
+    parameter BEST_ARRAY_K = 1,
     parameter NUM_LEAVES = 64,
     parameter BLOCKING = 4,
     parameter LEAF_ADDRW = $clog2(NUM_LEAVES)
@@ -1980,20 +1980,20 @@ module top
 
     // testbench use
     // might need to add clock domain crossing modules for these controls
-    input logic                                 load_kdtree,
-    input logic                                 fsm_start,
-    output logic                                fsm_done,
-    input logic                                 send_best_arr,
+    input logic                                             load_kdtree,
+    input logic                                             fsm_start,
+    output logic                                            fsm_done,
+    input logic                                             send_best_arr,
 
     // FIFO
-    input logic                                 io_clk,
-    input logic                                 io_rst_n,
-    input logic                                 in_fifo_wenq,
-    input logic [DATA_WIDTH-1:0]                in_fifo_wdata,
-    output logic                                in_fifo_wfull_n,
-    input logic                                 out_fifo_deq,
-    output logic [DATA_WIDTH-1:0]               out_fifo_rdata,
-    output logic                                out_fifo_rempty_n,
+    input logic                                             io_clk,
+    input logic                                             io_rst_n,
+    input logic                                             in_fifo_wenq,
+    input logic [DATA_WIDTH-1:0]                            in_fifo_wdata,
+    output logic                                            in_fifo_wfull_n,
+    input logic                                             out_fifo_deq,
+    output logic [DATA_WIDTH-1:0]                           out_fifo_rdata,
+    output logic                                            out_fifo_rempty_n,
 
     // Wishbone
     input logic                                             wbs_debug,
@@ -2008,10 +2008,10 @@ module top
     input logic [63:0]                                      wbs_leaf_mem_wleaf0,
     output logic [63:0]                                     wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0],
 
-    input logic                                                    wbs_node_mem_web,
-    input logic [31:0]                                             wbs_node_mem_addr,
-    input logic [31:0]                                             wbs_node_mem_wdata,
-    output logic [31:0]                                              wbs_node_mem_rdata 
+    input logic                                             wbs_node_mem_web,
+    input logic [31:0]                                      wbs_node_mem_addr,
+    input logic [31:0]                                      wbs_node_mem_wdata,
+    output logic [31:0]                                     wbs_node_mem_rdata 
 
 );
 
@@ -2068,17 +2068,14 @@ module top
     logic                                                   best_arr_csb0;
     logic                                                   best_arr_web0;
     logic [8:0]                                             best_arr_addr0;
-    logic [DATA_WIDTH-1:0]                                  best_arr_wdist_0 [K-1:0];
-    logic [IDX_WIDTH-1:0]                                   best_arr_widx_0 [K-1:0];
-    logic [LEAF_ADDRW-1:0]                                  best_arr_wleaf_idx_0 [K-1:0];
-    logic [DATA_WIDTH-1:0]                                  best_arr_rdist_0 [K-1:0];
-    logic [IDX_WIDTH-1:0]                                   best_arr_ridx_0 [K-1:0];
-    logic [LEAF_ADDRW-1:0]                                  best_arr_rleaf_idx_0 [K-1:0];
-    logic [K-1:0]                                           best_arr_csb1;
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        best_arr_compute0_widx_0 [BEST_ARRAY_K-1:0];
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        best_arr_compute1_widx_0 [BEST_ARRAY_K-1:0];
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        best_arr_compute0_ridx_0 [BEST_ARRAY_K-1:0];
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        best_arr_compute1_ridx_0 [BEST_ARRAY_K-1:0];
+    logic [BEST_ARRAY_K-1:0]                                best_arr_csb1;
     logic [8:0]                                             best_arr_addr1;
-    logic [DATA_WIDTH-1:0]                                  best_arr_rdist_1 [K-1:0];
-    logic [IDX_WIDTH-1:0]                                   best_arr_ridx_1 [K-1:0];
-    logic [LEAF_ADDRW-1:0]                                  best_arr_rleaf_idx_1 [K-1:0];
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        best_arr_compute0_ridx_1 [BEST_ARRAY_K-1:0];
+    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        best_arr_compute1_ridx_1 [BEST_ARRAY_K-1:0];
 
     logic                                                   k0_query_first_in;
     logic                                                   k0_query_first_out;
@@ -2314,6 +2311,18 @@ module top
         .computes1_leaf_idx                     (computes1_leaf_idx)
     );
 
+    // the propagated leaf idx are store in registers in the main fsm
+    // so we do not need to store in best arrays
+    assign computes0_leaf_idx   = { sl0_merged_idx_3[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
+                                    sl0_merged_idx_2[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
+                                    sl0_merged_idx_1[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
+                                    sl0_merged_idx_0[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH] };
+    assign computes1_leaf_idx   = { sl1_merged_idx_3[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
+                                    sl1_merged_idx_2[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
+                                    sl1_merged_idx_1[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
+                                    sl1_merged_idx_0[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH] };
+
+
 
     // I/O FIFO and Aggregator
     SyncFIFO #(
@@ -2372,9 +2381,11 @@ module top
     );
 
     // reads only the best patch idx
-    assign out_fifo_wdata = out_fifo_wdata_sel ?best_arr_ridx_1[0] :best_arr_rdist_1[0][IDX_WIDTH-1:0]; //TODO
-    // if you want to read only the best leaf idx
-    // assign out_fifo_wdata = best_arr_rleaf_idx_1[0];
+    // set by MainFSM, if out_fifo_wdata_sel=1, read compute1 idx. Else, read compute0
+    assign out_fifo_wdata[DATA_WIDTH-1:IDX_WIDTH] = '0; 
+    assign out_fifo_wdata[IDX_WIDTH-1:0] = out_fifo_wdata_sel 
+                                                ? best_arr_compute1_ridx_1[0][IDX_WIDTH-1:0] 
+                                                : best_arr_compute0_ridx_1[0][IDX_WIDTH-1:0];
 
 
     // Memories
@@ -2454,63 +2465,27 @@ module top
     kBestArrays #(
         .DATA_WIDTH         (DATA_WIDTH),
         .IDX_WIDTH          (IDX_WIDTH),
-        .K                  (K),
+        .K                  (BEST_ARRAY_K),
         .NUM_LEAVES         (NUM_LEAVES)
     ) k_best_array_inst (
         .clk                (clk),
         .csb0               (best_arr_csb0),
         .web0               (best_arr_web0),
         .addr0              (best_arr_addr0),
-        .wdist_0            (best_arr_wdist_0),
-        .widx_0             (best_arr_widx_0),
-        .wleaf_idx_0        (best_arr_wleaf_idx_0),
-        .rdist_0            (best_arr_rdist_0),
-        .ridx_0             (best_arr_ridx_0),
-        .rleaf_idx_0        (best_arr_rleaf_idx_0),
+        .compute0_widx_0    (best_arr_compute0_widx_0),
+        .compute1_widx_0    (best_arr_compute1_widx_0),
+        .compute0_ridx_0    (best_arr_compute0_ridx_0),
+        .compute1_ridx_0    (best_arr_compute1_ridx_0),
         .csb1               (best_arr_csb1),
         .addr1              (best_arr_addr1),
-        .rdist_1            (best_arr_rdist_1),
-        .ridx_1             (best_arr_ridx_1),
-        .rleaf_idx_1        (best_arr_rleaf_idx_1)
+        .compute0_ridx_1    (best_arr_compute0_ridx_1),
+        .compute1_ridx_1    (best_arr_compute1_ridx_1)
     );
-
-
-    //TODO: rename/redesign bestarrays input ports
-    // 1. to store only computes0 and computes1's best patch idx
-    // 2. to store only the best, not K best
 
     assign best_arr_csb0 = ~sl0_valid_out;
     assign best_arr_web0 = 1'b0;
-    // skip storing distances
-    // assign best_arr_wdist_0 = { {DATA_WIDTH{1'b0}},
-    //                             {DATA_WIDTH{1'b0}},
-    //                             {DATA_WIDTH{1'b0}},
-    //                             {DATA_WIDTH{1'b0}} };
-    // assign best_arr_wdist_0 = { sl0_l2_dist_3,
-    //                             sl0_l2_dist_2,
-    //                             sl0_l2_dist_1,
-    //                             sl0_l2_dist_0 };
-    assign best_arr_widx_0 = {  sl0_merged_idx_3[IDX_WIDTH-1:0],
-                                sl0_merged_idx_2[IDX_WIDTH-1:0],
-                                sl0_merged_idx_1[IDX_WIDTH-1:0],
-                                sl0_merged_idx_0[IDX_WIDTH-1:0] };
-    assign best_arr_wleaf_idx_0 = computes0_leaf_idx;
-    assign computes0_leaf_idx   = { sl0_merged_idx_3[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
-                                    sl0_merged_idx_2[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
-                                    sl0_merged_idx_1[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
-                                    sl0_merged_idx_0[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH] };
-    
-    // temporarily using dist_0 bits to store the computes2 patch idx results
-    assign best_arr_wdist_0     = { {2'b0, sl1_merged_idx_3[IDX_WIDTH-1:0]},
-                                    {2'b0, sl1_merged_idx_2[IDX_WIDTH-1:0]},
-                                    {2'b0, sl1_merged_idx_1[IDX_WIDTH-1:0]},
-                                    {2'b0, sl1_merged_idx_0[IDX_WIDTH-1:0]} };
-    // the propagated leaf idx are store in registers in the main fsm
-    // so we do not need to store in best arrays
-    assign computes1_leaf_idx   = { sl1_merged_idx_3[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
-                                    sl1_merged_idx_2[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
-                                    sl1_merged_idx_1[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH],
-                                    sl1_merged_idx_0[LEAF_ADDRW+IDX_WIDTH-1:IDX_WIDTH] };
+    assign best_arr_compute0_widx_0[0] = sl0_merged_idx_0;
+    assign best_arr_compute1_widx_0[0] = sl1_merged_idx_0;
 
 
     // Computes 0
@@ -3913,8 +3888,8 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
 
  //Register for keeping track of whether output is valid (keeps track of pipelined inputs as well.
  // This handles the 6 cycle latency of this setup
- reg latency_track_reciever_en [7:0];
- reg latency_track_reciever_two_en [7:0];
+ reg latency_track_reciever_en [6:0];
+ reg latency_track_reciever_two_en [6:0];
  
  always @ (posedge clk) begin
      if (rst_n == 0) begin
@@ -3925,7 +3900,6 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
       latency_track_reciever_en[4] <= 0;
       latency_track_reciever_en[5] <= 0;
       latency_track_reciever_en[6] <= 0;
-      latency_track_reciever_en[7] <= 0;
 
       latency_track_reciever_two_en[0] <= 0;
       latency_track_reciever_two_en[1] <= 0;
@@ -3934,7 +3908,7 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
       latency_track_reciever_two_en[4] <= 0;
       latency_track_reciever_two_en[5] <= 0;
       latency_track_reciever_two_en[6] <= 0;
-      latency_track_reciever_two_en[7] <= 0;
+ 
     end
     else begin
       latency_track_reciever_en[0] <= patch_en;
@@ -3944,7 +3918,6 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
       latency_track_reciever_en[4] <= latency_track_reciever_en[3];
       latency_track_reciever_en[5] <= latency_track_reciever_en[4];
       latency_track_reciever_en[6] <= latency_track_reciever_en[5];
-       latency_track_reciever_en[7] <= latency_track_reciever_en[6];
 
       latency_track_reciever_two_en[0] <= patch_two_en;
       latency_track_reciever_two_en[1] <= latency_track_reciever_two_en[0];
@@ -3953,7 +3926,6 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
       latency_track_reciever_two_en[4] <= latency_track_reciever_two_en[3];
       latency_track_reciever_two_en[5] <= latency_track_reciever_two_en[4];
       latency_track_reciever_two_en[6] <= latency_track_reciever_two_en[5];
-      latency_track_reciever_two_en[7] <= latency_track_reciever_two_en[6];
     end
   
  end
@@ -3968,7 +3940,7 @@ always @ (posedge clk) begin
     if (rst_n == 0) begin
         wadr <= 0;
     end
-    else if (wen) begin
+    else if (wen && !wb_mode ) begin
         wadr <= wadr + 1;
     end
     else begin
@@ -4356,7 +4328,7 @@ module LeavesMem
         assign rpatch_idx0[i] = rdata0[i][63:PATCH_SIZE*DATA_WIDTH];
         assign rpatch_data1[i] = rdata1[i][PATCH_SIZE*DATA_WIDTH-1:0];
         assign rpatch_idx1[i] = rdata1[i][63:PATCH_SIZE*DATA_WIDTH];
-        assign rleaf0 = rdata0;
+        assign rleaf0[i] = rdata0[i];
     end
     endgenerate
 

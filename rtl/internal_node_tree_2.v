@@ -143,7 +143,7 @@ always @ (posedge clk) begin
     if (rst_n == 0) begin
         wadr <= 0;
     end
-    else if (wen) begin
+    else if (wen && !wb_mode ) begin
         wadr <= wadr + 1;
     end
     else begin

@@ -306,11 +306,11 @@ module WishBoneCtrl_tb();
         wbs_sel_i = '1;
 	wbs_adr_i = WBS_NODE_ADDR + (1'b1) + 0; // addr 1 (first idx and median)
       
-	$finish();
 	 
-        @(posedge (wbs_node_mem_web));
+        @(posedge (wbs_ack_o));
         wbs_node_mem_rdata = {10'b0, 11'd0, 8'b0, 3'b111}; //10 0's, median of 0, and index of -1 (wrt to 3 bits)  (default values)
 
+	   
 	$finish();
 
         @(posedge wbs_ack_o) assert(wbs_dat_o == {10'b0, 11'd0, 8'b0, 3'b111});

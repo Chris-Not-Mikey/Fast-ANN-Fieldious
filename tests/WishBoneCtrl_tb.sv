@@ -346,7 +346,7 @@ module WishBoneCtrl_tb();
 
 	#10
 	assert(wbs_dat_o == {10'b0, 11'd55, 11'b1});
-        $finish();
+        //$finish();
 	    
 	    
 	// mem write (last element)
@@ -356,7 +356,7 @@ module WishBoneCtrl_tb();
         wbs_we_i = 1'b1;
         wbs_sel_i = '1;
 	wbs_dat_i = {10'b0, 11'd42, 11'd2}; //10 0's, median of 55, and index of 1 
-        wbs_adr_i = WBS_NODE_ADDR + 8'd128  + 0; // addr 1
+        wbs_adr_i = WBS_NODE_ADDR + 8'd63  + 0; // addr 1
     
         @(negedge wbs_ack_o);
         wbs_cyc_i = 1'b1;

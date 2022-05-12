@@ -54,6 +54,8 @@ module WishBoneCtrl_tb();
             #5 wb_clk_i = ~wb_clk_i;
         end 
     end
+	
+   logic [31:0]                                            wbs_dat_nod_o;
 
     wbsCtrl #(
         .DATA_WIDTH                             (DATA_WIDTH),
@@ -89,7 +91,7 @@ module WishBoneCtrl_tb();
         .wbs_node_mem_web                       (wbs_node_mem_web),
         .wbs_node_mem_addr                      (wbs_node_mem_addr),
         .wbs_node_mem_wdata                     (wbs_node_mem_wdata),
-        .wbs_node_mem_rdata                     (wbs_node_mem_rdata)
+        .wbs_node_mem_rdata                     (wbs_dat_nod_o)
     );
 	
 	
@@ -97,7 +99,7 @@ module WishBoneCtrl_tb();
 	logic [7:0] leaf_index_two;
 	logic leaf_en;
 	logic leaf_two_en;
-	logic [31:0]                                            wbs_dat_nod_o;
+	
 	
     internal_node_tree
 	  #(
@@ -302,7 +304,7 @@ module WishBoneCtrl_tb();
         wbs_stb_i = 1'b1;
         wbs_we_i = 1'b0;
         wbs_sel_i = '1;
-        wbs_adr_i = WBS_NODE_ADDR + (1<<1)+ 0; // addr 1 (first idx and median)
+	wbs_adr_i = WBS_NODE_ADDR + (1'b1) + 0; // addr 1 (first idx and median)
       
 	$finish();
 	 

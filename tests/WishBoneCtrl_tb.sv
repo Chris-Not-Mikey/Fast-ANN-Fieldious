@@ -118,7 +118,7 @@ module WishBoneCtrl_tb();
 	  .leaf_index_two(leaf_index_two),
 	  .receiver_en(leaf_en),
 	  .receiver_two_en(leaf_two_en),
-	  .wb_mode(wb_mode),
+	  .wb_mode(wbs_mode),
 	  .wbs_we_i(wbs_we_i), 
 	  .wbs_adr_i(wbs_adr_i), 
 	  .wbs_dat_o(wbs_dat_nod_o)
@@ -135,7 +135,6 @@ module WishBoneCtrl_tb();
         wbs_sel_i = '1;
         wbs_dat_i = '0;
         wbs_adr_i = '0;
-	wbs_mode = 1'b1;
         #10;
 
         wb_rst_i = 1'b0;

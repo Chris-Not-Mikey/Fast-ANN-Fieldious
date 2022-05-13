@@ -126,6 +126,9 @@ module user_proj_example #(
     assign io_out[31] = fsm_done;
     assign io_out[17:0] = '0;
     assign io_out[37:32] = '0;
+    
+    
+    assign wbs_mode = 0;
 
 
     ClockMux clockmux_inst (

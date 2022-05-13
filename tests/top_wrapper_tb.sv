@@ -242,10 +242,10 @@ module top_tb();
         $display("[T=%0t] Finished algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
         fsmtime = $realtime - simtime;
 
-        @(negedge io_in[0]) io_in[16] = 1'b1;
+        @(posedge io_in[0]) io_in[16] = 1'b1;
         $display("[T=%0t] Start receiving outputs", $realtime);
         simtime = $realtime;
-        @(negedge io_in[0]) io_in[16] = 1'b0;
+        @(posedge io_in[0]) io_in[16] = 1'b0;
 
         for(int px=0; px<2; px=px+1) begin
             for(x=0; x<4; x=x+1) begin

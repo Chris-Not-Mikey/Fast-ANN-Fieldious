@@ -208,7 +208,7 @@ module user_proj_example #(
     //     .LEAF_ADDRW(LEAF_ADDRW)
     // ) 
     dut(
-        .clk(clkmux_clk),
+        .clk(io_clk),
         .rst_n(io_rst_n),
 
         .load_kdtree(load_kdtree),

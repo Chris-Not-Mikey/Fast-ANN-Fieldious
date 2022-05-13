@@ -35,8 +35,12 @@
  *-------------------------------------------------------------
  */
 
+`ifndef MPRJ_IO_PADS
+    `define MPRJ_IO_PADS 38
+`endif
+
 module user_proj_example #(
-    parameter BITS = 32
+    parameter BITS = 32,
 )(
 `ifdef USE_POWER_PINS
     inout vccd1,	// User area 1 1.8V supply
@@ -69,9 +73,9 @@ module user_proj_example #(
     output [2:0] irq
 );
 
-    wire [`MPRJ_IO_PADS-1:0] io_in;
-    wire [`MPRJ_IO_PADS-1:0] io_out;
-    wire [`MPRJ_IO_PADS-1:0] io_oeb;
+//     wire [`MPRJ_IO_PADS-1:0] io_in;
+//     wire [`MPRJ_IO_PADS-1:0] io_out;
+//     wire [`MPRJ_IO_PADS-1:0] io_oeb;
 
     logic                                                   io_clk;
     logic                                                   io_rst_n;

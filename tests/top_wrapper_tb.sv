@@ -76,7 +76,7 @@ module top_tb();
         .wbs_dat_i(wbs_dat_i),
         .wbs_adr_i(wbs_adr_i),
         .wbs_ack_o(wbs_ack_o),
-        .wbs_dat_o(wbs_dat_o)
+        .wbs_dat_o(wbs_dat_o),
         .la_data_in(la_data_in),
         .la_data_out(la_data_out),
         .la_oenb(la_oenb),

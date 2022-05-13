@@ -184,20 +184,20 @@ module top_tb();
         #40;
 
         // start load kd tree internal nodes and leaves
-        @(negedge io_in[0]) io_in[17] = 1'b1;
+        @(posedge io_in[0]) io_in[17] = 1'b1;
         simtime = $realtime;
         $display("[T=%0t] Start sending KD tree internal nodes and leaves", $realtime);
-        @(negedge io_in[0]) io_in[17] = 1'b0;
+        @(posedge io_in[0]) io_in[17] = 1'b0;
 
         // send internal nodes, 2 lines per node
         // index
         // median
         for(int i=0; i<NUM_NODES*2; i=i+1) begin
-            @(negedge io_in[0])
+            @(posedge io_in[0])
             io_in[2] = 1'b1;
             scan_file = $fscanf(int_nodes_data_file, "%d\n", io_in[13:3]);
         end
-        @(negedge io_in[0])
+        @(posedge io_in[0])
         io_in[2] = 0;
         io_in[13:3] = '0;
 
@@ -206,11 +206,11 @@ module top_tb();
         // each patch has 5 lines of data
         // and 1 line of patch index in the original image (for reconstruction)
         for(int i=0; i<NUM_LEAVES*6*8; i=i+1) begin
-            @(negedge io_in[0])
+            @(posedge io_in[0])
             io_in[2] = 1'b1;
             scan_file = $fscanf(leaves_data_file, "%d\n", io_in[13:3]);
         end
-        @(negedge io_in[0])
+        @(posedge io_in[0])
         io_in[2] = 0;
         io_in[13:3] = '0;
         $display("[T=%0t] Finished sending KD tree internal nodes and leaves", $realtime);
@@ -221,11 +221,11 @@ module top_tb();
         // send query patches, 5 lines per query patch
         // each patch has 5 lines of data
         for(int i=0; i<NUM_QUERYS*5; i=i+1) begin
-            @(negedge io_in[0])
+            @(posedge io_in[0])
             io_in[2] = 1'b1;
             scan_file = $fscanf(query_data_file, "%d\n", io_in[13:3]);
         end
-        @(negedge io_in[0])
+        @(posedge io_in[0])
         io_in[2] = 0;
         io_in[13:3] = '0;
         $display("[T=%0t] Finished sending queries", $realtime);
@@ -233,10 +233,10 @@ module top_tb();
         
 
         #100;
-        @(negedge io_in[0]) io_in[15] = 1'b1;
+        @(posedge io_in[0]) io_in[15] = 1'b1;
         $display("[T=%0t] Start algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
         simtime = $realtime;
-        @(negedge io_in[0]) io_in[15] = 1'b0;
+        @(posedge io_in[0]) io_in[15] = 1'b0;
 
         wait(io_out[31] == 1'b1);
         $display("[T=%0t] Finished algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
@@ -254,7 +254,7 @@ module top_tb();
                     for(xi=0; xi<BLOCKING; xi=xi+1) begin
                         if ((x != 3) || (xi < 1)) begin  // for row_size = 26
                             wait(io_out[30]);
-                            @(negedge io_in[0])
+                            @(posedge io_in[0])
                             io_in[14] = 1'b1;
                             addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
                             received_idx[addr] = io_out[29:19];
@@ -263,7 +263,7 @@ module top_tb();
                 end
             end
         end
-        @(negedge io_in[0]) io_in[14] = 1'b0;
+        @(posedge io_in[0]) io_in[14] = 1'b0;
         $display("[T=%0t] Finished receiving outputs", $realtime);
         outputtime = $realtime - simtime;
 

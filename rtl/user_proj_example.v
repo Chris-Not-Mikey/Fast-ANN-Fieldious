@@ -146,15 +146,15 @@ module user_proj_example #(
 
     ClockMux clockmux_inst (
         .select  ( wbs_mode  ),
-        .clk0    ( wb_clk_i  ),
-        .clk1    ( io_clk    ),
+        .clk0    ( io_clk   ),
+        .clk1    ( wb_clk_i ),
         .out_clk ( clkmux_clk)
     );
 
     ClockMux rstmux_inst (
         .select  ( wbs_mode     ),
-        .clk0    ( ~wb_rst_i    ),
-        .clk1    ( io_rst_n     ),
+        .clk0    ( io_rst_n     ),
+        .clk1    ( ~wb_rst_i    ),
         .out_clk ( rstmux_rst_n )
     );
 

@@ -141,7 +141,7 @@ module user_proj_example #(
     assign io_out[37:32] = '0;
     
     
-    assign wbs_mode = 0;
+    //assign wbs_mode = 0;
 
 
     ClockMux clockmux_inst (

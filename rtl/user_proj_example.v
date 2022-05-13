@@ -40,7 +40,20 @@
 `endif
 
 module user_proj_example #(
-    parameter BITS = 32
+    parameter BITS = 32,
+    parameter DATA_WIDTH = 11,
+    parameter DIST_WIDTH = 25, // maximum 25
+    parameter IDX_WIDTH = 9, // index of patch in the original image
+    parameter LEAF_SIZE = 8,
+    parameter PATCH_SIZE = 5, //excluding the index
+    parameter ROW_SIZE = 26,
+    parameter COL_SIZE = 19,
+    parameter NUM_QUERYS = ROW_SIZE * COL_SIZE,
+    parameter K = 4,
+    parameter BEST_ARRAY_K = 1,
+    parameter NUM_LEAVES = 64,
+    parameter BLOCKING = 4,
+    parameter LEAF_ADDRW = $clog2(NUM_LEAVES)
 )(
 `ifdef USE_POWER_PINS
     inout vccd1,	// User area 1 1.8V supply

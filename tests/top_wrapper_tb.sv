@@ -40,17 +40,17 @@ module top_tb();
     logic [31:0] wbs_dat_o;
 
     // Logic Analyzer Signals
-    logic  [127:0] la_data_in,
-    logic [127:0] la_data_out,
-    logic  [127:0] la_oenb,
+    logic  [127:0] la_data_in;
+    logic [127:0] la_data_out;
+    logic  [127:0] la_oenb;
 
     // IOs
-    logic  [`MPRJ_IO_PADS-1:0] io_in,
-    logic [`MPRJ_IO_PADS-1:0] io_out,
-    logic [`MPRJ_IO_PADS-1:0] io_oeb,
+    logic  [`MPRJ_IO_PADS-1:0] io_in;
+    logic [`MPRJ_IO_PADS-1:0] io_out;
+    logic [`MPRJ_IO_PADS-1:0] io_oeb;
 
     // IRQ
-    logic [2:0] irq
+    logic [2:0] irq;
 
 
 

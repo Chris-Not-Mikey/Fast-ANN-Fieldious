@@ -1,4 +1,9 @@
 `timescale 1 ns / 1 ps
+
+`ifndef MPRJ_IO_PADS
+    `define MPRJ_IO_PADS 38
+`endif
+
 module top_tb();
     parameter DATA_WIDTH = 11;
     parameter LEAF_SIZE = 8;

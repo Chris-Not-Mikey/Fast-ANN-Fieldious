@@ -33,6 +33,7 @@ module top_tb();
 
 
 
+    logic rst_n;
     logic wb_clk_i;
     logic wb_rst_i;
     logic wbs_stb_i;

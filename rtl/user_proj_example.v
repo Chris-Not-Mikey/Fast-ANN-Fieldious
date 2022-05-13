@@ -151,6 +151,7 @@ module user_proj_example #(
         .out_clk ( clkmux_clk)
     );
 
+    //TODO: Not working
     ClockMux rstmux_inst (
         .select  ( wbs_mode     ),
         .clk0    ( io_rst_n     ),
@@ -208,7 +209,7 @@ module user_proj_example #(
     // ) 
     dut(
         .clk(clkmux_clk),
-        .rst_n(rstmux_rst_n),
+        .rst_n(io_rst_n),
 
         .load_kdtree(load_kdtree),
         .fsm_start(fsm_start),

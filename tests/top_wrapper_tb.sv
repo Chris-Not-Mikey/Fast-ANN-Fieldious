@@ -69,7 +69,7 @@ module top_tb();
        
       ) dut(
         .wb_clk_i(wb_clk_i),
-        .wb_rst_i(rst_n),
+        .wb_rst_i(rst_n), //Check this
         .wbs_stb_i(wbs_stb_i),
         .wbs_cyc_i(wbs_cyc_i),
         .wbs_we_i(wbs_we_i), 

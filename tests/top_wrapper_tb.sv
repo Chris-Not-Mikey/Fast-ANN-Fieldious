@@ -93,14 +93,14 @@ module top_tb();
     initial begin 
         wb_clk_i = 0;
         forever begin
-            #100 wb_clk_i = ~wb_clk_i;
+            #5 wb_clk_i = ~wb_clk_i;
         end 
     end
 
     initial begin 
         io_in[0] = 0; //Our clock is IO pin1
         forever begin
-            #6.6666666667 io_in[0] = ~io_in[0];
+            #10 io_in[0] = ~io_in[0];
         end 
     end
 

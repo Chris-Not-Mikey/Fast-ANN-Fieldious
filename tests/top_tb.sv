@@ -80,9 +80,11 @@ module top_tb();
     integer scan_file;
     integer expected_idx_data_file;
     integer received_idx_data_file;
+    integer received_dist_data_file;
     integer int_nodes_data_file;
     integer leaves_data_file;
     integer query_data_file;
+    reg [2*DATA_WIDTH-1:0] received_dist [NUM_QUERYS-1:0];
     reg [DATA_WIDTH-1:0] received_idx [NUM_QUERYS-1:0];
     reg [DATA_WIDTH-1:0] expected_idx [NUM_QUERYS-1:0];
     integer x;
@@ -98,23 +100,6 @@ module top_tb();
     initial begin
         $timeformat(-9, 2, "ns", 20);
 
-        // $readmemh("leaves_mem_dummy0.txt", dut.leaf_mem_inst.loop_ram_patch_gen[0].ram_patch_inst.loop_depth_gen[0].loop_width_gen[0].genblk1.sram_macro.mem);
-        // $readmemh("leaves_mem_dummy0.txt", dut.leaf_mem_inst.loop_ram_patch_gen[1].ram_patch_inst.loop_depth_gen[0].loop_width_gen[0].genblk1.sram_macro.mem);
-        // $readmemh("leaves_mem_dummy0.txt", dut.leaf_mem_inst.loop_ram_patch_gen[2].ram_patch_inst.loop_depth_gen[0].loop_width_gen[0].genblk1.sram_macro.mem);
-        // $readmemh("leaves_mem_dummy0.txt", dut.leaf_mem_inst.loop_ram_patch_gen[3].ram_patch_inst.loop_depth_gen[0].loop_width_gen[0].genblk1.sram_macro.mem);
-        // $readmemh("leaves_mem_dummy1.txt", dut.leaf_mem_inst.loop_ram_patch_gen[4].ram_patch_inst.loop_depth_gen[0].loop_width_gen[0].genblk1.sram_macro.mem);
-        // $readmemh("leaves_mem_dummy1.txt", dut.leaf_mem_inst.loop_ram_patch_gen[5].ram_patch_inst.loop_depth_gen[0].loop_width_gen[0].genblk1.sram_macro.mem);
-        // $readmemh("leaves_mem_dummy1.txt", dut.leaf_mem_inst.loop_ram_patch_gen[6].ram_patch_inst.loop_depth_gen[0].loop_width_gen[0].genblk1.sram_macro.mem);
-        // $readmemh("leaves_mem_dummy1.txt", dut.leaf_mem_inst.loop_ram_patch_gen[7].ram_patch_inst.loop_depth_gen[0].loop_width_gen[0].genblk1.sram_macro.mem);
-        // $readmemh("leaves_mem_dummy0.txt", dut.leaf_mem_inst.loop_ram_patch_gen[0].ram_patch_inst.loop_depth_gen[0].loop_width_gen[1].genblk1.sram_macro.mem);
-        // $readmemh("leaves_mem_dummy0.txt", dut.leaf_mem_inst.loop_ram_patch_gen[1].ram_patch_inst.loop_depth_gen[0].loop_width_gen[1].genblk1.sram_macro.mem);
-        // $readmemh("leaves_mem_dummy0.txt", dut.leaf_mem_inst.loop_ram_patch_gen[2].ram_patch_inst.loop_depth_gen[0].loop_width_gen[1].genblk1.sram_macro.mem);
-        // $readmemh("leaves_mem_dummy0.txt", dut.leaf_mem_inst.loop_ram_patch_gen[3].ram_patch_inst.loop_depth_gen[0].loop_width_gen[1].genblk1.sram_macro.mem);
-        // $readmemh("leaves_mem_dummy1.txt", dut.leaf_mem_inst.loop_ram_patch_gen[4].ram_patch_inst.loop_depth_gen[0].loop_width_gen[1].genblk1.sram_macro.mem);
-        // $readmemh("leaves_mem_dummy1.txt", dut.leaf_mem_inst.loop_ram_patch_gen[5].ram_patch_inst.loop_depth_gen[0].loop_width_gen[1].genblk1.sram_macro.mem);
-        // $readmemh("leaves_mem_dummy1.txt", dut.leaf_mem_inst.loop_ram_patch_gen[6].ram_patch_inst.loop_depth_gen[0].loop_width_gen[1].genblk1.sram_macro.mem);
-        // $readmemh("leaves_mem_dummy1.txt", dut.leaf_mem_inst.loop_ram_patch_gen[7].ram_patch_inst.loop_depth_gen[0].loop_width_gen[1].genblk1.sram_macro.mem);
-        
         expected_idx_data_file = $fopen("./data/IO_data/expectedIndex.txt", "r");
         // expected_idx_data_file = $fopen("data/IO_data/topToBottomLeafIndex.txt", "r");
         if (expected_idx_data_file == 0) begin
@@ -214,6 +199,7 @@ module top_tb();
         wait(fsm_done == 1'b1);
         $display("[T=%0t] Finished algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
         fsmtime = $realtime - simtime;
+        // #120 // FIXME, does not work for row_size 24 without it
 
         @(negedge io_clk) send_best_arr = 1'b1;
         $display("[T=%0t] Start receiving outputs", $realtime);
@@ -222,7 +208,7 @@ module top_tb();
 
         for(int px=0; px<2; px=px+1) begin
             for(x=0; x<4; x=x+1) begin
-                // for(x=0; x<(ROW_SIZE/2/BLOCKING); x=x+1) begin  // for row_size = 26
+                // for(x=0; x<(ROW_SIZE/2/BLOCKING); x=x+1) begin  // for row_size = 24
                 for(y=0; y<COL_SIZE; y=y+1) begin
                     for(xi=0; xi<BLOCKING; xi=xi+1) begin
                         if ((x != 3) || (xi < 1)) begin  // for row_size = 26
@@ -236,6 +222,26 @@ module top_tb();
                 end
             end
         end
+
+        for(int px=0; px<2; px=px+1) begin
+            for(x=0; x<4; x=x+1) begin
+                // for(x=0; x<(ROW_SIZE/2/BLOCKING); x=x+1) begin  // for row_size = 24
+                for(y=0; y<COL_SIZE; y=y+1) begin
+                    for(xi=0; xi<BLOCKING; xi=xi+1) begin
+                        for(int agg=1; agg>=0; agg=agg-1) begin  // most significant first
+                            if ((x != 3) || (xi < 1)) begin  // for row_size = 26
+                                wait(out_fifo_rempty_n);
+                                @(negedge io_clk)
+                                out_fifo_deq = 1'b1;
+                                addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
+                                received_dist[addr][agg*DATA_WIDTH+:DATA_WIDTH] = out_fifo_rdata;
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
         @(negedge io_clk) out_fifo_deq = 1'b0;
         $display("[T=%0t] Finished receiving outputs", $realtime);
         outputtime = $realtime - simtime;
@@ -247,6 +253,15 @@ module top_tb();
                 $display("mismatch %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
             // else
             //     $display("match %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
+        end
+
+        received_dist_data_file = $fopen("data/IO_data/received_dist.txt", "w");
+        for(int i=0; i<NUM_QUERYS; i=i+1) begin
+            $fwrite(received_dist_data_file, "%d\n", received_dist[i]);
+            // if (expected_idx[i] != received_dist[i])
+            //     $display("mismatch %d: expected: %d, received %d", i, expected_idx[i], received_dist[i]);
+            // else
+            //     $display("match %d: expected: %d, received %d", i, expected_idx[i], received_dist[i]);
         end
 
         $display("===============Runtime Summary===============");

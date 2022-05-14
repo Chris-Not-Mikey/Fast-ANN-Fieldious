@@ -51,11 +51,11 @@ module MainFSM #(
     output logic                                                    leaf_mem_csb1,
     output logic [LEAF_ADDRW-1:0]                                   leaf_mem_addr1,
 
-    output logic [8:0]                                              best_arr_addr0,
-    output logic [K-1:0]                                            best_arr_csb1,
-    output logic [8:0]                                              best_arr_addr1,
+    output logic [7:0]                                              best_arr_addr0,
+    output logic [0:0]                                              best_arr_csb1,
+    output logic [7:0]                                              best_arr_addr1,
 
-    output logic                                                    out_fifo_wdata_sel,
+    output logic [2:0]                                              out_fifo_wdata_sel,
     output logic                                                    out_fifo_wenq,
     input logic                                                     out_fifo_wfull_n,
 
@@ -95,7 +95,9 @@ module MainFSM #(
                     SLPR8,
                     SLPR9,
                     SendBestIdx,
-                    SendBestIdx2
+                    SendBestIdx2,
+                    SendBestDist,
+                    SendBestDist2
     } stateCoding_t;
 
     (* fsm_encoding = "one_hot" *) stateCoding_t currState;
@@ -129,6 +131,8 @@ module MainFSM #(
     logic row_outer_cnt_incr;
     logic [$clog2(COL_SIZE)-1:0] col_query_cnt;
     logic col_query_cnt_incr;
+    logic [2:0] out_fifo_wdata_sel_d;
+    logic send_dist;
 
 
     // CONTROLLER
@@ -171,9 +175,9 @@ module MainFSM #(
         k1_query_first_in = '0;
         k1_query_last_in = '0;
         k1_query_patch = '0;
-        best_arr_csb1 = {K{1'b1}};
+        best_arr_csb1 = 1'b1;
         best_arr_addr1 = '0;
-        out_fifo_wdata_sel = '0;
+        out_fifo_wdata_sel_d = '0;
         
         counter_en = '0;
         counter_in = '0;
@@ -188,6 +192,7 @@ module MainFSM #(
         col_query_cnt_incr = '0;
         row_blocking_cnt_incr = '0;
         row_outer_cnt_incr = '0;
+        send_dist = '0;
 
         unique case (currState)
             Idle: begin
@@ -627,14 +632,16 @@ module MainFSM #(
                 end
             end
 
-            // read out the best array
+            // read out the indices from the best array
             // results of computes0
             SendBestIdx: begin
                 counter_in = NUM_QUERYS / 2 - 1;
-                out_fifo_wdata_sel = 1'b0;
+                out_fifo_wdata_sel_d = 2'd0;
+                // needs to wait for wenq = 0 because wfull takes 1 cycle to update
+                // we need to wait until the previous write to update the full signal
                 if (~out_fifo_wenq & out_fifo_wfull_n) begin
                     // reads only the best
-                    best_arr_csb1 = {{(K-1){1'b1}}, 1'b0};
+                    best_arr_csb1 = 1'b0;
                     best_arr_addr1 = counter;
                 end
 
@@ -648,17 +655,67 @@ module MainFSM #(
             // results of computes1
             SendBestIdx2: begin
                 counter_in = NUM_QUERYS / 2 - 1;
-                out_fifo_wdata_sel = 1'b1;
+                out_fifo_wdata_sel_d = 2'd1;
                 if (~out_fifo_wenq & out_fifo_wfull_n) begin
                     // reads only the best
-                    best_arr_csb1 = {{(K-1){1'b1}}, 1'b0};
+                    best_arr_csb1 = 1'b0;
                     best_arr_addr1 = counter;
                 end
 
                 if (out_fifo_wenq) begin
                     counter_en = 1'b1;
+                    if (counter_done) begin
+                        nextState = SendBestDist;
+                    end
+                end
+            end
+
+            // read out the dist from the best array
+            // we send 2 times more because the dist width is 22
+            // results of computes0
+            SendBestDist: begin
+                counter_in = NUM_QUERYS - 1;
+                out_fifo_wdata_sel_d = 3'd4;
+                // read from the best array only once per 2 out fifo wenq
+                // we need to wait until the previous write to update the full signal
+                if (~out_fifo_wenq & out_fifo_wfull_n & ~counter[0]) begin
+                    out_fifo_wdata_sel_d = 2'd2;
+                    // reads only the best
+                    best_arr_csb1 = 1'b0;
+                    best_arr_addr1 = counter[8:1];
+                end
+                else if (~out_fifo_wenq & out_fifo_wfull_n & counter[0]) begin
+                    out_fifo_wdata_sel_d = 3'd4;
+                    send_dist = 1'b1;
+                end
+
+                if (out_fifo_wenq) begin
+                    counter_en = 1'b1;
                     if (counter_done)
+                        nextState = SendBestDist2;
+                end
+            end
+
+            // results of computes1
+            SendBestDist2: begin
+                counter_in = NUM_QUERYS - 1;
+                out_fifo_wdata_sel_d = 3'd4;
+                if (~out_fifo_wenq & out_fifo_wfull_n & ~counter[0]) begin
+                    out_fifo_wdata_sel_d = 2'd3;
+                    // reads only the best
+                    best_arr_csb1 = 1'b0;
+                    best_arr_addr1 = counter[8:1];
+                end
+                else if (~out_fifo_wenq & out_fifo_wfull_n & counter[0]) begin
+                    out_fifo_wdata_sel_d = 3'd4;
+                    send_dist = 1'b1;
+                end
+
+                if (out_fifo_wenq) begin
+                    counter_en = 1'b1;
+                    if (counter_done) begin
                         nextState = Idle;
+                    end
                 end
             end
 
@@ -803,7 +860,15 @@ module MainFSM #(
     always_ff @(posedge clk, negedge rst_n) begin
         if (~rst_n) out_fifo_wenq <= '0;
         else begin
-            out_fifo_wenq <= ~(&best_arr_csb1);
+            out_fifo_wenq <= (~best_arr_csb1) | send_dist;
+        end
+    end
+
+    // Chooses which data to send to the out fifo
+    always_ff @(posedge clk, negedge rst_n) begin
+        if (~rst_n) out_fifo_wdata_sel <= '0;
+        else begin
+            out_fifo_wdata_sel <= out_fifo_wdata_sel_d;
         end
     end
 

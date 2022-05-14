@@ -59,7 +59,8 @@ module top
     logic                                                   in_fifo_deq;
     logic [DATA_WIDTH-1:0]                                  in_fifo_rdata;
     logic                                                   in_fifo_rempty_n;
-    logic                                                   out_fifo_wdata_sel;
+    logic [2:0]                                             out_fifo_wdata_sel;
+    logic [DATA_WIDTH-1:0]                                  out_fifo_wdata_n11;
     logic                                                   out_fifo_wenq;
     logic [DATA_WIDTH-1:0]                                  out_fifo_wdata;
     logic                                                   out_fifo_wfull_n;
@@ -107,15 +108,12 @@ module top
 
     logic                                                   best_arr_csb0;
     logic                                                   best_arr_web0;
-    logic [8:0]                                             best_arr_addr0;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        best_arr_compute0_widx_0 [BEST_ARRAY_K-1:0];
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        best_arr_compute1_widx_0 [BEST_ARRAY_K-1:0];
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        best_arr_compute0_ridx_0 [BEST_ARRAY_K-1:0];
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        best_arr_compute1_ridx_0 [BEST_ARRAY_K-1:0];
+    logic [7:0]                                             best_arr_addr0;
+    logic [63:0]                                            best_arr_wdata0 [BEST_ARRAY_K-1:0];
+    logic [63:0]                                            best_arr_rdata0 [BEST_ARRAY_K-1:0];
     logic [BEST_ARRAY_K-1:0]                                best_arr_csb1;
-    logic [8:0]                                             best_arr_addr1;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        best_arr_compute0_ridx_1 [BEST_ARRAY_K-1:0];
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        best_arr_compute1_ridx_1 [BEST_ARRAY_K-1:0];
+    logic [7:0]                                             best_arr_addr1;
+    logic [63:0]                                            best_arr_rdata1 [BEST_ARRAY_K-1:0];
 
     logic                                                   k0_query_first_in;
     logic                                                   k0_query_first_out;
@@ -404,6 +402,21 @@ module top
     assign agg_sender_data = in_fifo_rdata;
     assign agg_sender_empty_n = in_fifo_rempty_n;
 
+
+    // out fifo de-aggregator
+    // registers 11 bits to be sent to fifo later
+    always_ff @(posedge clk, negedge rst_n) begin
+        if (~rst_n) out_fifo_wdata_n11 <= '0;
+        else if (out_fifo_wdata_sel[1]) begin
+            // the acutal dist stored is 23 bits
+            // but we are just sending the lower 22 bits
+            out_fifo_wdata_n11 <= out_fifo_wdata_sel[0]
+                                    ? best_arr_rdata1[0][51:41]
+                                    : best_arr_rdata1[0][19:9];
+        end
+    end
+
+
     SyncFIFO #(
         .dataWidth          (DATA_WIDTH),
         .depth              (16),
@@ -420,12 +433,18 @@ module top
         .dEMPTY_N           (out_fifo_rempty_n)
     );
 
-    // reads only the best patch idx
-    // set by MainFSM, if out_fifo_wdata_sel=1, read compute1 idx. Else, read compute0
-    assign out_fifo_wdata[DATA_WIDTH-1:IDX_WIDTH] = '0; 
-    assign out_fifo_wdata[IDX_WIDTH-1:0] = out_fifo_wdata_sel 
-                                                ? best_arr_compute1_ridx_1[0][IDX_WIDTH-1:0] 
-                                                : best_arr_compute0_ridx_1[0][IDX_WIDTH-1:0];
+    always_comb begin
+        case (out_fifo_wdata_sel)
+            3'd0: out_fifo_wdata = {2'b0, best_arr_rdata1[0][IDX_WIDTH-1:0]};
+            3'd1: out_fifo_wdata = {2'b0, best_arr_rdata1[0][32+IDX_WIDTH-1:32]};
+            3'd2: out_fifo_wdata = best_arr_rdata1[0][30:20];
+            3'd3: out_fifo_wdata = best_arr_rdata1[0][62:52];
+            3'd4: out_fifo_wdata = out_fifo_wdata_n11;
+            default: begin
+                out_fifo_wdata = {2'b0, best_arr_rdata1[0][IDX_WIDTH-1:0]};
+            end
+        endcase
+    end
 
 
     // Memories
@@ -503,7 +522,7 @@ module top
     assign qp_mem_wpatch0 = agg_receiver_data;
 
     kBestArrays #(
-        .DATA_WIDTH         (DATA_WIDTH),
+        .DATA_WIDTH         (64),  // each compute has 32b
         .IDX_WIDTH          (IDX_WIDTH),
         .K                  (BEST_ARRAY_K),
         .NUM_LEAVES         (NUM_LEAVES)
@@ -512,20 +531,22 @@ module top
         .csb0               (best_arr_csb0),
         .web0               (best_arr_web0),
         .addr0              (best_arr_addr0),
-        .compute0_widx_0    (best_arr_compute0_widx_0),
-        .compute1_widx_0    (best_arr_compute1_widx_0),
-        .compute0_ridx_0    (best_arr_compute0_ridx_0),
-        .compute1_ridx_0    (best_arr_compute1_ridx_0),
+        .wdata0             (best_arr_wdata0),
+        .rdata0             (best_arr_rdata0),
         .csb1               (best_arr_csb1),
         .addr1              (best_arr_addr1),
-        .compute0_ridx_1    (best_arr_compute0_ridx_1),
-        .compute1_ridx_1    (best_arr_compute1_ridx_1)
+        .rdata1             (best_arr_rdata1)
     );
 
     assign best_arr_csb0 = ~sl0_valid_out;
     assign best_arr_web0 = 1'b0;
-    assign best_arr_compute0_widx_0[0] = sl0_merged_idx_0;
-    assign best_arr_compute1_widx_0[0] = sl1_merged_idx_0;
+
+    logic [22:0] sl0_l2_dist_capped;
+    logic [22:0] sl1_l2_dist_capped;
+    assign sl0_l2_dist_capped = (|sl0_l2_dist_0[DIST_WIDTH-1:23]) ?23'hFFFFFF :sl0_l2_dist_0[22:0];
+    assign sl1_l2_dist_capped = (|sl1_l2_dist_0[DIST_WIDTH-1:23]) ?23'hFFFFFF :sl1_l2_dist_0[22:0];
+    assign best_arr_wdata0[0][31:0]    = {sl0_l2_dist_capped, sl0_merged_idx_0[IDX_WIDTH-1:0]};
+    assign best_arr_wdata0[0][63:32]   = {sl1_l2_dist_capped, sl1_merged_idx_0[IDX_WIDTH-1:0]};
 
 
     // Computes 0

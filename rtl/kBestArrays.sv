@@ -1,5 +1,5 @@
 module kBestArrays #(
-    parameter DATA_WIDTH = 11,
+    parameter DATA_WIDTH = 32,
     parameter IDX_WIDTH = 9,
     parameter K = 4,
     parameter NUM_LEAVES = 64,
@@ -9,43 +9,40 @@ module kBestArrays #(
     input                                               clk,
     input logic                                         csb0,
     input logic                                         web0,
-    input logic [8:0]                                   addr0,
-    input logic [LEAF_ADDRW+IDX_WIDTH-1:0]              compute0_widx_0 [K-1:0],
-    input logic [LEAF_ADDRW+IDX_WIDTH-1:0]              compute1_widx_0 [K-1:0],
-    output logic [LEAF_ADDRW+IDX_WIDTH-1:0]             compute0_ridx_0 [K-1:0],
-    output logic [LEAF_ADDRW+IDX_WIDTH-1:0]             compute1_ridx_0 [K-1:0],
+    input logic [7:0]                                   addr0,
+    input logic [DATA_WIDTH-1:0]                        wdata0 [K-1:0],
+    output logic [DATA_WIDTH-1:0]                       rdata0 [K-1:0],
     input logic [K-1:0]                                 csb1,
-    input logic [8:0]                                   addr1,
-    output logic [LEAF_ADDRW+IDX_WIDTH-1:0]             compute0_ridx_1 [K-1:0],
-    output logic [LEAF_ADDRW+IDX_WIDTH-1:0]             compute1_ridx_1 [K-1:0]
+    input logic [7:0]                                   addr1,
+    output logic [DATA_WIDTH-1:0]                       rdata1 [K-1:0]
 );
 
-    logic [31:0] dout0 [K-1:0];
-    logic [31:0] dout1 [K-1:0];
+    logic [DATA_WIDTH-1:0] dout0 [K-1:0];
+    logic [DATA_WIDTH-1:0] dout1 [K-1:0];
+    // stores results of 2 computes at the same address 
+    // {compute1 leafidx, compute1 idx, compute0 leafidx, compute0 idx}
     genvar i;
     generate
     for (i=0; i<K; i=i+1) begin : loop_best_array_gen
         sram_1kbyte_1rw1r
         #(
-            .DATA_WIDTH(32), // round(PATCH_SIZE * DATA_WIDTH)
-            .ADDR_WIDTH(9),
+            .DATA_WIDTH(DATA_WIDTH), // round(PATCH_SIZE * DATA_WIDTH)
+            .ADDR_WIDTH(8),
             .RAM_DEPTH(256) // NUM_PATCHES
         ) best_dist_array_inst (
             .clk0(clk),
             .csb0(csb0),
             .web0(web0),
             .addr0(addr0),
-            .din0({{(32 - LEAF_ADDRW * 2 - IDX_WIDTH * 2){1'b0}}, compute1_widx_0[i], compute0_widx_0[i]}),
+            .din0(wdata0[i]),
             .dout0(dout0[i]),
             .clk1(clk),
             .csb1(csb1[i]),
             .addr1(addr1),
             .dout1(dout1[i])
         );
-        assign compute0_ridx_0[i] = dout0[i][LEAF_ADDRW+IDX_WIDTH-1:0];
-        assign compute1_ridx_0[i] = dout0[i][31-2:LEAF_ADDRW+IDX_WIDTH];
-        assign compute0_ridx_1[i] = dout1[i][LEAF_ADDRW+IDX_WIDTH-1:0];
-        assign compute1_ridx_1[i] = dout1[i][31-2:LEAF_ADDRW+IDX_WIDTH];
+        assign rdata0[i] = dout0[i];
+        assign rdata1[i] = dout1[i];
     end
     endgenerate
 

@@ -244,7 +244,7 @@ module top_tb();
           $display("[T=%0t] Finished receiving outputs", $realtime);
           outputtime = $realtime - simtime;
 
-          received_idx_data_file = $fopen("data/IO_data/received_idx.txt", "w");
+          received_idx_data_file = $fopen("data/IO_data/received_idx.txt", "a");
           for(int i=0; i<NUM_QUERYS; i=i+1) begin
               $fwrite(received_idx_data_file, "%d\n", received_idx[i]);
               if (expected_idx[i] != received_idx[i])

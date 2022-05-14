@@ -135,7 +135,7 @@ if __name__ == "__main__":
     gold_l2 = open('./data/IO_data/gold_l2_score.txt', 'r')
     lines = gold_l2.readlines()
     
-    gold_l2 = float(lines[0])
+    gold_l2 = float(lines[image_idx]) #Select image to compare l2 from provided command line arg
     
     if abs(l2 - gold_l2) > 1:
         print("failed")

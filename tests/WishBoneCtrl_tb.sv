@@ -35,10 +35,10 @@ module WishBoneCtrl_tb();
     logic [63:0]                                            wbs_leaf_mem_wleaf0;
     logic [63:0]                                            wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0];
 
-    logic                                                    wbs_node_mem_web;
-    logic [31:0]                                             wbs_node_mem_addr;
-    logic [31:0]                                             wbs_node_mem_wdata;
-    logic [31:0]                                             wbs_node_mem_rdata;
+    logic                                                   wbs_node_mem_web;
+    logic [31:0]                                            wbs_node_mem_addr;
+    logic [31:0]                                            wbs_node_mem_wdata;
+    logic [31:0]                                            wbs_node_mem_rdata;
 
     localparam WBS_ADDR_MASK        = 32'hF000_0000;
     localparam WBS_MODE_ADDR        = 32'h3000_0000;
@@ -54,7 +54,7 @@ module WishBoneCtrl_tb();
             #5 wb_clk_i = ~wb_clk_i;
         end 
     end
-	
+
    logic [31:0]                                            wbs_dat_nod_o;
 
     wbsCtrl #(
@@ -93,37 +93,36 @@ module WishBoneCtrl_tb();
         .wbs_node_mem_wdata                     (wbs_node_mem_wdata),
         .wbs_node_mem_rdata                     (wbs_dat_nod_o)
     );
-	
-	
-	logic [7:0] leaf_index;
-	logic [7:0] leaf_index_two;
-	logic leaf_en;
-	logic leaf_two_en;
-	
-	
-    internal_node_tree
-	  #(
-	   .INTERNAL_WIDTH(22),
-	   .PATCH_WIDTH(55),
-	   .ADDRESS_WIDTH(8)
-	  ) tree_dut (
-	  .clk(wb_clk_i),
-	  .rst_n(!wb_rst_i),
-	  .fsm_enable(wbs_we_i), //based on whether we are at the proper I/O portion
-	  .sender_enable(wbs_we_i),
-	  .sender_data(wbs_dat_i),
-	  .patch_en(1'b0),
-	  .patch_two_en(1'b0),
-	  .patch_in(55'b0),
-	  .patch_in_two(55'b0),
-	  .leaf_index(leaf_index),
-	  .leaf_index_two(leaf_index_two),
-	  .receiver_en(leaf_en),
-	  .receiver_two_en(leaf_two_en),
-	  .wb_mode(wbs_mode),
-	  .wbs_we_i(wbs_we_i && wbs_node_mem_web), 
-	  .wbs_adr_i(wbs_adr_i), 
-	  .wbs_dat_o(wbs_dat_nod_o)
+
+
+    logic [7:0] leaf_index;
+    logic [7:0] leaf_index_two;
+    logic leaf_en;
+    logic leaf_two_en;
+
+    
+    internal_node_tree #(
+        .INTERNAL_WIDTH(22),
+        .PATCH_WIDTH(55),
+        .ADDRESS_WIDTH(8)
+    ) tree_dut (
+        .clk(wb_clk_i),
+        .rst_n(!wb_rst_i),
+        .fsm_enable(wbs_we_i), //based on whether we are at the proper I/O portion
+        .sender_enable(wbs_we_i),
+        .sender_data(wbs_dat_i),
+        .patch_en(1'b0),
+        .patch_two_en(1'b0),
+        .patch_in(55'b0),
+        .patch_in_two(55'b0),
+        .leaf_index(leaf_index),
+        .leaf_index_two(leaf_index_two),
+        .receiver_en(leaf_en),
+        .receiver_two_en(leaf_two_en),
+        .wb_mode(wbs_mode),
+        .wbs_we_i(wbs_we_i && wbs_node_mem_web), 
+        .wbs_adr_i(wbs_adr_i), 
+        .wbs_dat_o(wbs_dat_nod_o)
      );
 
     initial begin
@@ -278,7 +277,7 @@ module WishBoneCtrl_tb();
         wbs_we_i = 1'b1;
         wbs_sel_i = '1;
         wbs_dat_i = 32'h76543210;
-        wbs_adr_i = WBS_LEAF_ADDR + (3<<1) + 0; // addr 2, lower
+        wbs_adr_i = WBS_LEAF_ADDR + (3<<1) + 0; // addr 3, lower
         
         @(negedge wbs_ack_o);
         wbs_cyc_i = 1'b1;
@@ -286,7 +285,7 @@ module WishBoneCtrl_tb();
         wbs_we_i = 1'b1;
         wbs_sel_i = '1;
         wbs_dat_i = 32'hfedcba98;
-        wbs_adr_i = WBS_LEAF_ADDR + (3<<1) + 1; // addr 2, upper
+        wbs_adr_i = WBS_LEAF_ADDR + (3<<1) + 1; // addr 3, upper
         
         @(negedge wbs_ack_o);
         wbs_cyc_i = 1'b0;
@@ -304,13 +303,12 @@ module WishBoneCtrl_tb();
         wbs_stb_i = 1'b1;
         wbs_we_i = 1'b0;
         wbs_sel_i = '1;
-	wbs_adr_i = WBS_NODE_ADDR + (1'b1) + 0; // addr 1 (first idx and median)
+        wbs_adr_i = WBS_NODE_ADDR + (1'b1) + 0; // addr 1 (first idx and median)
       
-	 
+
         @(posedge (wbs_ack_o));
         wbs_node_mem_rdata = {10'b0, 11'd0, 8'b0, 3'b111}; //10 0's, median of 0, and index of -1 (wrt to 3 bits)  (default values)
 
-	   
 
         @(posedge wbs_ack_o) assert(wbs_dat_o == {10'b0, 11'd0, 8'b0, 3'b111});
         @(negedge wbs_ack_o);
@@ -334,28 +332,28 @@ module WishBoneCtrl_tb();
         wbs_stb_i = 1'b1;
         wbs_we_i = 1'b0;
         wbs_dat_i = '0;
-	    
-	    
-	@(negedge wbs_ack_o);
+ 
+
+        @(negedge wbs_ack_o);
         wbs_cyc_i = 1'b0;
         wbs_stb_i = 1'b0;
         wbs_we_i = 1'b0;
         wbs_dat_i = '0;
-	
+
         //wbs_adr_i = '0;
 
-	#10
-	assert(wbs_dat_o == {10'b0, 11'd55, 11'b1});
+        #10
+        assert(wbs_dat_o == {10'b0, 11'd55, 11'b1});
         //$finish();
-	    
-	    
-	// mem write (last element)
+
+
+        // mem write (last element)
         @(posedge wb_clk_i);
         wbs_cyc_i = 1'b1;
         wbs_stb_i = 1'b1;
         wbs_we_i = 1'b1;
         wbs_sel_i = '1;
-	wbs_dat_i = {10'b0, 11'd42, 11'd2}; //10 0's, median of 55, and index of 1 
+        wbs_dat_i = {10'b0, 11'd42, 11'd2}; //10 0's, median of 55, and index of 1 
         wbs_adr_i = WBS_NODE_ADDR + 8'd63  + 0; // addr 1
     
         @(negedge wbs_ack_o);
@@ -363,20 +361,20 @@ module WishBoneCtrl_tb();
         wbs_stb_i = 1'b1;
         wbs_we_i = 1'b0;
         wbs_dat_i = '0;
-	    
-	    
-	@(negedge wbs_ack_o);
+
+
+        @(negedge wbs_ack_o);
         wbs_cyc_i = 1'b0;
         wbs_stb_i = 1'b0;
         wbs_we_i = 1'b0;
         wbs_dat_i = '0;
-	
+
         //wbs_adr_i = '0;
 
-	#10
-	assert(wbs_dat_o == {10'b0, 11'd42, 11'd2});
+        #10
+        assert(wbs_dat_o == {10'b0, 11'd42, 11'd2});
         $finish();
-	
+
     end
 
 endmodule

@@ -261,9 +261,11 @@ module top_tb();
 
 
           #200;
-          $finish;
+         
          
        end
+        #200;
+       $finish;
 
     end
     

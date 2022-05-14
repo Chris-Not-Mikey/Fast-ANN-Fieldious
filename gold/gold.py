@@ -1,4 +1,5 @@
 from cmath import inf
+from fileinput import filename
 from re import L
 from tarfile import LENGTH_PREFIX
 import kdtree
@@ -15,6 +16,7 @@ import tensorflow as tf
 import os
 import time
 import sys
+import math
 
 ################################################################
 #                   GOLD.PY                                    #
@@ -704,8 +706,8 @@ def BFS(tree, file):
     f_int_str = file + "/internalNodes.txt"
     f_leaf_str = file + "/leafNodes.txt"
 
-    f_int = open(f_int_str, "w")
-    f_leaf = open(f_leaf_str, "w")
+    f_int = open(f_int_str, "a")
+    f_leaf = open(f_leaf_str, "a")
 
 
     # Create a queue for BFS
@@ -1188,11 +1190,26 @@ def _apply_inverse_pca(patches_reduced, _pca_model):
 
 if __name__ == "__main__":
 
+
+    images_a_storage = ["stick1"]
+    images_b_storage = ["stick2"]
+
+    multi_images = False
+
     if len(sys.argv) < 4:
 
         print("[ERROR] must supply [image A] [image B] [destination_folder] " )
         print("Example: python3 gold.py walking1 walking12 ./ ")
         exit()
+
+    if len(sys.argv) >= 5:
+        if sys.argv[4] == "multi":
+            multi_images = True
+        else:
+            multi_images = False
+
+  
+
 
     # starting time
     start = time.time()
@@ -1208,559 +1225,669 @@ if __name__ == "__main__":
     file_name_a = sys.argv[1] #Image A
     file_name_b = sys.argv[2] #Image B
 
+
+    print("Deleting .txt files that will be recreated in this run")
+
+    if os.path.exists(destination_folder + "gold_l2_score.txt"):
+        os.remove(destination_folder + "gold_l2_score.txt")
+
+    if os.path.exists(destination_folder + "internalNodes.txt"):
+        os.remove(destination_folder + "internalNodes.txt")
+
+    if os.path.exists(destination_folder + "leafNodes.txt"):
+        os.remove(destination_folder + "leafNodes.txt")
+
+    if os.path.exists(destination_folder + "patches.txt"):
+        os.remove(destination_folder + "patches.txt")
+
+    if os.path.exists(destination_folder + "expectedIndex.txt"):
+        os.remove(destination_folder + "expectedIndex.txt")
+
+
   
     if not os.path.exists(destination_folder):
         os.makedirs(destination_folder)
+
+
+    image_names_a = [file_name_a]
+    image_names_b = [file_name_b]
+
+    if multi_images:
+        for name in images_a_storage:
+            image_names_a.append(name)
+
+        for nameb in images_b_storage:
+            image_names_b.append(nameb)
         
 
-    image_a_str = "./data/gold_data/" + file_name_a + ".png"
-    image_a = cv2.imread(image_a_str)
+    for file_name_a, file_name_b in zip(image_names_a, image_names_b):
+        
 
-    image_b_str = "./data/gold_data/" + file_name_b + ".png"
-    image_b = cv2.imread(image_b_str)
-    # image_b = cv2.cvtColor(image_b, cv2.COLOR_BGR2GRAY)
-    # image_b = cv2.cvtColor(image_b,cv2.COLOR_GRAY2RGB)
+        #TODO parameterize folder to find data (make default what is in most recent commit for legacy purposes)
+        image_a_str = "./data/gold_data/" + file_name_a + ".png" 
+        image_a = cv2.imread(image_a_str)
 
-    reconstruct_file_name = "./data/gold_results/" + file_name_a + "_reconstruct.png"
+        image_b_str = "./data/gold_data/" + file_name_b + ".png"
+        image_b = cv2.imread(image_b_str)
 
+        img2 = cv2.imread(image_b_str)
 
-    #Image Dimensions
-    print(image_a.shape)
+        img_test_str = "./data/gold_data/" + file_name_a + "_copy.png" 
+        image_test = cv2.imread(img_test_str)
+        # image_b = cv2.cvtColor(image_b, cv2.COLOR_BGR2GRAY)
+        # image_b = cv2.cvtColor(image_b,cv2.COLOR_GRAY2RGB)
 
-    im_height = image_a.shape[1]
-    im_width = image_a.shape[0]
-    print(im_height)
-
-    #row_size = 56 #Row Size = (h-p+1)
-
-
-    row_size = image_a.shape[1] - psize + 1
- 
-    col_size = image_a.shape[0] - psize + 1
-
-    print(row_size)
-
-    # (1) fit pca model (on subset of the data)
-
-    _pca_model = _fit_pca_model(image_a, image_b, psize, dim_reduced)
-   
-
-    # (2) create patches
-
-    patches_a = _create_patches(image_a, psize)
-    patches_b = _create_patches(image_b, psize)
-  
-
-    # (3) apply pca model
-    # FIXME: patches are converted to float32/float64 here; can
-    # be handled with less memory via C function
-    patches_a_reduced = _apply_pca(patches_a, _pca_model)
-    patches_b_reduced = _apply_pca(patches_b, _pca_model)
+        reconstruct_file_name = "./data/gold_results/" + file_name_a + "_reconstruct.png"
+        reconstruct_file_name_2 = "./data/gold_results/" + file_name_a + "_reconstruct_temp.png"
 
 
-    tree = create_tree(patches_b_reduced)
-   
-    print(patches_b_reduced.shape)
+        #Image Dimensions
+        print(image_a.shape)
 
-    max_patches = patches_b_reduced.shape[0]
+        im_height = image_a.shape[1]
+        im_width = image_a.shape[0]
+        print(im_height)
 
-    inf_list = [float(1023),float(1023),float(1023),float(1023),float(1023)]
-    inf_array = numpy.array([inf_list])
-    print(inf_array.shape)
-
-
-    while (patches_b_reduced.shape[0]%5 != 0):
-
-        patches_b_reduced = numpy.append(patches_b_reduced, inf_array, axis=0 )
-
-    #Split into groups of 5 to create the KD Tree
-    split_num = patches_b_reduced.shape[0]/psize
-    split = numpy.split(patches_b_reduced, split_num)
-   
-
-    #Create an Item Class for each node
-    item_list = []
-    for nodek in range(int(split_num)):
-
-        item_list.append(Item(split[nodek], nodek))
+        #row_size = 56 #Row Size = (h-p+1)
 
 
-    #  The root node
-    #print(tree)
-    # ...contains "data" field with an Item, which contains the payload in "data" field
+        row_size = image_a.shape[1] - psize + 1
+    
+        col_size = image_a.shape[0] - psize + 1
 
-    # Create File For Verification
-    #TODO: FIX
-    #preorderFile(tree)
+        print(row_size)
+
+        # (1) fit pca model (on subset of the data)
+
+        _pca_model = _fit_pca_model(image_a, image_b, psize, dim_reduced)
+    
+
+        # (2) create patches
+
+        patches_a = _create_patches(image_a, psize)
+        patches_b = _create_patches(image_b, psize)
+    
+
+        # (3) apply pca model
+        # FIXME: patches are converted to float32/float64 here; can
+        # be handled with less memory via C function
+        patches_a_reduced = _apply_pca(patches_a, _pca_model)
+        patches_b_reduced = _apply_pca(patches_b, _pca_model)
 
 
-    # All functions work as intended, a payload is never lost
-    # result = tree.search_knn([ 193.19313049,   -1.66310644, -201.89816284,  -29.54750443,   42.18569565], k=1, dist=compute_distance_non_median)
-    # # result[0] #Result Node + Distance
-    # # result[0][0] # Node
-    # # result[0][1] #Distance
-    # # result[0][0].data.count #Index/5 
-    # # result[0][0].data.best_dim_idx #Best Dimension
-    # index = psize*(result[0][0].data.count) + result[0][0].data.best_dim_idx
-    # distance = result[0][1]
+        tree = create_tree(patches_b_reduced)
+    
+        print(patches_b_reduced.shape)
+
+        max_patches = patches_b_reduced.shape[0]
+
+        inf_list = [float(1023),float(1023),float(1023),float(1023),float(1023)]
+        inf_array = numpy.array([inf_list])
+        print(inf_array.shape)
 
 
-    # print(len(patches_a_reduced))
-    # asf()
+        while (patches_b_reduced.shape[0]%5 != 0):
+
+            patches_b_reduced = numpy.append(patches_b_reduced, inf_array, axis=0 )
+
+        #Split into groups of 5 to create the KD Tree
+        split_num = patches_b_reduced.shape[0]/psize
+        split = numpy.split(patches_b_reduced, split_num)
+    
+
+        #Create an Item Class for each node
+        item_list = []
+        for nodek in range(int(split_num)):
+
+            item_list.append(Item(split[nodek], nodek))
 
 
-    #Experiment with using ints instead
+        #  The root node
+        #print(tree)
+        # ...contains "data" field with an Item, which contains the payload in "data" field
 
-    file_patches_str = destination_folder + "/patches.txt"    
-    f_patches = open(file_patches_str, "w")
+        # Create File For Verification
+        #TODO: FIX
+        #preorderFile(tree)
 
-    for patchRound in patches_a_reduced:
 
-        patchRound[0] = round(patchRound[0])
-        if (patchRound[0] > 1023):
-            #print(patchRound[0])
-            patchRound[0] = 1023
+        # All functions work as intended, a payload is never lost
+        # result = tree.search_knn([ 193.19313049,   -1.66310644, -201.89816284,  -29.54750443,   42.18569565], k=1, dist=compute_distance_non_median)
+        # # result[0] #Result Node + Distance
+        # # result[0][0] # Node
+        # # result[0][1] #Distance
+        # # result[0][0].data.count #Index/5 
+        # # result[0][0].data.best_dim_idx #Best Dimension
+        # index = psize*(result[0][0].data.count) + result[0][0].data.best_dim_idx
+        # distance = result[0][1]
 
-        if (patchRound[0] < -1023):
-            print(patchRound[0])
-            patchRound[0] = -1023
-          
 
-        patch_str = str(int(patchRound[0])) + "\n"
-        f_patches.write(patch_str)
-        patchRound[1] = round(patchRound[1])
-        if (patchRound[1] > 1023):
-            #print(patchRound[1])
-            patchRound[1] = 1023
+        # print(len(patches_a_reduced))
+        # asf()
 
-        if (patchRound[1] < -1023):
-            print(patchRound[1])
-            patchRound[1] = -1023
+
+        #Experiment with using ints instead
+
+        file_patches_str = destination_folder + "/patches.txt"    
+        f_patches = open(file_patches_str, "a")
+
+        for patchRound in patches_a_reduced:
+
+            patchRound[0] = round(patchRound[0])
+            if (patchRound[0] > 1023):
+                #print(patchRound[0])
+                patchRound[0] = 1023
+
+            if (patchRound[0] < -1023):
+                print(patchRound[0])
+                patchRound[0] = -1023
             
-          
 
-        patch_str = str(int(patchRound[1])) + "\n"
-        f_patches.write(patch_str)
-        patchRound[2] = round(patchRound[2])
+            patch_str = str(int(patchRound[0])) + "\n"
+            f_patches.write(patch_str)
+            patchRound[1] = round(patchRound[1])
+            if (patchRound[1] > 1023):
+                #print(patchRound[1])
+                patchRound[1] = 1023
 
-        if (patchRound[2] > 1023):
-            #print(patchRound[2])
-            patchRound[2] = 1023
+            if (patchRound[1] < -1023):
+                print(patchRound[1])
+                patchRound[1] = -1023
+                
+            
 
+            patch_str = str(int(patchRound[1])) + "\n"
+            f_patches.write(patch_str)
+            patchRound[2] = round(patchRound[2])
 
-        if (patchRound[2] < -1023):
-            print(patchRound[2])
-            patchRound[2] = -1023
-
-        patch_str = str(int(patchRound[2])) + "\n"
-        f_patches.write(patch_str)
-        patchRound[3] = round(patchRound[3])
-
-        if (patchRound[3] > 1023):
-            #print(patchRound[3])
-            patchRound[3] = 1023
-
-
-        if (patchRound[3] < -1023):
-            print(patchRound[3])
-            patchRound[3] = -1023
+            if (patchRound[2] > 1023):
+                #print(patchRound[2])
+                patchRound[2] = 1023
 
 
-        patch_str = str(int(patchRound[3])) + "\n"
-        f_patches.write(patch_str)
-        patchRound[4] = round(patchRound[4])
+            if (patchRound[2] < -1023):
+                print(patchRound[2])
+                patchRound[2] = -1023
 
-        if (patchRound[4] > 1023):
-            #print(patchRound[4])
-            patchRound[4] = 1023
+            patch_str = str(int(patchRound[2])) + "\n"
+            f_patches.write(patch_str)
+            patchRound[3] = round(patchRound[3])
 
-        if (patchRound[4] < -1023):
-            print(patchRound[4])
-            patchRound[4] = -1023
-
-        patch_str = str(int(patchRound[4])) + "\n"
-        f_patches.write(patch_str)
+            if (patchRound[3] > 1023):
+                #print(patchRound[3])
+                patchRound[3] = 1023
 
 
-    f_patches.close()
-
-    nn_indices = []
-    nn_distances = []
-    nn_nodes = []
-    nn_best_dists = []
-    nn_row_storage = []
-
-    BFS(tree,destination_folder )
-    
-    
-    nodes_str = destination_folder + "/internalNodes.txt"
-    nodes_patchs_str = destination_folder + "/nodes_patches.txt"
-    nodes_patchs_2_str = destination_folder + "/nodes_patches_2.txt"
-    exp_patchs_str = destination_folder + "/expected_patches.txt"
-    
-    gold_buffer_str_1 = "./data/gold_data/buffer_1.txt" #Files that hold a few 0's for padding 
-    gold_buffer_str_2 = "./data/gold_data/buffer_2.txt"
-    
-    cat_nodes_patchs_str =  "cat " + gold_buffer_str_1 + " " + nodes_str + " " + gold_buffer_str_2 + " " + file_patches_str + " > " + nodes_patchs_str
-    
-    cat_nodes_patchs_2_str =  "cat " + gold_buffer_str_1 + " " + nodes_str + " " + gold_buffer_str_1 + " " + gold_buffer_str_2 + " " + file_patches_str + " > " + nodes_patchs_2_str
-    
-    cat_exp_patchs_str =  "cat " + file_patches_str + " > " + exp_patchs_str
-    os.system(cat_nodes_patchs_str)
-    os.system(cat_nodes_patchs_2_str)
-    os.system(cat_exp_patchs_str)
+            if (patchRound[3] < -1023):
+                print(patchRound[3])
+                patchRound[3] = -1023
 
 
- 
+            patch_str = str(int(patchRound[3])) + "\n"
+            f_patches.write(patch_str)
+            patchRound[4] = round(patchRound[4])
 
-    # Top to Bottom Traversal
-    # TODO: Make query from scratch
-    count = 0
+            if (patchRound[4] > 1023):
+                #print(patchRound[4])
+                patchRound[4] = 1023
 
-    f_top_bottom_leaf_str = destination_folder + "/topToBottomLeafIndex.txt"
-    f_top_bottom_leaf_idx = open(f_top_bottom_leaf_str, "w")
-    for patchA in patches_a_reduced:
+            if (patchRound[4] < -1023):
+                print(patchRound[4])
+                patchRound[4] = -1023
 
+            patch_str = str(int(patchRound[4])) + "\n"
+            f_patches.write(patch_str)
+
+
+        f_patches.close()
+
+        nn_indices = []
+        nn_distances = []
+        nn_nodes = []
         nn_best_dists = []
+        nn_row_storage = []
 
-        # TODO: Report best 5 (k) results
-        index, nn_best_dists, leaf_index  = top_to_bottom(tree, patchA)
+        BFS(tree,destination_folder )
+        
+        
+        nodes_str = destination_folder + "/internalNodes.txt"
+        nodes_patchs_str = destination_folder + "/nodes_patches.txt"
+        nodes_patchs_2_str = destination_folder + "/nodes_patches_2.txt"
+        exp_patchs_str = destination_folder + "/expected_patches.txt"
+        
+        gold_buffer_str_1 = "./data/gold_data/buffer_1.txt" #Files that hold a few 0's for padding 
+        gold_buffer_str_2 = "./data/gold_data/buffer_2.txt"
+        
+        cat_nodes_patchs_str =  "cat " + gold_buffer_str_1 + " " + nodes_str + " " + gold_buffer_str_2 + " " + file_patches_str + " > " + nodes_patchs_str
+        
+        cat_nodes_patchs_2_str =  "cat " + gold_buffer_str_1 + " " + nodes_str + " " + gold_buffer_str_1 + " " + gold_buffer_str_2 + " " + file_patches_str + " > " + nodes_patchs_2_str
+        
+        cat_exp_patchs_str =  "cat " + file_patches_str + " > " + exp_patchs_str
+        os.system(cat_nodes_patchs_str)
+        os.system(cat_nodes_patchs_2_str)
+        os.system(cat_exp_patchs_str)
 
-        leaf_index_str = str(int(leaf_index)) + "\n"
-        f_top_bottom_leaf_idx.write(leaf_index_str)
 
-
-
-        # print(index)
-        # print(leaf_index)
-        # print(patchA)
-   
-
-        nn_indices.append(index)
     
 
-        # nn_best_dists = sorted(nn_best_dists)
-        nn_row_storage.append(nn_best_dists)
+        # Top to Bottom Traversal
+        # TODO: Make query from scratch
+        count = 0
 
-    f_top_bottom_leaf_idx.close()
+        f_top_bottom_leaf_str = destination_folder + "/topToBottomLeafIndex.txt"
+        f_top_bottom_leaf_idx = open(f_top_bottom_leaf_str, "w")
+        for patchA in patches_a_reduced:
+
+            nn_best_dists = []
+
+            # TODO: Report best 5 (k) results
+            index, nn_best_dists, leaf_index  = top_to_bottom(tree, patchA)
+
+            leaf_index_str = str(int(leaf_index)) + "\n"
+            f_top_bottom_leaf_idx.write(leaf_index_str)
 
 
-    patches_a_reconst = patches_b[nn_indices]
-    diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
-    l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
-    print("Overall Top to Bottom L2 score: {}".format(l2))
+
+            # print(index)
+            # print(leaf_index)
+            # print(patchA)
+    
+
+            nn_indices.append(index)
         
 
+            # nn_best_dists = sorted(nn_best_dists)
+            nn_row_storage.append(nn_best_dists)
 
-    # If a new leaf was found in step 1, then a brute-force search is performed on that leaf to improve the k candidates. 
-
-
-    # # Full (Pre-Order) Traversal of first Row
-    #TODO: Remove internal nodes
-    preorderNodes = preorderLeaves(tree)
-
-  
-   
+        f_top_bottom_leaf_idx.close()
 
 
-    row_idx_counter = 0
+        patches_a_reconst = patches_b[nn_indices]
+        diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
+        l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
+        print("Overall Top to Bottom L2 score: {}".format(l2))
+            
 
-    nn_full_indices = []
-    nn_full_distances = []
-    row_storage = []
+
+        # If a new leaf was found in step 1, then a brute-force search is performed on that leaf to improve the k candidates. 
 
 
-  
-    f_exact_row_str = destination_folder + "/exactFirstRowBestIndex.txt"
-    f_exact_row = open(f_exact_row_str, "w")
-    for patchA2 in patches_a_reduced:
+        # # Full (Pre-Order) Traversal of first Row
+        #TODO: Remove internal nodes
+        preorderNodes = preorderLeaves(tree)
 
-        # Only do full traversal on first row (of patch dimensions)
-        if row_idx_counter >= row_size:
-            break
+    
+    
+
+
+        row_idx_counter = 0
+
+        nn_full_indices = []
+        nn_full_distances = []
+        row_storage = []
+
+
+    
+        f_exact_row_str = destination_folder + "/exactFirstRowBestIndex.txt"
+        f_exact_row = open(f_exact_row_str, "w")
+        for patchA2 in patches_a_reduced:
+
+            # Only do full traversal on first row (of patch dimensions)
+            if row_idx_counter >= row_size:
+                break
+            
+            best_dist = inf
+            best_idx = 0
+            best_dists = []
+            best_idxs = []
+            best_leaves = []
+
+            #TODO: Add in to bring in top to bottom results
+            # for j in range(4): #Changed to 4
+
+            #     best_dists.append(nn_row_storage[row_idx_counter][j])
+                #print(nn_row_storage[row_idx_counter][j])
+            
+
+            #Determine the best 5 among all the nodes
+            for nodeB in preorderNodes:
+
+                dist, idx = compute_distance(nodeB.data, patchA2)
+
+
+                for q in best_dists:
+                        if int(q[0]) == int(dist): #No duplicates
+                            continue
         
-        best_dist = inf
-        best_idx = 0
-        best_dists = []
-        best_idxs = []
-        best_leaves = []
+            
 
-        #TODO: Add in to bring in top to bottom results
-        # for j in range(4): #Changed to 4
+                # We are looking for the 4 best candidates
+                if len(best_dists) < 4: #Update 4
 
-        #     best_dists.append(nn_row_storage[row_idx_counter][j])
-            #print(nn_row_storage[row_idx_counter][j])
-        
-
-        #Determine the best 5 among all the nodes
-        for nodeB in preorderNodes:
-
-            dist, idx = compute_distance(nodeB.data, patchA2)
-
-
-            for q in best_dists:
-                    if int(q[0]) == int(dist): #No duplicates
-                        continue
-      
-         
-
-            # We are looking for the 4 best candidates
-            if len(best_dists) < 4: #Update 4
-
-               
-                best_dists.append([dist, idx, nodeB])
-                #best_dists = sorted(best_dists)
-                best_dists.sort(key=lambda x: x[0])
-
-                if dist < best_dist:
-                    best_dist = dist
-                    best_idx = idx
-
-            else:
-
-                found = False
-                #best_dists = sorted(best_dists)
-                best_dists.sort(key=lambda x: x[0])
-                for comp in best_dists:
-
-                    # If calcuated distance is better than one of the current candidates
+                
+                    best_dists.append([dist, idx, nodeB])
+                    #best_dists = sorted(best_dists)
+                    best_dists.sort(key=lambda x: x[0])
 
                     if dist < best_dist:
                         best_dist = dist
                         best_idx = idx
-                        #best_leaf = nodeB
-              
-                    if dist < comp[0] and found == False:
-                       
-                        best_dists.pop()
-                        best_dists.append([dist, idx, nodeB])
-                        best_dists.sort(key=lambda x: x[0])
-                        #best_dists = sorted(best_dists)
-                        found = True
+
+                else:
+
+                    found = False
+                    #best_dists = sorted(best_dists)
+                    best_dists.sort(key=lambda x: x[0])
+                    for comp in best_dists:
+
+                        # If calcuated distance is better than one of the current candidates
+
+                        if dist < best_dist:
+                            best_dist = dist
+                            best_idx = idx
+                            #best_leaf = nodeB
+                
+                        if dist < comp[0] and found == False:
                         
-       
-        row_idx_counter = row_idx_counter + 1
+                            best_dists.pop()
+                            best_dists.append([dist, idx, nodeB])
+                            best_dists.sort(key=lambda x: x[0])
+                            #best_dists = sorted(best_dists)
+                            found = True
+                            
+        
+            row_idx_counter = row_idx_counter + 1
 
-        # These resutls are stored in rows to be later used as an intial guess for process rows
-        #best_dists = sorted(best_dists)
-        best_dists.sort(key=lambda x: x[0])
-        row_storage.append(best_dists)
-
-
-      
-        # These are the guesses that will actually count toward the score
-        nn_full_indices.append(best_idx)
-
-
-        best_index_str = str(best_idx) + "\n"
-        f_exact_row.write(best_index_str)
+            # These resutls are stored in rows to be later used as an intial guess for process rows
+            #best_dists = sorted(best_dists)
+            best_dists.sort(key=lambda x: x[0])
+            row_storage.append(best_dists)
 
 
-        nn_full_distances.append(best_dist)
-     
-    f_exact_row.close()
+        
+            # These are the guesses that will actually count toward the score
+            nn_full_indices.append(best_idx)
 
 
+            best_index_str = str(best_idx) + "\n"
+            f_exact_row.write(best_index_str)
 
-    # # # Process Rows on remaning rows (Main Algo)
-   
-    f_process_row_str = destination_folder + "/processRowBestIndex.txt"
-    f_process_row = open(f_process_row_str, "w")
-    f_propgationLeafIndex_str = destination_folder + "/propagationLeafIndex.txt"
-    f_propgationLeafIndex = open(f_propgationLeafIndex_str, "w")
-    for patchA3 in patches_a_reduced[row_size:]:
+
+            nn_full_distances.append(best_dist)
+        
+        f_exact_row.close()
 
 
 
-        if row_idx_counter >= max_patches:
-            break
-
-
-        # Look at candidates in the row above
-        candidates = row_storage[(row_idx_counter%row_size)]    #these are leaves we use to find the propagation leaves
-
-
-        #Write leaf indices
-        leaf_index_str = str(candidates[0][2].data.leaf_count) + "\n"
-        f_propgationLeafIndex.write(leaf_index_str)
-        leaf_index_str = str(candidates[1][2].data.leaf_count) + "\n"
-        f_propgationLeafIndex.write(leaf_index_str)
-        leaf_index_str = str(candidates[2][2].data.leaf_count) + "\n"
-        f_propgationLeafIndex.write(leaf_index_str)
-        leaf_index_str = str(candidates[3][2].data.leaf_count) + "\n"
-        f_propgationLeafIndex.write(leaf_index_str)
-      
+        # # # Process Rows on remaning rows (Main Algo)
     
+        f_process_row_str = destination_folder + "/processRowBestIndex.txt"
+        f_process_row = open(f_process_row_str, "w")
+        f_propgationLeafIndex_str = destination_folder + "/propagationLeafIndex.txt"
+        f_propgationLeafIndex = open(f_propgationLeafIndex_str, "w")
+        for patchA3 in patches_a_reduced[row_size:]:
 
 
-        # Better Propagation (Doesn't actually help)
-        better = []
-        # for prop in range(1):
 
-        #     prop_index = int(candidates[prop][1] + row_size)
+            if row_idx_counter >= max_patches:
+                break
 
 
-        #     if prop_index >= 494:
-        #         continue
+            # Look at candidates in the row above
+            candidates = row_storage[(row_idx_counter%row_size)]    #these are leaves we use to find the propagation leaves
 
-        #     for tt in range(4):
-     
-        #        add = True
-        #        for q in candidates:
-        #            if int(q[0]) == int(nn_row_storage[prop_index][tt][0]):
-        #                add = False
-                        
-        #        if add:
-        #         better.append(nn_row_storage[prop_index][tt])
+
+            #Write leaf indices
+            leaf_index_str = str(candidates[0][2].data.leaf_count) + "\n"
+            f_propgationLeafIndex.write(leaf_index_str)
+            leaf_index_str = str(candidates[1][2].data.leaf_count) + "\n"
+            f_propgationLeafIndex.write(leaf_index_str)
+            leaf_index_str = str(candidates[2][2].data.leaf_count) + "\n"
+            f_propgationLeafIndex.write(leaf_index_str)
+            leaf_index_str = str(candidates[3][2].data.leaf_count) + "\n"
+            f_propgationLeafIndex.write(leaf_index_str)
+        
+        
+
+
+            # Better Propagation (Doesn't actually help)
+            better = []
+            # for prop in range(1):
+
+            #     prop_index = int(candidates[prop][1] + row_size)
+
+
+            #     if prop_index >= 494:
+            #         continue
+
+            #     for tt in range(4):
+        
+            #        add = True
+            #        for q in candidates:
+            #            if int(q[0]) == int(nn_row_storage[prop_index][tt][0]):
+            #                add = False
+                            
+            #        if add:
+            #         better.append(nn_row_storage[prop_index][tt])
+
+            
+
+            # Add candidates from top to bottom traversal  on current row/index
+            # TODO: Add back in
+            for t in range(4):  #Change to 4
+            
+                # for qq in candidates:
+                #     if int(qq[0]) == int(nn_row_storage[row_idx_counter][t][0]):
+                #         add = False
+
+                vals = []
+                for d_test in candidates:
+                    vals.append(d_test[1])
+                            
+                #print(nn_row_storage[row_idx_counter][t][1] )
+                if nn_row_storage[row_idx_counter][t][1] not in vals:
+                
+                    #print(vals)
+                    candidates.append(nn_row_storage[row_idx_counter][t])
+
+                
+                
+
+            # Find the best 5 of these reuslts   
+
+            #Best 5 is a misnomer, it is actually best 4 now (My fault for the poor variable name ~Chris)
+            dist, best_node, best_five = compute_all_distances_find_best_new(candidates, patchA3, _pca_model)
+
+
+            #print("best 4")
+        
+        
+            best_indexes = []
+            for ix in best_five:
+                
+                best_indexes.append(ix[1])
+                
+        
+
+
+            dist, idx = compute_distance(best_node.data, patchA3)
+
+        
+        
+            best_dist = dist
+            best_idx = idx
+            best_index_str = str(best_idx) + "\n"
+            f_process_row.write(best_index_str)
+            nn_full_indices.append(best_idx)
+            nn_full_distances.append(best_dist)
+
+            # Put best 5 as initial guess for the next time
+            row_storage[(row_idx_counter%row_size)] = best_five
+            
+            row_idx_counter = row_idx_counter + 1
+        
+
+
+
+        # end time
+        end = time.time()
+
+        # total time taken
+        print(f"Runtime of the program is {end - start}")
+
+
+        f_propgationLeafIndex.close()
+        f_process_row.close()
+
+
+
+        f_expected_idx_str = destination_folder + "/expectedIndex.txt"
+        f_expected_idx = open(f_expected_idx_str, "a")
+
+        for best_idx in nn_full_indices:
+            idx_str = str(best_idx) + "\n"
+        
+            f_expected_idx.write(idx_str)
+
+        f_expected_idx.close()
+
+
+
+        # # Compute final score
+        patches_a_reconst = patches_b[nn_full_indices]
+        diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
+        l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
+        print("Overall Full Traversal + Process Rows L2 score: {}".format(l2))
+        
+        
+        #write gold l2 to .txt file the l2.py can read
+        f_l2_str = destination_folder + "/gold_l2_score.txt"
+        f_l2 = open(f_l2_str, "a")
+        f_l2.write(str(l2) + "\n")
+        f_l2.close()
+        
+
+
+
+        # #Actuall hardware values
+        # file1 = open('receiveIndex.txt', 'r')
+        # Lines = file1.readlines()
+        
+        # # Strips the newline character
+        # hw_indices = []
+        # for line in Lines:
+        #     #print(int(line))
+        #     hw_indices.append(int(line))
+
+
+        # # # Compute final HW score 
+        # patches_a_reconst = patches_b[hw_indices]
+        # diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
+        # l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
+        # print("Overall Hardware L2 score: {}".format(l2))
 
         
 
-        # Add candidates from top to bottom traversal  on current row/index
-        # TODO: Add back in
-        for t in range(4):  #Change to 4
+
+
+
+
+        # Reconstruct Image (For Visual Debugging. The L2 score should effectively describe this same result )
+        # Note since patches_a_reconst was made by index, inverse PCA is NOT required 
+
+        recontruct_shape = (1, im_width, im_height, 3)
+
+        patches_a_reconst_format = [patches_a_reconst]
+
+        patches_a_reconst_format = tf.cast(patches_a_reconst_format, tf.float32)
+        images_reconstructed = extract_patches_inverse(recontruct_shape, patches_a_reconst_format)
+        #error = tf.reduce_mean(tf.math.squared_difference(images_reconstructed, images))
+        #print(error)
+
+        #Write the reconstructed image
+        print("Writing reconstructed image to")
+        print(reconstruct_file_name)
+        cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))
+
+
+
+
+
+
+
+#Unused
+def template_match():
+
+    src_pts_temp = []
+    dst_pts_temp = []
+    patch_a_idx = 0
+
+    print(len(nn_full_distances))
+    print(len(nn_full_indices))
+
+
+    a_y = 0
+
+    for q in nn_full_distances:
+
+        a_x = patch_a_idx % 28 +2
+        a_y = math.floor(patch_a_idx/28) +2
+        print(q)
+
+        print([a_x,a_y])
+
+        if q < 100:  
+
+
+            raw_best = nn_full_indices[patch_a_idx]
+
+            b_x = raw_best % 28 + 2
+            b_y = math.floor(raw_best/28) + 2
+
         
-            # for qq in candidates:
-            #     if int(qq[0]) == int(nn_row_storage[row_idx_counter][t][0]):
-            #         add = False
-
-            vals = []
-            for d_test in candidates:
-                vals.append(d_test[1])
-                        
-            #print(nn_row_storage[row_idx_counter][t][1] )
-            if nn_row_storage[row_idx_counter][t][1] not in vals:
-               
-                #print(vals)
-                candidates.append(nn_row_storage[row_idx_counter][t])
-
-            
-            
-
-        # Find the best 5 of these reuslts   
-
-        #Best 5 is a misnomer, it is actually best 4 now (My fault for the poor variable name ~Chris)
-        dist, best_node, best_five = compute_all_distances_find_best_new(candidates, patchA3, _pca_model)
+            src_pts_temp.append([a_x, a_y]) #TODO: convert patch index picture index
+            dst_pts_temp.append([b_x, b_y]) #Use NNF
 
 
-        #print("best 4")
-    
-    
-        best_indexes = []
-        for ix in best_five:
-            
-            best_indexes.append(ix[1])
-            
-    
+        patch_a_idx = patch_a_idx + 1
 
 
-        dist, idx = compute_distance(best_node.data, patchA3)
+    src_pts = numpy.float32([src_pts_temp]).reshape(-1,1,2)
+    dst_pts = numpy.float32([dst_pts_temp ]).reshape(-1,1,2)
 
-      
-    
-        best_dist = dist
-        best_idx = idx
-        best_index_str = str(best_idx) + "\n"
-        f_process_row.write(best_index_str)
-        nn_full_indices.append(best_idx)
-        nn_full_distances.append(best_dist)
-
-        # Put best 5 as initial guess for the next time
-        row_storage[(row_idx_counter%row_size)] = best_five
-        
-        row_idx_counter = row_idx_counter + 1
-       
+    print(src_pts.shape)
+    print(dst_pts.shape)
+    print("Error after thsi")
+    M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
+    matchesMask = mask.ravel().tolist()
 
 
+    print(image_test.shape)
+    print(patches_a.shape)
+    h,w,_ = image_test.shape
+    print(h)
+    print(w)
+    print(M.shape)
+    pts = numpy.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
+    dst = cv2.perspectiveTransform(pts,M)
 
-    # end time
-    end = time.time()
+    img2 = cv2.polylines(img2,[numpy.int32(dst)],True,(255,255,0),1, cv2.LINE_AA)
+    cv2.imwrite(reconstruct_file_name_2,img2)
 
-    # total time taken
-    print(f"Runtime of the program is {end - start}")
+    # patches_a_reconst_format = [dst]
 
+    # patches_a_reconst_format = tf.cast(patches_a_reconst_format, tf.float32)
+    # images_reconstructed = extract_patches_inverse(recontruct_shape, patches_a_reconst_format)
+    # cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))
 
-    f_propgationLeafIndex.close()
-    f_process_row.close()
-
-
-
-    f_expected_idx_str = destination_folder + "/expectedIndex.txt"
-    f_expected_idx = open(f_expected_idx_str, "w")
-
-    for best_idx in nn_full_indices:
-        idx_str = str(best_idx) + "\n"
-    
-        f_expected_idx.write(idx_str)
-
-    f_expected_idx.close()
-
-
-
-    # # Compute final score
-    patches_a_reconst = patches_b[nn_full_indices]
-    diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
-    l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
-    print("Overall Full Traversal + Process Rows L2 score: {}".format(l2))
-    
-    
-    #write gold l2 to .txt file the l2.py can read
-    f_l2_str = destination_folder + "/gold_l2_score.txt"
-    f_l2 = open(f_l2_str, "w")
-    f_l2.write(str(l2))
-    f_l2.close()
-    
-
-
-
-    # #Actuall hardware values
-    # file1 = open('receiveIndex.txt', 'r')
-    # Lines = file1.readlines()
-    
-    # # Strips the newline character
-    # hw_indices = []
-    # for line in Lines:
-    #     #print(int(line))
-    #     hw_indices.append(int(line))
-
-
-    # # # Compute final HW score 
-    # patches_a_reconst = patches_b[hw_indices]
-    # diff = patches_a.astype(numpy.float32) - patches_a_reconst.astype(numpy.float32)
-    # l2 = numpy.mean(numpy.linalg.norm(diff, axis=1))
-    # print("Overall Hardware L2 score: {}".format(l2))
 
     
-
-
-
-
-
-    # Reconstruct Image (For Visual Debugging. The L2 score should effectively describe this same result )
-    # Note since patches_a_reconst was made by index, inverse PCA is NOT required 
-
-    recontruct_shape = (1, im_width, im_height, 3)
-
-    patches_a_reconst_format = [patches_a_reconst]
-
-    patches_a_reconst_format = tf.cast(patches_a_reconst_format, tf.float32)
-    images_reconstructed = extract_patches_inverse(recontruct_shape, patches_a_reconst_format)
-    #error = tf.reduce_mean(tf.math.squared_difference(images_reconstructed, images))
-    #print(error)
-
-    #Write the reconstructed image
-    print("Writing reconstructed image to")
-    print(reconstruct_file_name)
-    cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))
+    # img2 = cv2.polylines(reconstruct_file_name,[numpy.int32(dst)],True,255,3, cv2.LINE_AA)
 
 
 
 
   
-
-
-
-
-    
 
 
   

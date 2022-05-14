@@ -58,12 +58,16 @@ def _create_patches(img, psize):
 if __name__ == "__main__":
     
     
+    image_idx = 0
     if len(sys.argv) < 3:
 
         print("[ERROR] must supply [image A] [image B]" )
         print("Example: python3 l2.py walking1 walking12")
         exit()
-    
+        
+    if len(sys.argv) >= 4:
+        image_idx = int(sys.argv[3])
+      
     numpy.random.seed(0)
     psize = 5 # Patch size of 5x5 (much better results than 8x8 for minimal memory penalty)
     
@@ -108,9 +112,16 @@ if __name__ == "__main__":
     Lines = results_file.readlines()
     
     hw_indices = []
+    counter = 0
+    start = image_idx*494 #494 is number of patches. This magic number should be changed
+    end = (image_idx+1)*494
     for line in Lines:
         #print(int(line))
-        hw_indices.append(int(line))
+        
+        if counter >= start and counter < end:
+            hw_indices.append(int(line))
+            
+        counter = counter + 1
 
 
     # Compute final HW score 
@@ -124,7 +135,7 @@ if __name__ == "__main__":
     gold_l2 = open('./data/IO_data/gold_l2_score.txt', 'r')
     lines = gold_l2.readlines()
     
-    gold_l2 = float(lines[0])
+    gold_l2 = float(lines[image_idx]) #Select image to compare l2 from provided command line arg
     
     if abs(l2 - gold_l2) > 1:
         print("failed")

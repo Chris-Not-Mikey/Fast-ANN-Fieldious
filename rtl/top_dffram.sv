@@ -32,7 +32,8 @@ module top
     output logic                                in_fifo_wfull_n,
     input logic                                 out_fifo_deq,
     output logic [DATA_WIDTH-1:0]               out_fifo_rdata,
-    output logic                                out_fifo_rempty_n
+    output logic                                out_fifo_rempty_n,
+    input logic 				wbs_debug
 );
 
 

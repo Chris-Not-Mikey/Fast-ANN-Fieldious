@@ -1759,6 +1759,76 @@ if __name__ == "__main__":
 
 
 
+#Unused
+def template_match():
+
+    src_pts_temp = []
+    dst_pts_temp = []
+    patch_a_idx = 0
+
+    print(len(nn_full_distances))
+    print(len(nn_full_indices))
+
+
+    a_y = 0
+
+    for q in nn_full_distances:
+
+        a_x = patch_a_idx % 28 +2
+        a_y = math.floor(patch_a_idx/28) +2
+        print(q)
+
+        print([a_x,a_y])
+
+        if q < 100:  
+
+
+            raw_best = nn_full_indices[patch_a_idx]
+
+            b_x = raw_best % 28 + 2
+            b_y = math.floor(raw_best/28) + 2
+
+        
+            src_pts_temp.append([a_x, a_y]) #TODO: convert patch index picture index
+            dst_pts_temp.append([b_x, b_y]) #Use NNF
+
+
+        patch_a_idx = patch_a_idx + 1
+
+
+    src_pts = numpy.float32([src_pts_temp]).reshape(-1,1,2)
+    dst_pts = numpy.float32([dst_pts_temp ]).reshape(-1,1,2)
+
+    print(src_pts.shape)
+    print(dst_pts.shape)
+    print("Error after thsi")
+    M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
+    matchesMask = mask.ravel().tolist()
+
+
+    print(image_test.shape)
+    print(patches_a.shape)
+    h,w,_ = image_test.shape
+    print(h)
+    print(w)
+    print(M.shape)
+    pts = numpy.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
+    dst = cv2.perspectiveTransform(pts,M)
+
+    img2 = cv2.polylines(img2,[numpy.int32(dst)],True,(255,255,0),1, cv2.LINE_AA)
+    cv2.imwrite(reconstruct_file_name_2,img2)
+
+    # patches_a_reconst_format = [dst]
+
+    # patches_a_reconst_format = tf.cast(patches_a_reconst_format, tf.float32)
+    # images_reconstructed = extract_patches_inverse(recontruct_shape, patches_a_reconst_format)
+    # cv2.imwrite(reconstruct_file_name, numpy.array(images_reconstructed[0]))
+
+
+    
+    # img2 = cv2.polylines(reconstruct_file_name,[numpy.int32(dst)],True,255,3, cv2.LINE_AA)
+
+
 
     
 

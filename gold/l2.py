@@ -114,10 +114,11 @@ if __name__ == "__main__":
     hw_indices = []
     counter = 0
     start = image_idx*494 #494 is number of patches. This magic number should be changed
+    end = (image_idx+1)*494
     for line in Lines:
         #print(int(line))
         
-        if counter > start:
+        if counter >= start and counter < end:
             hw_indices.append(int(line))
             
         counter = counter + 1

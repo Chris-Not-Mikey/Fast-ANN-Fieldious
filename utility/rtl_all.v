@@ -2578,6 +2578,8 @@ module MainFSM #(
             SendBestIdx: begin
                 counter_in = NUM_QUERYS / 2 - 1;
                 out_fifo_wdata_sel_d = 2'd0;
+                // needs to wait for wenq = 0 because wfull takes 1 cycle to update
+                // we need to wait until the previous write to update the full signal
                 if (~out_fifo_wenq & out_fifo_wfull_n) begin
                     // reads only the best
                     best_arr_csb1 = 1'b0;
@@ -2616,6 +2618,7 @@ module MainFSM #(
                 counter_in = NUM_QUERYS - 1;
                 out_fifo_wdata_sel_d = 3'd4;
                 // read from the best array only once per 2 out fifo wenq
+                // we need to wait until the previous write to update the full signal
                 if (~out_fifo_wenq & out_fifo_wfull_n & ~counter[0]) begin
                     out_fifo_wdata_sel_d = 2'd2;
                     // reads only the best
@@ -3052,6 +3055,21 @@ endmodule
 
 
 
+
+module ResetMux(
+                select,
+                rst0,
+                rst1,
+                out_rst
+               ) ;
+
+    input            select;
+    input            rst0;
+    input            rst1;
+    output           out_rst;
+
+    assign out_rst = select ?rst1 :rst0;
+endmodule
 
 module RunningMin (
   input logic clk,
@@ -4024,6 +4042,9 @@ module top
     input logic [LEAF_ADDRW-1:0]                            wbs_leaf_mem_addr0,
     input logic [63:0]                                      wbs_leaf_mem_wleaf0,
     output logic [63:0]                                     wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0],
+    input logic                                             wbs_best_arr_csb1,
+    input logic [7:0]                                       wbs_best_arr_addr1,
+    output logic [63:0]                                     wbs_best_arr_rdata1,
 
     input logic                                             wbs_node_mem_web,
     input logic [31:0]                                      wbs_node_mem_addr,
@@ -4510,8 +4531,8 @@ module top
         .addr0              (best_arr_addr0),
         .wdata0             (best_arr_wdata0),
         .rdata0             (best_arr_rdata0),
-        .csb1               (best_arr_csb1),
-        .addr1              (best_arr_addr1),
+        .csb1               (wbs_debug ?wbs_best_arr_csb1 :best_arr_csb1),
+        .addr1              (wbs_debug ?wbs_best_arr_addr1 :best_arr_addr1),
         .rdata1             (best_arr_rdata1)
     );
 
@@ -4520,8 +4541,8 @@ module top
 
     logic [22:0] sl0_l2_dist_capped;
     logic [22:0] sl1_l2_dist_capped;
-    assign sl0_l2_dist_capped = (|sl0_l2_dist_0[DIST_WIDTH-1:23]) ?23'hFFFFFF :sl0_l2_dist_0[22:0];
-    assign sl1_l2_dist_capped = (|sl1_l2_dist_0[DIST_WIDTH-1:23]) ?23'hFFFFFF :sl1_l2_dist_0[22:0];
+    assign sl0_l2_dist_capped = (|sl0_l2_dist_0[DIST_WIDTH-1:23]) ?23'h7FFFFF :sl0_l2_dist_0[22:0];
+    assign sl1_l2_dist_capped = (|sl1_l2_dist_0[DIST_WIDTH-1:23]) ?23'h7FFFFF :sl1_l2_dist_0[22:0];
     assign best_arr_wdata0[0][31:0]    = {sl0_l2_dist_capped, sl0_merged_idx_0[IDX_WIDTH-1:0]};
     assign best_arr_wdata0[0][63:32]   = {sl1_l2_dist_capped, sl1_merged_idx_0[IDX_WIDTH-1:0]};
 
@@ -4864,6 +4885,7 @@ module wbsCtrl
 
     output logic wbs_mode,
     output logic wbs_debug,
+    output logic wbs_done,
 
     output logic                                                    wbs_qp_mem_csb0,
     output logic                                                    wbs_qp_mem_web0,
@@ -4880,17 +4902,17 @@ module wbsCtrl
     output logic                                                    wbs_node_mem_web,
     output logic [31:0]                                             wbs_node_mem_addr,
     output logic [31:0]                                             wbs_node_mem_wdata,
-    input logic [31:0]                                              wbs_node_mem_rdata 
+    input logic [31:0]                                              wbs_node_mem_rdata,
 
-
-    
-
-
+    output logic                                                    wbs_best_arr_csb1,
+    output logic [7:0]                                              wbs_best_arr_addr1,
+    input logic [63:0]                                              wbs_best_arr_rdata1
 );
 
     localparam WBS_ADDR_MASK        = 32'hFF00_0000;
     localparam WBS_MODE_ADDR        = 32'h3000_0000;
     localparam WBS_DEBUG_ADDR       = 32'h3000_0001;
+    localparam WBS_DONE_ADDR        = 32'h3000_0002;
     localparam WBS_QUERY_ADDR       = 32'h3100_0000;
     localparam WBS_LEAF_ADDR        = 32'h3200_0000;
     localparam WBS_BEST_ADDR        = 32'h3300_0000;
@@ -4951,6 +4973,8 @@ module wbsCtrl
         wbs_leaf_mem_addr0 = '0;
         wbs_leaf_mem_wleaf0 = '0;
 
+        wbs_best_arr_csb1 = 1'b1;
+        wbs_best_arr_addr1 = '0;
 
         wbs_node_mem_web = 1'b0;
         wbs_node_mem_addr = '0;
@@ -4991,7 +5015,12 @@ module wbsCtrl
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR) begin
                     wbs_node_mem_web = 1'b0; //Write disable, hence read enabled
                     wbs_node_mem_addr = wbs_adr_i_q;
-                    
+                end
+
+                else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_BEST_ADDR) begin
+                    wbs_best_arr_csb1 = 1'b0;
+                    // the last bit determines which 32bit it is accessing of the 64 bit best array data
+                    wbs_best_arr_addr1 = wbs_adr_i_q[8:1];
                 end
             end
 
@@ -5006,6 +5035,8 @@ module wbsCtrl
 
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)
                     wbs_dat_o_d = wbs_node_mem_rdata;
+                else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_BEST_ADDR)
+                    wbs_dat_o_d = wbs_adr_i_q[0] ?wbs_best_arr_rdata1[63:32] :wbs_best_arr_rdata1[31:0];
                  
             end
 
@@ -5096,6 +5127,15 @@ module wbsCtrl
         if (wb_rst_i) wbs_debug <= '0;
         else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_DEBUG_ADDR)) begin
             wbs_debug <= wbs_dat_i_q[0];
+        end
+    end
+
+    // caravel debugging only
+    // if 1, RISC-V done instructions
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) wbs_done <= '0;
+        else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_DONE_ADDR)) begin
+            wbs_done <= wbs_dat_i_q[0];
         end
     end
 

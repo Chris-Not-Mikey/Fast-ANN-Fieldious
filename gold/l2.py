@@ -148,7 +148,7 @@ if __name__ == "__main__":
         print("Sucess")
 
         
-    #Compare squared l2 distances with a 10% margine of error
+    #Compare squared l2 distances with a 30% margine of error
     result_dsts = results_dst_file.readlines()
     expected_dsts = expected_dst_file.readlines()
     
@@ -157,7 +157,7 @@ if __name__ == "__main__":
         result = int(result_dst)
         expected = int(expected_dst)
 
-        margin = 0.1*expected
+        margin = 0.3*expected
 
         if abs(result - expected) > margin:
             print("failed")

@@ -152,18 +152,18 @@ if __name__ == "__main__":
     result_dsts = results_dst_file.readlines()
     expected_dsts = expected_dst_file.readlines()
     
-     for result_dst, expected_dst in zip(result_dsts, expected_dsts):
+    for result_dst, expected_dst in zip(result_dsts, expected_dsts):
             
-            result = int(result_dst)
-            expected = int(expected_dst)
-            
-            margin = 0.1*expected
-            
-            if abs(result - expected) > margin:
-                print("failed")
-                
-            else:
-                print("Sucess")
+        result = int(result_dst)
+        expected = int(expected_dst)
+
+        margin = 0.1*expected
+
+        if abs(result - expected) > margin:
+            print("failed")
+
+        else:
+            print("Sucess")
 
 
 

@@ -65,7 +65,7 @@ if __name__ == "__main__":
         print("Example: python3 l2.py walking1 walking12")
         exit()
         
-     if len(sys.argv) >= 4:
+    if len(sys.argv) >= 4:
         image_idx = int(sys.argv[3])
       
     numpy.random.seed(0)

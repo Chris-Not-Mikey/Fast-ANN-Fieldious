@@ -119,6 +119,8 @@ if __name__ == "__main__":
         
         if counter > start:
             hw_indices.append(int(line))
+            
+        counter = counter + 1
 
 
     # Compute final HW score 

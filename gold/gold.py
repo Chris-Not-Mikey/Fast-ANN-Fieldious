@@ -1195,6 +1195,8 @@ if __name__ == "__main__":
     images_b_storage = ["stick2"]
 
     multi_images = False
+    #our max l2 distance truncates at 23 bits
+    MAX_DIST = (2**23) - 1 
 
     if len(sys.argv) < 4:
 
@@ -1242,6 +1244,9 @@ if __name__ == "__main__":
 
     if os.path.exists(destination_folder + "expectedIndex.txt"):
         os.remove(destination_folder + "expectedIndex.txt")
+        
+    if os.path.exists(destination_folder + "expectedDistance.txt"):
+        os.remove(destination_folder + "expectedDistance.txt")
 
 
   
@@ -1740,7 +1745,7 @@ if __name__ == "__main__":
         f_process_row.close()
 
 
-
+        #Write Expected Indices
         f_expected_idx_str = destination_folder + "/expectedIndex.txt"
         f_expected_idx = open(f_expected_idx_str, "a")
 
@@ -1750,6 +1755,27 @@ if __name__ == "__main__":
             f_expected_idx.write(idx_str)
 
         f_expected_idx.close()
+        
+        
+        #Write Expected Distance
+        f_expected_dst_str = destination_folder + "/expectedDistance.txt"
+        f_expected_dst = open(f_expected_dst_str, "a")
+
+        for best_dst in nn_full_distances:
+
+            #The RTL model does not take sqrt
+            #That is the RTL provides the SQUARED L2 score
+            #Thus to match, we square our results
+            temp_dst = (int(best_dst))**2
+     
+            if temp_dst > MAX_DIST:
+                temp_dst = MAX_DIST
+                
+            dst_str = str(temp_dst) + "\n"
+        
+            f_expected_dst.write(dst_str)
+
+        f_expected_dst.close()
 
 
 

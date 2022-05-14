@@ -1,6 +1,7 @@
 #####################################################################
 #           l2.py                                                   #
-#           For computining the l2 score of the HW results          #
+#           For computing the l2 score of the HW results            #
+#           Additionally compares squared l2 dists from GOLD to RTL #
 #           Also does reconstruction to create visual output        #
 #                                                                   #
 #           Author: Chris Calloway                                  #
@@ -89,6 +90,10 @@ if __name__ == "__main__":
 #     image_a = cv2.imread("./data/gold_data/frame1ball_30.png")
 #     image_b = cv2.imread("./data/gold_data/frame2ball_30.png")
     results_file = open('./data/IO_data/received_idx.txt', 'r')
+    results_dst_file = open('./data/IO_data/received_dist.txt', 'r')
+    expected_dst_file = open('./data/IO_data/expectedDistance.txt', 'r')
+    
+    
     reconstruct_file_name = "./data/gold_results/l2_" +  file_name_a + "_reconstruct.png"
 
 
@@ -142,6 +147,23 @@ if __name__ == "__main__":
     else:
         print("Sucess")
 
+        
+    #Compare squared l2 distances with a 10% margine of error
+    result_dsts = results_dst_file.readlines()
+    expected_dsts = expected_dst_file.readlines()
+    
+     for result_dst, expected_dst in zip(result_dsts, expected_dsts):
+            
+            result = int(result_dst)
+            expected = int(expected_dst)
+            
+            margin = 0.1*expected
+            
+            if abs(result - expected) > margin:
+                print("failed")
+                
+            else:
+                print("Sucess")
 
 
 

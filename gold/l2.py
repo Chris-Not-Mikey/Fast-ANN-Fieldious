@@ -66,7 +66,7 @@ if __name__ == "__main__":
         exit()
         
      if len(sys.argv) >= 4:
-        image_idx = sys.argv[3]
+        image_idx = int(sys.argv[3])
       
     numpy.random.seed(0)
     psize = 5 # Patch size of 5x5 (much better results than 8x8 for minimal memory penalty)

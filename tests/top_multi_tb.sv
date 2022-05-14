@@ -99,8 +99,7 @@ module top_tb();
         $timeformat(-9, 2, "ns", 20);
       
       
-       for (int q=0; q<2; q=q+1) begin
-         $display("Starting new image");
+  
 
         // $readmemh("leaves_mem_dummy0.txt", dut.leaf_mem_inst.loop_ram_patch_gen[0].ram_patch_inst.loop_depth_gen[0].loop_width_gen[0].genblk1.sram_macro.mem);
         // $readmemh("leaves_mem_dummy0.txt", dut.leaf_mem_inst.loop_ram_patch_gen[1].ram_patch_inst.loop_depth_gen[0].loop_width_gen[0].genblk1.sram_macro.mem);
@@ -146,6 +145,9 @@ module top_tb();
               $display("query_data_file handle was NULL");
               $finish;
           end
+        
+         for (int q=0; q<2; q=q+1) begin
+            $display("Starting new image");
 
           rst_n = 0;
           fsm_start = 0;

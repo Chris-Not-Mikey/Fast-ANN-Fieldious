@@ -159,9 +159,9 @@ if __name__ == "__main__":
 
         margin = 0.3*expected
 
-        if abs(result - expected) > margin:
+        if abs(result - expected) > margin and abs(result - expected) > 11:
             print("failed")
-
+            print(abs(result - expected))
         else:
             print("Sucess")
 

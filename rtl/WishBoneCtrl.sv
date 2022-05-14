@@ -25,6 +25,7 @@ module wbsCtrl
 
     output logic wbs_mode,
     output logic wbs_debug,
+    output logic wbs_done,
 
     output logic                                                    wbs_qp_mem_csb0,
     output logic                                                    wbs_qp_mem_web0,
@@ -41,17 +42,17 @@ module wbsCtrl
     output logic                                                    wbs_node_mem_web,
     output logic [31:0]                                             wbs_node_mem_addr,
     output logic [31:0]                                             wbs_node_mem_wdata,
-    input logic [31:0]                                              wbs_node_mem_rdata 
+    input logic [31:0]                                              wbs_node_mem_rdata,
 
-
-    
-
-
+    output logic                                                    wbs_best_arr_csb1,
+    output logic [7:0]                                              wbs_best_arr_addr1,
+    input logic [63:0]                                              wbs_best_arr_rdata1
 );
 
     localparam WBS_ADDR_MASK        = 32'hFF00_0000;
     localparam WBS_MODE_ADDR        = 32'h3000_0000;
     localparam WBS_DEBUG_ADDR       = 32'h3000_0001;
+    localparam WBS_DONE_ADDR        = 32'h3000_0002;
     localparam WBS_QUERY_ADDR       = 32'h3100_0000;
     localparam WBS_LEAF_ADDR        = 32'h3200_0000;
     localparam WBS_BEST_ADDR        = 32'h3300_0000;
@@ -112,6 +113,8 @@ module wbsCtrl
         wbs_leaf_mem_addr0 = '0;
         wbs_leaf_mem_wleaf0 = '0;
 
+        wbs_best_arr_csb1 = 1'b1;
+        wbs_best_arr_addr1 = '0;
 
         wbs_node_mem_web = 1'b0;
         wbs_node_mem_addr = '0;
@@ -152,7 +155,12 @@ module wbsCtrl
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR) begin
                     wbs_node_mem_web = 1'b0; //Write disable, hence read enabled
                     wbs_node_mem_addr = wbs_adr_i_q;
-                    
+                end
+
+                else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_BEST_ADDR) begin
+                    wbs_best_arr_csb1 = 1'b0;
+                    // the last bit determines which 32bit it is accessing of the 64 bit best array data
+                    wbs_best_arr_addr1 = wbs_adr_i_q[8:1];
                 end
             end
 
@@ -167,6 +175,8 @@ module wbsCtrl
 
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)
                     wbs_dat_o_d = wbs_node_mem_rdata;
+                else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_BEST_ADDR)
+                    wbs_dat_o_d = wbs_adr_i_q[0] ?wbs_best_arr_rdata1[63:32] :wbs_best_arr_rdata1[31:0];
                  
             end
 
@@ -257,6 +267,15 @@ module wbsCtrl
         if (wb_rst_i) wbs_debug <= '0;
         else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_DEBUG_ADDR)) begin
             wbs_debug <= wbs_dat_i_q[0];
+        end
+    end
+
+    // caravel debugging only
+    // if 1, RISC-V done instructions
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) wbs_done <= '0;
+        else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_DONE_ADDR)) begin
+            wbs_done <= wbs_dat_i_q[0];
         end
     end
 

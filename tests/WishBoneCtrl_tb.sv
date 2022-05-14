@@ -34,6 +34,9 @@ module WishBoneCtrl_tb();
     logic [LEAF_ADDRW-1:0]                                  wbs_leaf_mem_addr0;
     logic [63:0]                                            wbs_leaf_mem_wleaf0;
     logic [63:0]                                            wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0];
+    logic                                                   wbs_best_arr_csb1;
+    logic [7:0]                                             wbs_best_arr_addr1;
+    logic [63:0]                                            wbs_best_arr_rdata1;
 
     logic                                                   wbs_node_mem_web;
     logic [31:0]                                            wbs_node_mem_addr;
@@ -91,7 +94,10 @@ module WishBoneCtrl_tb();
         .wbs_node_mem_web                       (wbs_node_mem_web),
         .wbs_node_mem_addr                      (wbs_node_mem_addr),
         .wbs_node_mem_wdata                     (wbs_node_mem_wdata),
-        .wbs_node_mem_rdata                     (wbs_dat_nod_o)
+        .wbs_node_mem_rdata                     (wbs_dat_nod_o),
+        .wbs_best_arr_csb1                      (wbs_best_arr_csb1),
+        .wbs_best_arr_addr1                     (wbs_best_arr_addr1),
+        .wbs_best_arr_rdata1                    (wbs_best_arr_rdata1)
     );
 
 
@@ -287,6 +293,39 @@ module WishBoneCtrl_tb();
         wbs_dat_i = 32'hfedcba98;
         wbs_adr_i = WBS_LEAF_ADDR + (3<<1) + 1; // addr 3, upper
         
+        @(negedge wbs_ack_o);
+        wbs_cyc_i = 1'b0;
+        wbs_stb_i = 1'b0;
+        wbs_we_i = 1'b0;
+        wbs_dat_i = '0;
+        wbs_adr_i = '0;
+
+
+        // best arr
+        $display("time %t, best array debugging", $time);
+        // mem read
+        @(posedge wb_clk_i);
+        wbs_cyc_i = 1'b1;
+        wbs_stb_i = 1'b1;
+        wbs_we_i = 1'b0;
+        wbs_sel_i = '1;
+        wbs_adr_i = WBS_BEST_ADDR + (7<<1) + 0; // addr 7, lower
+        
+        @(negedge (~wbs_best_arr_csb1));
+        wbs_best_arr_rdata1 = 63'h1100_1010_DEAD_BEEF;
+
+        @(posedge wbs_ack_o) assert(wbs_dat_o == 32'hDEAD_BEEF);
+        @(negedge wbs_ack_o);
+        wbs_cyc_i = 1'b1;
+        wbs_stb_i = 1'b1;
+        wbs_we_i = 1'b0;
+        wbs_sel_i = '1;
+        wbs_adr_i = WBS_BEST_ADDR + (7<<1) + 1; // addr 7, upper
+        
+        @(negedge (~wbs_best_arr_csb1));
+        wbs_best_arr_rdata1 = 63'h1100_1010_DEAD_BEEF;
+
+        @(posedge wbs_ack_o) assert(wbs_dat_o == 32'h1100_1010);
         @(negedge wbs_ack_o);
         wbs_cyc_i = 1'b0;
         wbs_stb_i = 1'b0;

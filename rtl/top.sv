@@ -47,6 +47,9 @@ module top
     input logic [LEAF_ADDRW-1:0]                            wbs_leaf_mem_addr0,
     input logic [63:0]                                      wbs_leaf_mem_wleaf0,
     output logic [63:0]                                     wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0],
+    input logic                                             wbs_best_arr_csb1,
+    input logic [7:0]                                       wbs_best_arr_addr1,
+    output logic [63:0]                                     wbs_best_arr_rdata1,
 
     input logic                                             wbs_node_mem_web,
     input logic [31:0]                                      wbs_node_mem_addr,
@@ -533,8 +536,8 @@ module top
         .addr0              (best_arr_addr0),
         .wdata0             (best_arr_wdata0),
         .rdata0             (best_arr_rdata0),
-        .csb1               (best_arr_csb1),
-        .addr1              (best_arr_addr1),
+        .csb1               (wbs_debug ?wbs_best_arr_csb1 :best_arr_csb1),
+        .addr1              (wbs_debug ?wbs_best_arr_addr1 :best_arr_addr1),
         .rdata1             (best_arr_rdata1)
     );
 
@@ -543,8 +546,8 @@ module top
 
     logic [22:0] sl0_l2_dist_capped;
     logic [22:0] sl1_l2_dist_capped;
-    assign sl0_l2_dist_capped = (|sl0_l2_dist_0[DIST_WIDTH-1:23]) ?23'hFFFFFF :sl0_l2_dist_0[22:0];
-    assign sl1_l2_dist_capped = (|sl1_l2_dist_0[DIST_WIDTH-1:23]) ?23'hFFFFFF :sl1_l2_dist_0[22:0];
+    assign sl0_l2_dist_capped = (|sl0_l2_dist_0[DIST_WIDTH-1:23]) ?23'h7FFFFF :sl0_l2_dist_0[22:0];
+    assign sl1_l2_dist_capped = (|sl1_l2_dist_0[DIST_WIDTH-1:23]) ?23'h7FFFFF :sl1_l2_dist_0[22:0];
     assign best_arr_wdata0[0][31:0]    = {sl0_l2_dist_capped, sl0_merged_idx_0[IDX_WIDTH-1:0]};
     assign best_arr_wdata0[0][63:32]   = {sl1_l2_dist_capped, sl1_merged_idx_0[IDX_WIDTH-1:0]};
 

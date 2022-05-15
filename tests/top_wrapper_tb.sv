@@ -170,7 +170,7 @@ module top_wrapper_tb();
             $finish;
         end
 
-        wb_rst_i = 0;
+        wb_rst_i = 1;
         rst_n = 0;
         io_in[15] = 0;
         io_in[16] = 0;
@@ -179,33 +179,28 @@ module top_wrapper_tb();
         io_in[2] = 0;
         io_in[13:3] = '0;
         io_in[14] = '0;
-        #10
-
-        // properly resets wbs_ctrl first to produce wbs_mode
-        wb_rst_i = 1;
-        #20
-        wb_rst_i = 0;
-        #20
         
+        #20
+        wb_rst_i = 0;      
         rst_n = 1;
         io_in[1] = 1;
         #40;
 
         // start load kd tree internal nodes and leaves
-        @(posedge io_in[0]) io_in[17] = 1'b1;
+        @(negedge io_in[0]) io_in[17] = 1'b1;
         simtime = $realtime;
         $display("[T=%0t] Start sending KD tree internal nodes and leaves", $realtime);
-        @(posedge io_in[0]) io_in[17] = 1'b0;
+        @(negedge io_in[0]) io_in[17] = 1'b0;
 
         // send internal nodes, 2 lines per node
         // index
         // median
         for(int i=0; i<NUM_NODES*2; i=i+1) begin
-            @(posedge io_in[0])
+            @(negedge io_in[0])
             io_in[2] = 1'b1;
             scan_file = $fscanf(int_nodes_data_file, "%d\n", io_in[13:3]);
         end
-        @(posedge io_in[0])
+        @(negedge io_in[0])
         io_in[2] = 0;
         io_in[13:3] = '0;
 
@@ -218,7 +213,7 @@ module top_wrapper_tb();
             io_in[2] = 1'b1;
             scan_file = $fscanf(leaves_data_file, "%d\n", io_in[13:3]);
         end
-        @(posedge io_in[0])
+        @(negedge io_in[0])
         io_in[2] = 0;
         io_in[13:3] = '0;
         $display("[T=%0t] Finished sending KD tree internal nodes and leaves", $realtime);
@@ -229,7 +224,7 @@ module top_wrapper_tb();
         // send query patches, 5 lines per query patch
         // each patch has 5 lines of data
         for(int i=0; i<NUM_QUERYS*5; i=i+1) begin
-            @(posedge io_in[0])
+            @(negedge io_in[0])
             io_in[2] = 1'b1;
             scan_file = $fscanf(query_data_file, "%d\n", io_in[13:3]);
         end
@@ -241,19 +236,19 @@ module top_wrapper_tb();
         
 
         #100;
-        @(posedge io_in[0]) io_in[15] = 1'b1;
+        @(negedge io_in[0]) io_in[15] = 1'b1;
         $display("[T=%0t] Start algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
         simtime = $realtime;
-        @(posedge io_in[0]) io_in[15] = 1'b0;
+        @(negedge io_in[0]) io_in[15] = 1'b0;
 
         wait(io_out[31] == 1'b1);
         $display("[T=%0t] Finished algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
         fsmtime = $realtime - simtime;
 
-        @(posedge io_in[0]) io_in[16] = 1'b1;
+        @(negedge io_in[0]) io_in[16] = 1'b1;
         $display("[T=%0t] Start receiving outputs", $realtime);
         simtime = $realtime;
-        @(posedge io_in[0]) io_in[16] = 1'b0;
+        @(negedge io_in[0]) io_in[16] = 1'b0;
 
         for(int px=0; px<2; px=px+1) begin
             for(x=0; x<4; x=x+1) begin
@@ -262,7 +257,7 @@ module top_wrapper_tb();
                     for(xi=0; xi<BLOCKING; xi=xi+1) begin
                         if ((x != 3) || (xi < 1)) begin  // for row_size = 26
                             wait(io_out[30]);
-                            @(posedge io_in[0])
+                            @(negedge io_in[0])
                             io_in[14] = 1'b1;
                             addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
                             received_idx[addr] = io_out[29:19];
@@ -271,7 +266,7 @@ module top_wrapper_tb();
                 end
             end
         end
-        @(posedge io_in[0]) io_in[14] = 1'b0;
+        @(negedge io_in[0]) io_in[14] = 1'b0;
         $display("[T=%0t] Finished receiving outputs", $realtime);
         outputtime = $realtime - simtime;
 

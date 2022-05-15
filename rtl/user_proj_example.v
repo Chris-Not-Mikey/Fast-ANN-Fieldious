@@ -90,33 +90,42 @@ module user_proj_example #(
 //     wire [`MPRJ_IO_PADS-1:0] io_out;
 //     wire [`MPRJ_IO_PADS-1:0] io_oeb;
 
-    logic                                                   io_clk;
-    logic                                                   io_rst_n;
-    logic                                                   clkmux_clk;
-    logic                                                   rstmux_rst_n;
-    logic                                                   wbs_mode;
-    logic                                                   wbs_debug;
-    logic                                                   wbs_qp_mem_csb0;
-    logic                                                   wbs_qp_mem_web0;
-    logic [8:0]                                             wbs_qp_mem_addr0;
-    logic [55:0]                                            wbs_qp_mem_wpatch0;
-    logic [55:0]                                            wbs_qp_mem_rpatch0;
-    logic [7:0]                                             wbs_leaf_mem_csb0;
-    logic [7:0]                                             wbs_leaf_mem_web0;
-    logic [5:0]                                             wbs_leaf_mem_addr0;
-    logic [63:0]                                            wbs_leaf_mem_wleaf0;
-    logic [63:0]                                            wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0];
+    wire                                                    io_clk;
+    wire                                                    io_rst_n;
+    wire                                                    clkmux_clk;
+    wire                                                    rstmux_rst_n;
+    wire                                                    wbs_mode;
+    wire                                                    wbs_debug;
+    wire                                                    wbs_done;
+    wire                                                    wbs_qp_mem_csb0;
+    wire                                                    wbs_qp_mem_web0;
+    wire [8:0]                                              wbs_qp_mem_addr0;
+    wire [54:0]                                             wbs_qp_mem_wpatch0;
+    wire [54:0]                                             wbs_qp_mem_rpatch0;
+    wire [7:0]                                              wbs_leaf_mem_csb0;
+    wire [7:0]                                              wbs_leaf_mem_web0;
+    wire [5:0]                                              wbs_leaf_mem_addr0;
+    wire [63:0]                                             wbs_leaf_mem_wleaf0;
+    wire [63:0][7:0]                                        wbs_leaf_mem_rleaf0;
+    wire                                                    wbs_best_arr_csb1;
+    wire [7:0]                                              wbs_best_arr_addr1;
+    wire [63:0]                                             wbs_best_arr_rdata1;
+    wire                                                    wbs_node_mem_web;
+    wire [31:0]                                             wbs_node_mem_addr;
+    wire [31:0]                                             wbs_node_mem_wdata;
+    wire [31:0]                                             wbs_node_mem_rdata;
 
-    logic                                                   fsm_start;
-    logic                                                   fsm_done;
-    logic                                                   send_best_arr;
-    logic                                                   load_kdtree;
-    logic                                                   in_fifo_wenq;
-    logic [10:0]                                            in_fifo_wdata;
-    logic                                                   in_fifo_wfull_n;
-    logic                                                   out_fifo_deq;
-    logic [10:0]                                            out_fifo_rdata;
-    logic                                                   out_fifo_rempty_n;
+    wire                                                    fsm_start;
+    wire                                                    fsm_done;
+    wire                                                    send_best_arr;
+    wire                                                    load_kdtree;
+    wire                                                    in_fifo_wenq;
+    wire [10:0]                                             in_fifo_wdata;
+    wire                                                    in_fifo_wfull_n;
+    wire                                                    out_fifo_deq;
+    wire [10:0]                                             out_fifo_rdata;
+    wire                                                    out_fifo_rempty_n;
+
 
 
      // IRQ

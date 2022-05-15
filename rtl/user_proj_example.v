@@ -119,7 +119,7 @@ module user_proj_example #(
     logic                                                   out_fifo_rempty_n;
 
 
-    // IRQ
+     // IRQ
     assign irq = 3'b000;	// Unused
     assign la_data_out = 128'd0;  // Unused
     assign io_oeb = la_data_in[37:0];  // TODO
@@ -137,37 +137,36 @@ module user_proj_example #(
     assign io_out[29:19] = out_fifo_rdata;
     assign io_out[30] = out_fifo_rempty_n;
     assign io_out[31] = fsm_done;
-    assign io_out[17:0] = '0;
-    assign io_out[37:32] = '0;
-    
-    
-    //assign wbs_mode = 0;
+    assign io_out[32] = wbs_done;
+    assign io_out[17:0] = 18'd0;
+    assign io_out[37:33] = 5'd0;
 
 
     ClockMux clockmux_inst (
         .select  ( wbs_mode  ),
-        .clk0    ( io_clk   ),
-        .clk1    ( wb_clk_i ),
+        .clk0    ( io_clk    ),
+        .clk1    ( wb_clk_i  ),
         .out_clk ( clkmux_clk)
     );
 
-    //TODO: Not working
-    ClockMux rstmux_inst (
+    ResetMux resetmux_inst (
         .select  ( wbs_mode     ),
-        .clk0    ( io_rst_n     ),
-        .clk1    ( ~wb_rst_i    ),
-        .out_clk ( rstmux_rst_n )
+        .rst0    ( io_rst_n     ),
+        .rst1    ( ~wb_rst_i    ),
+        .out_rst ( rstmux_rst_n )
     );
 
-    wbsCtrl #(
-        .DATA_WIDTH                             (DATA_WIDTH),
-        .LEAF_SIZE                              (LEAF_SIZE),
-        .PATCH_SIZE                             (PATCH_SIZE),
-        .ROW_SIZE                               (ROW_SIZE),
-        .COL_SIZE                               (COL_SIZE),
-        .K                                      (K),
-        .NUM_LEAVES                             (NUM_LEAVES)
-    ) wbsctrl_inst (
+    wbsCtrl 
+    // #(
+    //     .DATA_WIDTH                             (DATA_WIDTH),
+    //     .LEAF_SIZE                              (LEAF_SIZE),
+    //     .PATCH_SIZE                             (PATCH_SIZE),
+    //     .ROW_SIZE                               (ROW_SIZE),
+    //     .COL_SIZE                               (COL_SIZE),
+    //     .K                                      (K),
+    //     .NUM_LEAVES                             (NUM_LEAVES)
+    // ) 
+    wbsctrl_inst (
         .wb_clk_i                               (wb_clk_i),
         .wb_rst_i                               (wb_rst_i),
         .wbs_stb_i                              (wbs_stb_i),
@@ -180,6 +179,7 @@ module user_proj_example #(
         .wbs_dat_o                              (wbs_dat_o),
         .wbs_mode                               (wbs_mode),
         .wbs_debug                              (wbs_debug),
+        .wbs_done                               (wbs_done),
         .wbs_qp_mem_csb0                        (wbs_qp_mem_csb0),
         .wbs_qp_mem_web0                        (wbs_qp_mem_web0),
         .wbs_qp_mem_addr0                       (wbs_qp_mem_addr0),
@@ -189,7 +189,14 @@ module user_proj_example #(
         .wbs_leaf_mem_web0                      (wbs_leaf_mem_web0),
         .wbs_leaf_mem_addr0                     (wbs_leaf_mem_addr0),
         .wbs_leaf_mem_wleaf0                    (wbs_leaf_mem_wleaf0),
-        .wbs_leaf_mem_rleaf0                    (wbs_leaf_mem_rleaf0)
+        .wbs_leaf_mem_rleaf0                    (wbs_leaf_mem_rleaf0),
+        .wbs_node_mem_web                       (wbs_node_mem_web),
+        .wbs_node_mem_addr                      (wbs_node_mem_addr),
+        .wbs_node_mem_wdata                     (wbs_node_mem_wdata),
+        .wbs_node_mem_rdata                     (wbs_node_mem_rdata),
+        .wbs_best_arr_csb1                      (wbs_best_arr_csb1),
+        .wbs_best_arr_addr1                     (wbs_best_arr_addr1),
+        .wbs_best_arr_rdata1                    (wbs_best_arr_rdata1)
     );
 
     top 
@@ -208,8 +215,8 @@ module user_proj_example #(
     //     .LEAF_ADDRW(LEAF_ADDRW)
     // ) 
     dut(
-        .clk(io_clk),
-        .rst_n(io_rst_n),
+        .clk(clkmux_clk),
+        .rst_n(rstmux_rst_n),
 
         .load_kdtree(load_kdtree),
         .fsm_start(fsm_start),
@@ -235,7 +242,14 @@ module user_proj_example #(
         .wbs_leaf_mem_web0                      (wbs_leaf_mem_web0),
         .wbs_leaf_mem_addr0                     (wbs_leaf_mem_addr0),
         .wbs_leaf_mem_wleaf0                    (wbs_leaf_mem_wleaf0),
-        .wbs_leaf_mem_rleaf0                    (wbs_leaf_mem_rleaf0)   
+        .wbs_leaf_mem_rleaf0                    (wbs_leaf_mem_rleaf0),
+        .wbs_node_mem_web                       (wbs_node_mem_web),
+        .wbs_node_mem_addr                      (wbs_node_mem_addr),
+        .wbs_node_mem_wdata                     (wbs_node_mem_wdata),
+        .wbs_node_mem_rdata                     (wbs_node_mem_rdata),
+        .wbs_best_arr_csb1                      (wbs_best_arr_csb1),
+        .wbs_best_arr_addr1                     (wbs_best_arr_addr1),
+        .wbs_best_arr_rdata1                    (wbs_best_arr_rdata1)
     );
 
 endmodule

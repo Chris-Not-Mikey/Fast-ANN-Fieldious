@@ -49,14 +49,14 @@ module wbsCtrl
     input logic [63:0]                                              wbs_best_arr_rdata1
 );
 
-    localparam WBS_ADDR_MASK        = 32'hFF00_0000;
+    localparam WBS_ADDR_MASK        = 32'hFFFF_0000;
     localparam WBS_MODE_ADDR        = 32'h3000_0000;
-    localparam WBS_DEBUG_ADDR       = 32'h3000_0001;
-    localparam WBS_DONE_ADDR        = 32'h3000_0002;
-    localparam WBS_QUERY_ADDR       = 32'h3100_0000;
-    localparam WBS_LEAF_ADDR        = 32'h3200_0000;
-    localparam WBS_BEST_ADDR        = 32'h3300_0000;
-    localparam WBS_NODE_ADDR        = 32'h3400_0000;
+    localparam WBS_DEBUG_ADDR       = 32'h3000_0004;
+    localparam WBS_DONE_ADDR        = 32'h3000_0008;
+    localparam WBS_QUERY_ADDR       = 32'h3001_0000;
+    localparam WBS_LEAF_ADDR        = 32'h3002_0000;
+    localparam WBS_BEST_ADDR        = 32'h3003_0000;
+    localparam WBS_NODE_ADDR        = 32'h3004_0000;
 
     typedef enum {  Idle,
                     ReadMem,
@@ -140,16 +140,17 @@ module wbsCtrl
                 if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_QUERY_ADDR) begin
                     wbs_qp_mem_csb0 = 1'b0;
                     wbs_qp_mem_web0 = 1'b1;
-                    // the last bit determines which 32bit it is accessing of the 55 bit query data
-                    wbs_qp_mem_addr0 = wbs_adr_i_q[$clog2(NUM_QUERYS):1];
+                    // bit 1:0 are ignored as wbs_adr is byte-addressable
+                    // bit 2 determines which 32bit it is accessing of the 55 bit query data
+                    wbs_qp_mem_addr0 = wbs_adr_i_q[3+:$clog2(NUM_QUERYS)];
                 end
                 
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_LEAF_ADDR) begin
-                    // bit 0 is because each patch is 64 bit
-                    // bit 3:1 is the patch index within a leaf
-                    wbs_leaf_mem_csb0[wbs_adr_i_q[3:1]] = 1'b0;
-                    wbs_leaf_mem_web0[wbs_adr_i_q[3:1]] = 1'b1;
-                    wbs_leaf_mem_addr0 = wbs_adr_i_q[9:4];
+                    // bit 2 determines which 32bit it is accessing of the 64 bit leaf mem data
+                    // bit 5:3 is the patch index within a leaf
+                    wbs_leaf_mem_csb0[wbs_adr_i_q[5:3]] = 1'b0;
+                    wbs_leaf_mem_web0[wbs_adr_i_q[5:3]] = 1'b1;
+                    wbs_leaf_mem_addr0 = wbs_adr_i_q[11:6];
                 end
 
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR) begin
@@ -159,8 +160,8 @@ module wbsCtrl
 
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_BEST_ADDR) begin
                     wbs_best_arr_csb1 = 1'b0;
-                    // the last bit determines which 32bit it is accessing of the 64 bit best array data
-                    wbs_best_arr_addr1 = wbs_adr_i_q[8:1];
+                    // bit 2 determines which 32bit it is accessing of the 64 bit best array data
+                    wbs_best_arr_addr1 = wbs_adr_i_q[10:3];
                 end
             end
 
@@ -169,37 +170,34 @@ module wbsCtrl
                 wbs_ack_o_d = 1'b1;
                 wbs_dat_o_d_valid = 1'b1;
                 if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_QUERY_ADDR)
-                    wbs_dat_o_d = wbs_adr_i_q[0] ?{9'b0, wbs_qp_mem_rpatch0[54:32]} :wbs_qp_mem_rpatch0[31:0];
+                    wbs_dat_o_d = wbs_adr_i_q[2] ?{9'b0, wbs_qp_mem_rpatch0[54:32]} :wbs_qp_mem_rpatch0[31:0];
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_LEAF_ADDR)
-                    wbs_dat_o_d = wbs_adr_i_q[0] ?wbs_leaf_mem_rleaf0[wbs_adr_i_q[3:1]][63:32] :wbs_leaf_mem_rleaf0[wbs_adr_i_q[3:1]][31:0];
+                    wbs_dat_o_d = wbs_adr_i_q[2] ?wbs_leaf_mem_rleaf0[wbs_adr_i_q[5:3]][63:32] :wbs_leaf_mem_rleaf0[wbs_adr_i_q[5:3]][31:0];
 
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)
                     wbs_dat_o_d = wbs_node_mem_rdata;
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_BEST_ADDR)
-                    wbs_dat_o_d = wbs_adr_i_q[0] ?wbs_best_arr_rdata1[63:32] :wbs_best_arr_rdata1[31:0];
+                    wbs_dat_o_d = wbs_adr_i_q[2] ?wbs_best_arr_rdata1[63:32] :wbs_best_arr_rdata1[31:0];
                  
             end
 
             Ack: begin
                 nextState = Idle;
-                if (wbs_we_i_q & wbs_adr_i_q[0] & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_QUERY_ADDR)) begin
+                if (wbs_we_i_q & wbs_adr_i_q[2] & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_QUERY_ADDR)) begin
                     wbs_qp_mem_csb0 = 1'b0;
                     wbs_qp_mem_web0 = 1'b0;
-                    wbs_qp_mem_addr0 = wbs_adr_i_q[$clog2(NUM_QUERYS):1];
+                    wbs_qp_mem_addr0 = wbs_adr_i_q[3+:$clog2(NUM_QUERYS)];
                     wbs_qp_mem_wpatch0 = {wbs_dat_i_q, wbs_dat_i_lower_q};
                 end
-                else if (wbs_we_i_q & wbs_adr_i_q[0] & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_LEAF_ADDR)) begin
-                    wbs_leaf_mem_csb0[wbs_adr_i_q[3:1]] = 1'b0;
-                    wbs_leaf_mem_web0[wbs_adr_i_q[3:1]] = 1'b0;
+                else if (wbs_we_i_q & wbs_adr_i_q[2] & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_LEAF_ADDR)) begin
+                    wbs_leaf_mem_csb0[wbs_adr_i_q[5:3]] = 1'b0;
+                    wbs_leaf_mem_web0[wbs_adr_i_q[5:3]] = 1'b0;
                     wbs_leaf_mem_addr0 = wbs_adr_i_q[9:4];
                     wbs_leaf_mem_wleaf0 = {wbs_dat_i_q, wbs_dat_i_lower_q};
                 end
-                else if (wbs_we_i_q & wbs_adr_i_q[0] & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)) begin
+                else if (wbs_we_i_q & wbs_adr_i_q[2] & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)) begin
                     wbs_node_mem_web = 1'b1; //Write enabled
                     wbs_node_mem_wdata = wbs_dat_i_q;
-
-
-                    
                 end
             end
         endcase

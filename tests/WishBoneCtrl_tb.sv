@@ -43,13 +43,14 @@ module WishBoneCtrl_tb();
     logic [31:0]                                            wbs_node_mem_wdata;
     logic [31:0]                                            wbs_node_mem_rdata;
 
-    localparam WBS_ADDR_MASK        = 32'hF000_0000;
+    localparam WBS_ADDR_MASK        = 32'hFFFF_0000;
     localparam WBS_MODE_ADDR        = 32'h3000_0000;
-    localparam WBS_DEBUG_ADDR       = 32'h3000_0001;
-    localparam WBS_QUERY_ADDR       = 32'h3100_0000;
-    localparam WBS_LEAF_ADDR        = 32'h3200_0000;
-    localparam WBS_BEST_ADDR        = 32'h3300_0000;
-    localparam WBS_NODE_ADDR        = 32'h3400_0000;
+    localparam WBS_DEBUG_ADDR       = 32'h3000_0004;
+    localparam WBS_DONE_ADDR        = 32'h3000_0008;
+    localparam WBS_QUERY_ADDR       = 32'h3001_0000;
+    localparam WBS_LEAF_ADDR        = 32'h3002_0000;
+    localparam WBS_BEST_ADDR        = 32'h3003_0000;
+    localparam WBS_NODE_ADDR        = 32'h3004_0000;
     
     initial begin 
         wb_clk_i = 0;
@@ -195,7 +196,7 @@ module WishBoneCtrl_tb();
         wbs_stb_i = 1'b1;
         wbs_we_i = 1'b0;
         wbs_sel_i = '1;
-        wbs_adr_i = WBS_QUERY_ADDR + (1<<1) + 0; // addr 1, lower
+        wbs_adr_i = WBS_QUERY_ADDR + (1<<3) + (0<<2);  // addr 1, lower, byte address
         
         @(negedge (~wbs_qp_mem_csb0 & wbs_qp_mem_web0));
         wbs_qp_mem_rpatch0 = 55'h00_1010_DEAD_BEEF;
@@ -206,7 +207,7 @@ module WishBoneCtrl_tb();
         wbs_stb_i = 1'b1;
         wbs_we_i = 1'b0;
         wbs_sel_i = '1;
-        wbs_adr_i = WBS_QUERY_ADDR + (1<<1) + 1; // addr 1, upper
+        wbs_adr_i = WBS_QUERY_ADDR + (1<<3) + (1<<2);  // addr 1, upper
         
         @(negedge (~wbs_qp_mem_csb0 & wbs_qp_mem_web0));
         wbs_qp_mem_rpatch0 = 55'h00_1010_DEAD_BEEF;
@@ -226,7 +227,7 @@ module WishBoneCtrl_tb();
         wbs_we_i = 1'b1;
         wbs_sel_i = '1;
         wbs_dat_i = 32'h01234567;
-        wbs_adr_i = WBS_QUERY_ADDR + (2<<1) + 0; // addr 2, lower
+        wbs_adr_i = WBS_QUERY_ADDR + (2<<3) + (0<<2);  // addr 2, lower
         
         @(negedge wbs_ack_o);
         wbs_cyc_i = 1'b1;
@@ -234,7 +235,7 @@ module WishBoneCtrl_tb();
         wbs_we_i = 1'b1;
         wbs_sel_i = '1;
         wbs_dat_i = 32'h000bcdef;
-        wbs_adr_i = WBS_QUERY_ADDR + (2<<1) + 1; // addr 2, upper
+        wbs_adr_i = WBS_QUERY_ADDR + (2<<3) + (1<<2);  // addr 2, upper
         
         @(negedge wbs_ack_o);
         wbs_cyc_i = 1'b0;
@@ -252,7 +253,7 @@ module WishBoneCtrl_tb();
         wbs_stb_i = 1'b1;
         wbs_we_i = 1'b0;
         wbs_sel_i = '1;
-        wbs_adr_i = WBS_LEAF_ADDR + (7<<1) + 0; // addr 1, lower
+        wbs_adr_i = WBS_LEAF_ADDR + (7<<3) + (0<<2);  // addr 0, 7th leaf, lower
         
         @(negedge (~wbs_leaf_mem_csb0[7] & wbs_leaf_mem_web0[7]));
         wbs_leaf_mem_rleaf0[7] = 63'h1100_1010_DEAD_BEEF;
@@ -263,7 +264,7 @@ module WishBoneCtrl_tb();
         wbs_stb_i = 1'b1;
         wbs_we_i = 1'b0;
         wbs_sel_i = '1;
-        wbs_adr_i = WBS_LEAF_ADDR + (7<<1) + 1; // addr 1, upper
+        wbs_adr_i = WBS_LEAF_ADDR + (7<<3) + (1<<2);  // addr 0, 7th leaf, upper
         
         @(negedge (~wbs_leaf_mem_csb0[7] & wbs_leaf_mem_web0[7]));
         wbs_leaf_mem_rleaf0[7] = 63'h1100_1010_DEAD_BEEF;
@@ -283,7 +284,7 @@ module WishBoneCtrl_tb();
         wbs_we_i = 1'b1;
         wbs_sel_i = '1;
         wbs_dat_i = 32'h76543210;
-        wbs_adr_i = WBS_LEAF_ADDR + (3<<1) + 0; // addr 3, lower
+        wbs_adr_i = WBS_LEAF_ADDR + (3<<3) + (0<<2);  // addr 3, lower
         
         @(negedge wbs_ack_o);
         wbs_cyc_i = 1'b1;
@@ -291,7 +292,7 @@ module WishBoneCtrl_tb();
         wbs_we_i = 1'b1;
         wbs_sel_i = '1;
         wbs_dat_i = 32'hfedcba98;
-        wbs_adr_i = WBS_LEAF_ADDR + (3<<1) + 1; // addr 3, upper
+        wbs_adr_i = WBS_LEAF_ADDR + (3<<3) + (1<<2);  // addr 3, upper
         
         @(negedge wbs_ack_o);
         wbs_cyc_i = 1'b0;
@@ -309,7 +310,7 @@ module WishBoneCtrl_tb();
         wbs_stb_i = 1'b1;
         wbs_we_i = 1'b0;
         wbs_sel_i = '1;
-        wbs_adr_i = WBS_BEST_ADDR + (7<<1) + 0; // addr 7, lower
+        wbs_adr_i = WBS_BEST_ADDR + (7<<3) + (0<<2); // addr 7, lower
         
         @(negedge (~wbs_best_arr_csb1));
         wbs_best_arr_rdata1 = 63'h1100_1010_DEAD_BEEF;
@@ -320,7 +321,7 @@ module WishBoneCtrl_tb();
         wbs_stb_i = 1'b1;
         wbs_we_i = 1'b0;
         wbs_sel_i = '1;
-        wbs_adr_i = WBS_BEST_ADDR + (7<<1) + 1; // addr 7, upper
+        wbs_adr_i = WBS_BEST_ADDR + (7<<3) + (1<<2);  // addr 7, upper
         
         @(negedge (~wbs_best_arr_csb1));
         wbs_best_arr_rdata1 = 63'h1100_1010_DEAD_BEEF;

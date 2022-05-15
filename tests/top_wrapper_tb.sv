@@ -209,7 +209,7 @@ module top_wrapper_tb();
         // each patch has 5 lines of data
         // and 1 line of patch index in the original image (for reconstruction)
         for(int i=0; i<NUM_LEAVES*6*8; i=i+1) begin
-            @(posedge io_in[0])
+            @(negedge io_in[0])
             io_in[2] = 1'b1;
             scan_file = $fscanf(leaves_data_file, "%d\n", io_in[13:3]);
         end
@@ -228,7 +228,7 @@ module top_wrapper_tb();
             io_in[2] = 1'b1;
             scan_file = $fscanf(query_data_file, "%d\n", io_in[13:3]);
         end
-        @(posedge io_in[0])
+        @(negedge io_in[0])
         io_in[2] = 0;
         io_in[13:3] = '0;
         $display("[T=%0t] Finished sending queries", $realtime);

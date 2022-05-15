@@ -261,6 +261,7 @@ module top_wrapper_tb();
                             io_in[14] = 1'b1;
                             addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
                             received_idx[addr] = io_out[29:19];
+                            @(posedge io_in[0]); #1;
                         end
                     end
                 end

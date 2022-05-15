@@ -4,7 +4,7 @@
     `define MPRJ_IO_PADS 38
 `endif
 
-module top_tb();
+module top_wrapper_tb();
     parameter DATA_WIDTH = 11;
     parameter LEAF_SIZE = 8;
     parameter PATCH_SIZE = 5;
@@ -69,7 +69,7 @@ module top_tb();
        
       ) dut(
         .wb_clk_i(wb_clk_i),
-        .wb_rst_i(rst_n), //Check this
+        .wb_rst_i(wb_rst_i), //Check this
         .wbs_stb_i(wbs_stb_i),
         .wbs_cyc_i(wbs_cyc_i),
         .wbs_we_i(wbs_we_i), 
@@ -170,6 +170,7 @@ module top_tb();
             $finish;
         end
 
+        wb_rst_i = 0;
         rst_n = 0;
         io_in[15] = 0;
         io_in[16] = 0;
@@ -178,7 +179,14 @@ module top_tb();
         io_in[2] = 0;
         io_in[13:3] = '0;
         io_in[14] = '0;
+        #10
+
+        // properly resets wbs_ctrl first to produce wbs_mode
+        wb_rst_i = 1;
         #20
+        wb_rst_i = 0;
+        #20
+        
         rst_n = 1;
         io_in[1] = 1;
         #40;

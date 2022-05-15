@@ -414,8 +414,8 @@ module top
             // the acutal dist stored is 23 bits
             // but we are just sending the lower 22 bits
             out_fifo_wdata_n11 <= out_fifo_wdata_sel[0]
-                                    ? best_arr_rdata1[0][51:41]
-                                    : best_arr_rdata1[0][19:9];
+                                    ? best_arr_rdata1[0][62:52]
+                                    : best_arr_rdata1[0][30:20];
         end
     end
 
@@ -440,8 +440,8 @@ module top
         case (out_fifo_wdata_sel)
             3'd0: out_fifo_wdata = {2'b0, best_arr_rdata1[0][IDX_WIDTH-1:0]};
             3'd1: out_fifo_wdata = {2'b0, best_arr_rdata1[0][32+IDX_WIDTH-1:32]};
-            3'd2: out_fifo_wdata = best_arr_rdata1[0][30:20];
-            3'd3: out_fifo_wdata = best_arr_rdata1[0][62:52];
+            3'd2: out_fifo_wdata = best_arr_rdata1[0][19:9];
+            3'd3: out_fifo_wdata = best_arr_rdata1[0][51:41];
             3'd4: out_fifo_wdata = out_fifo_wdata_n11;
             default: begin
                 out_fifo_wdata = {2'b0, best_arr_rdata1[0][IDX_WIDTH-1:0]};

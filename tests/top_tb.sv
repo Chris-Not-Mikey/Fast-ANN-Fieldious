@@ -217,6 +217,7 @@ module top_tb();
                             out_fifo_deq = 1'b1;
                             addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
                             received_idx[addr] = out_fifo_rdata;
+                            @(posedge io_clk); #1;
                         end
                     end
                 end
@@ -228,13 +229,14 @@ module top_tb();
                 // for(x=0; x<(ROW_SIZE/2/BLOCKING); x=x+1) begin  // for row_size = 24
                 for(y=0; y<COL_SIZE; y=y+1) begin
                     for(xi=0; xi<BLOCKING; xi=xi+1) begin
-                        for(int agg=1; agg>=0; agg=agg-1) begin  // most significant first
+                        for(int agg=0; agg<=1; agg=agg+1) begin  // most significant first
                             if ((x != 3) || (xi < 1)) begin  // for row_size = 26
                                 wait(out_fifo_rempty_n);
                                 @(negedge io_clk)
                                 out_fifo_deq = 1'b1;
                                 addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
                                 received_dist[addr][agg*DATA_WIDTH+:DATA_WIDTH] = out_fifo_rdata;
+                                @(posedge io_clk); #1;
                             end
                         end
                     end

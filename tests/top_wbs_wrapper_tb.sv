@@ -168,7 +168,17 @@ module top_wrapper_tb();
             $finish;
         end
 
-        wb_rst_i = 1;
+
+        
+        wb_rst_i = 1'b1;
+        wbs_stb_i = 1'b0;
+        wbs_cyc_i = 1'b0;
+        wbs_we_i = 1'b0;
+        wbs_sel_i = '1;
+        wbs_dat_i = '0;
+        wbs_adr_i = '0;
+        
+        
         rst_n = 0;
         io_in[15] = 0;
         io_in[16] = 0;
@@ -183,6 +193,18 @@ module top_wrapper_tb();
         rst_n = 1;
         io_in[1] = 1;
         #40;
+        
+        
+        wbs_we_i = 1'b1;
+        wbs_adr_i = WBS_MODE_ADDR;
+        
+        #20
+        wbs_we_i = 1'b0;
+        
+      
+        
+        
+         #20
 
 
         // // start load kd tree internal nodes and leaves

@@ -201,7 +201,7 @@ module wbsCtrl
                     wbs_leaf_mem_addr0 = wbs_adr_i_q[11:6];
                     wbs_leaf_mem_wleaf0 = {wbs_dat_i_q, wbs_dat_i_lower_q};
                 end
-                else if (wbs_we_i_q & wbs_adr_i_q[2] & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)) begin
+                else if (wbs_we_i_q & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)) begin //remove addr_i_q[2] condition
                     wbs_node_mem_web = 1'b1; //Write enabled
                     wbs_node_mem_wdata = wbs_dat_i_q;
                 end

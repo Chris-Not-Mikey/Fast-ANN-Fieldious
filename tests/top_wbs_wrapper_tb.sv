@@ -197,10 +197,12 @@ module top_wrapper_tb();
         
         
         wbs_we_i = 1'b1;
+        wbs_dat_i = 32'b1;
         wbs_adr_i = WBS_MODE_ADDR;
         
         #40
         wbs_we_i = 1'b0;
+        wbs_dat_i = 32'b0;
         
       
         

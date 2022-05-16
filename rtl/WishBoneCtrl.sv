@@ -203,6 +203,7 @@ module wbsCtrl
                 end
                 else if (wbs_we_i_q & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)) begin //remove addr_i_q[2] condition
                     wbs_node_mem_web = 1'b1; //Write enabled
+                    wbs_node_mem_addr = wbs_adr_i_q;
                     wbs_node_mem_wdata = wbs_dat_i_q;
                 end
             end

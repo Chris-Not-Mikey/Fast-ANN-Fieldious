@@ -57,6 +57,9 @@ module top_wrapper_tb();
 
     // IRQ
     logic [2:0] irq;
+    
+    
+    logic [6:0] counter;
 
 
 
@@ -177,16 +180,14 @@ module top_wrapper_tb();
         // end
 
         
-        @(negedge wb_clk_i) io_in[17] = 1'b1;
-        simtime = $realtime;
-        $display("[T=%0t] Start sending KD tree internal nodes and leaves", $realtime);
-        @(negedge wb_clk_i) io_in[17] = 1'b0;
 
         // send internal nodes, 2 lines per node
         // index
         // median
-        logic [6:0] counter;
+     
         counter = 7'b1;
+        simtime = $realtime;
+        $display("[T=%0t] Start sending KD tree internal nodes and leaves", $realtime);
         for(int i=0; i<NUM_NODES; i=i+1) begin
             @(negedge wb_clk_i)
             io_in[2] = 1'b1;

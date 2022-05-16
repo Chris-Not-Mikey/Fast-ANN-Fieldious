@@ -3993,6 +3993,99 @@ module SyncFIFO(
 endmodule // FIFOSync
 
 
+
+`ifdef BSV_ASSIGNMENT_DELAY
+`else
+  `define BSV_ASSIGNMENT_DELAY
+`endif
+
+`ifdef BSV_POSITIVE_RESET
+  `define BSV_RESET_VALUE 1'b1
+  `define BSV_RESET_EDGE posedge
+`else
+  `define BSV_RESET_VALUE 1'b0
+  `define BSV_RESET_EDGE negedge
+`endif
+
+
+// A pulse based clock domain synchronization scheme.
+// When a sEN is asserted, a pulse is eventually sent to dPulse in the
+// destination clock domain.
+// Close and Multiple asserts of sEN may not be seen at the destination side.
+// Reset signal is not needed since it a pulse-based, rather than
+// level-based protocol
+// Delay is 2 dCLK cycle.
+// dPulse is not registered.
+module SyncPulse(
+                  sCLK,
+                  sRST,
+                  dCLK,
+                  sEN,
+                  dPulse
+                  );
+
+   // source clock ports
+   input     sCLK ;
+   input     sRST ;
+   input     sEN ;
+
+   // destination clock ports
+   input     dCLK ;
+   output    dPulse ;
+
+   // Flops to hold data
+   reg       sSyncReg;
+   reg       dSyncReg1, dSyncReg2;
+   reg       dSyncPulse;
+
+   assign    dPulse = dSyncReg2 != dSyncPulse ;
+
+   always @(posedge sCLK or `BSV_RESET_EDGE sRST)
+     begin
+        if (sRST == `BSV_RESET_VALUE)
+          sSyncReg <= `BSV_ASSIGNMENT_DELAY 1'b0 ;
+        else
+          begin
+             if ( sEN )
+               begin
+                  sSyncReg <= `BSV_ASSIGNMENT_DELAY ! sSyncReg ;
+               end
+          end // else: !if(sRST == `BSV_RESET_VALUE)
+     end // always @ (posedge sCLK or `BSV_RESET_EDGE sRST)
+
+
+   always @(posedge dCLK or `BSV_RESET_EDGE sRST )
+      begin
+         if (sRST == `BSV_RESET_VALUE)
+            begin
+               dSyncReg1 <= `BSV_ASSIGNMENT_DELAY 1'b0 ;
+               dSyncReg2 <= `BSV_ASSIGNMENT_DELAY 1'b0 ;
+               dSyncPulse <= `BSV_ASSIGNMENT_DELAY 1'b0 ;
+            end // if (sRST == `BSV_RESET_VALUE)
+         else
+           begin
+              dSyncReg1 <= `BSV_ASSIGNMENT_DELAY sSyncReg ;// domain crossing
+              dSyncReg2 <= `BSV_ASSIGNMENT_DELAY dSyncReg1 ;
+              dSyncPulse <= `BSV_ASSIGNMENT_DELAY dSyncReg2 ;
+           end // else: !if(sRST == `BSV_RESET_VALUE)
+      end // always @ (posedge dCLK or `BSV_RESET_EDGE sRST )
+
+`ifdef BSV_NO_INITIAL_BLOCKS
+`else // not BSV_NO_INITIAL_BLOCKS
+   // synopsys translate_off
+   initial
+      begin
+         sSyncReg   = 1'b0 ;
+         dSyncReg1  = 1'b0 ;
+         dSyncReg2  = 1'b0 ;
+         dSyncPulse = 1'b0 ;
+      end // initial begin
+   // synopsys translate_on
+`endif // BSV_NO_INITIAL_BLOCKS
+
+endmodule // PulseSync
+
+
 module top
 #(
     parameter DATA_WIDTH = 11,
@@ -4886,6 +4979,8 @@ module wbsCtrl
     output logic wbs_mode,
     output logic wbs_debug,
     output logic wbs_done,
+    output logic wbs_fsm_start,
+    output logic wbs_fsm_done,
 
     output logic                                                    wbs_qp_mem_csb0,
     output logic                                                    wbs_qp_mem_web0,
@@ -4913,6 +5008,8 @@ module wbsCtrl
     localparam WBS_MODE_ADDR        = 32'h3000_0000;
     localparam WBS_DEBUG_ADDR       = 32'h3000_0004;
     localparam WBS_DONE_ADDR        = 32'h3000_0008;
+    localparam WBS_FSM_START_ADDR   = 32'h3000_000C;
+    localparam WBS_FSM_BUSY_ADDR    = 32'h3000_0010;
     localparam WBS_QUERY_ADDR       = 32'h3001_0000;
     localparam WBS_LEAF_ADDR        = 32'h3002_0000;
     localparam WBS_BEST_ADDR        = 32'h3003_0000;
@@ -4941,6 +5038,7 @@ module wbsCtrl
     logic [31:0] wbs_dat_o_q;
     logic [31:0] wbs_dat_o_d;
     logic wbs_dat_o_d_valid;
+    logic wbs_fsm_busy;
 
     assign wbs_valid = wbs_cyc_i & wbs_stb_i;
     assign wbs_ack_o = wbs_ack_o_q;
@@ -5038,7 +5136,8 @@ module wbsCtrl
                     wbs_dat_o_d = wbs_node_mem_rdata;
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_BEST_ADDR)
                     wbs_dat_o_d = wbs_adr_i_q[2] ?wbs_best_arr_rdata1[63:32] :wbs_best_arr_rdata1[31:0];
-                 
+                else if (wbs_adr_i_q == WBS_FSM_BUSY_ADDR)
+                    wbs_dat_o_d = {31'd0, wbs_fsm_busy};
             end
 
             Ack: begin
@@ -5052,7 +5151,7 @@ module wbsCtrl
                 else if (wbs_we_i_q & wbs_adr_i_q[2] & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_LEAF_ADDR)) begin
                     wbs_leaf_mem_csb0[wbs_adr_i_q[5:3]] = 1'b0;
                     wbs_leaf_mem_web0[wbs_adr_i_q[5:3]] = 1'b0;
-                    wbs_leaf_mem_addr0 = wbs_adr_i_q[9:4];
+                    wbs_leaf_mem_addr0 = wbs_adr_i_q[11:6];
                     wbs_leaf_mem_wleaf0 = {wbs_dat_i_q, wbs_dat_i_lower_q};
                 end
                 else if (wbs_we_i_q & wbs_adr_i_q[2] & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)) begin
@@ -5137,6 +5236,23 @@ module wbsCtrl
         end
     end
 
+    // if 1, FSM start pulse
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) wbs_fsm_start <= '0;
+        else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_FSM_START_ADDR))
+            wbs_fsm_start <= 1'b1;
+        else
+            wbs_fsm_start <= 1'b0;
+    end
+
+    // if 1, FSM is busy
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) wbs_fsm_busy <= '0;
+        else if (wbs_fsm_start)
+            wbs_fsm_busy <= 1'b1;
+        else if (wbs_fsm_done)
+            wbs_fsm_busy <= 1'b0;
+    end
 
 endmodule
 

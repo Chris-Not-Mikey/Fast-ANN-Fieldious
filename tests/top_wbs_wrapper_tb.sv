@@ -195,12 +195,15 @@ module top_wrapper_tb();
         io_in[1] = 1;
         #40;
         
-        
+        wbs_cyc_i = 1'b1;
+        wbs_stb_i = 1'b1;
         wbs_we_i = 1'b1;
         wbs_dat_i = 32'b1;
         wbs_adr_i = WBS_MODE_ADDR;
         
         #100
+        wbs_cyc_i = 1'b0;
+        wbs_stb_i = 1'b0;
         wbs_we_i = 1'b0;
        
         

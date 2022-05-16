@@ -368,7 +368,7 @@ module WishBoneCtrl_tb();
         wbs_we_i = 1'b1;
         wbs_sel_i = '1;
         wbs_dat_i = {10'b0, 11'd55, 11'd1}; //10 0's, median of 55, and index of 1 
-        wbs_adr_i = WBS_NODE_ADDR + 2'b2  + 0; // addr 1
+        wbs_adr_i = WBS_NODE_ADDR + 2'd2  + 0; // addr 1
     
         @(negedge wbs_ack_o);
         wbs_cyc_i = 1'b1;

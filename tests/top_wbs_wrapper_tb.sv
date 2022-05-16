@@ -301,7 +301,7 @@ module top_wrapper_tb();
             wbs_we_i = 1'b1;
             wbs_sel_i = '1;
             wbs_dat_i = leafReadHold[31:0];
-            wbs_adr_i = WBS_QUERY_ADDR + (i<<3) + (0<<2);  // addr 2, lower
+            wbs_adr_i = WBS_LEAF_ADDR + (i<<3) + (0<<2);  // addr 2, lower
 
             @(negedge wbs_ack_o);
             wbs_cyc_i = 1'b1;
@@ -309,7 +309,7 @@ module top_wrapper_tb();
             wbs_we_i = 1'b1;
             wbs_sel_i = '1;
             wbs_dat_i = leafReadHold[63:32];
-            wbs_adr_i = WBS_QUERY_ADDR + (i<<3) + (1<<2);  // addr 2, upper
+            wbs_adr_i = WBS_LEAF_ADDR + (i<<3) + (1<<2);  // addr 2, upper
 
             @(negedge wbs_ack_o);
             wbs_cyc_i = 1'b0;

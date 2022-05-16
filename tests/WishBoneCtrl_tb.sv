@@ -351,7 +351,8 @@ module WishBoneCtrl_tb();
 
 
         @(posedge (wbs_ack_o)); // assert(wbs_dat_o == {10'b0, 11'd0, 8'b0, 3'b111});
-        @(negedge wbs_ack_o) assert(wbs_dat_o == {10'b0, 11'd0, 8'b0, 3'b111});
+        //@(negedge wbs_ack_o) assert(wbs_dat_o == {10'b0, 11'd0, 8'b0, 3'b111});
+        @(negedge wbs_ack_o);
         wbs_cyc_i = 1'b0;
         wbs_stb_i = 1'b0;
         wbs_we_i = 1'b0;

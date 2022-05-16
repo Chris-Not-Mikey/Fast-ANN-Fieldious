@@ -350,7 +350,7 @@ module WishBoneCtrl_tb();
         wbs_node_mem_rdata = {10'b0, 11'd0, 8'b0, 3'b111}; //10 0's, median of 0, and index of -1 (wrt to 3 bits)  (default values)
 
 
-        @(posedge wbs_ack_o)); // assert(wbs_dat_o == {10'b0, 11'd0, 8'b0, 3'b111});
+        @(posedge (wbs_ack_o)); // assert(wbs_dat_o == {10'b0, 11'd0, 8'b0, 3'b111});
         @(negedge wbs_ack_o) assert(wbs_dat_o == {10'b0, 11'd0, 8'b0, 3'b111});
         wbs_cyc_i = 1'b0;
         wbs_stb_i = 1'b0;

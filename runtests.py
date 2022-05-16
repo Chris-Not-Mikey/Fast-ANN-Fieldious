@@ -247,6 +247,10 @@ def test_top_wrapper_tb():
     print("Running test_wrapper_top_tb")
     return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/top_wrapper_tb.sv', 'rtl/user_proj_example.v', 'rtl/SyncPulse.v', 'rtl/ClockMux.v', 'rtl/ResetMux.v', 'rtl/WishBoneCtrl.sv',  'rtl/top.sv', 'rtl/QueryPatchMem.v',  'rtl/aggregator.v', 'rtl/sram_1kbyte_1rw1r.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v', 'rtl/internal_node_2.v', 'rtl/internal_node_tree_2.v', 'rtl/LeavesMem.sv', 'rtl/BitonicSorter.sv', 'rtl/kBestArrays.sv', 'rtl/L2Kernel.sv', 'rtl/MainFSM.sv', 'rtl/RunningMin.sv', 'rtl/SyncFIFO.v', 'rtl/SortedList.sv'])
 
+def test_top_wbs_wrapper_tb():
+    print("Running test_wbs_wrapper_top_tb")
+    return 1, run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/top_wbs_wrapper_tb.sv', 'rtl/user_proj_example.v', 'rtl/SyncPulse.v', 'rtl/ClockMux.v', 'rtl/ResetMux.v', 'rtl/WishBoneCtrl.sv',  'rtl/top.sv', 'rtl/QueryPatchMem.v',  'rtl/aggregator.v', 'rtl/sram_1kbyte_1rw1r.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v', 'rtl/internal_node_2.v', 'rtl/internal_node_tree_2.v', 'rtl/LeavesMem.sv', 'rtl/BitonicSorter.sv', 'rtl/kBestArrays.sv', 'rtl/L2Kernel.sv', 'rtl/MainFSM.sv', 'rtl/RunningMin.sv', 'rtl/SyncFIFO.v', 'rtl/SortedList.sv'])
+
 
 
 def test_top_dffram_tb():

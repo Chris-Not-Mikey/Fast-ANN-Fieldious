@@ -199,8 +199,11 @@ module top_wrapper_tb();
         wbs_stb_i = 1'b1;
         wbs_we_i = 1'b1;
         wbs_dat_i = 32'b1;
-        wbs_adr_i = WBS_MODE_ADDR;
+        wbs_adr_i = WBS_DEBUG_ADDR;
         
+        #100
+        
+        wbs_adr_i = WBS_MODE_ADDR;
         #100
         wbs_cyc_i = 1'b0;
         wbs_stb_i = 1'b0;

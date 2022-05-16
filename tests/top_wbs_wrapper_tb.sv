@@ -187,6 +187,7 @@ module top_wrapper_tb();
         io_in[2] = 0;
         io_in[13:3] = '0;
         io_in[14] = '0;
+        wbs_adr_i = WBS_DEBUG_ADDR;
         
         #20
         wb_rst_i = 0;      

@@ -470,7 +470,7 @@ module top
         .patch_in_two       (int_node_patch_in2),
         .leaf_index_two     (int_node_leaf_index2),
         .receiver_two_en    (int_node_leaf_valid2),
-        .wb_mode            (wbs_mode),
+        .wb_mode            (wbs_debug),
         .wbs_we_i(wbs_we_i && wbs_node_mem_web), 
         .wbs_adr_i(wbs_node_mem_addr), 
         .wbs_dat_o(wbs_node_mem_rdata)

@@ -35,25 +35,8 @@
  *-------------------------------------------------------------
  */
 
-`ifndef MPRJ_IO_PADS
-    `define MPRJ_IO_PADS 38
-`endif
-
 module user_proj_example #(
-    parameter BITS = 32,
-    parameter DATA_WIDTH = 11,
-    parameter DIST_WIDTH = 25, // maximum 25
-    parameter IDX_WIDTH = 9, // index of patch in the original image
-    parameter LEAF_SIZE = 8,
-    parameter PATCH_SIZE = 5, //excluding the index
-    parameter ROW_SIZE = 26,
-    parameter COL_SIZE = 19,
-    parameter NUM_QUERYS = ROW_SIZE * COL_SIZE,
-    parameter K = 4,
-    parameter BEST_ARRAY_K = 1,
-    parameter NUM_LEAVES = 64,
-    parameter BLOCKING = 4,
-    parameter LEAF_ADDRW = $clog2(NUM_LEAVES)
+    parameter BITS = 32
 )(
 `ifdef USE_POWER_PINS
     inout vccd1,	// User area 1 1.8V supply
@@ -86,9 +69,9 @@ module user_proj_example #(
     output [2:0] irq
 );
 
-//     wire [`MPRJ_IO_PADS-1:0] io_in;
-//     wire [`MPRJ_IO_PADS-1:0] io_out;
-//     wire [`MPRJ_IO_PADS-1:0] io_oeb;
+    wire [`MPRJ_IO_PADS-1:0] io_in;
+    wire [`MPRJ_IO_PADS-1:0] io_out;
+    wire [`MPRJ_IO_PADS-1:0] io_oeb;
 
     wire                                                    io_clk;
     wire                                                    io_rst_n;
@@ -97,6 +80,7 @@ module user_proj_example #(
     wire                                                    wbs_mode;
     wire                                                    wbs_debug;
     wire                                                    wbs_done;
+    wire                                                    wbs_fsm_start;
     wire                                                    wbs_qp_mem_csb0;
     wire                                                    wbs_qp_mem_web0;
     wire [8:0]                                              wbs_qp_mem_addr0;
@@ -106,7 +90,7 @@ module user_proj_example #(
     wire [7:0]                                              wbs_leaf_mem_web0;
     wire [5:0]                                              wbs_leaf_mem_addr0;
     wire [63:0]                                             wbs_leaf_mem_wleaf0;
-    wire [63:0]                                        wbs_leaf_mem_rleaf0[7:0]; //TODO: Investigate
+    wire [63:0][7:0]                                        wbs_leaf_mem_rleaf0;
     wire                                                    wbs_best_arr_csb1;
     wire [7:0]                                              wbs_best_arr_addr1;
     wire [63:0]                                             wbs_best_arr_rdata1;
@@ -115,6 +99,8 @@ module user_proj_example #(
     wire [31:0]                                             wbs_node_mem_wdata;
     wire [31:0]                                             wbs_node_mem_rdata;
 
+    wire                                                    wbs_fsm_start_synced;
+    wire                                                    wbs_fsm_done_synced;
     wire                                                    fsm_start;
     wire                                                    fsm_done;
     wire                                                    send_best_arr;
@@ -127,8 +113,7 @@ module user_proj_example #(
     wire                                                    out_fifo_rempty_n;
 
 
-
-     // IRQ
+    // IRQ
     assign irq = 3'b000;	// Unused
     assign la_data_out = 128'd0;  // Unused
     assign io_oeb = la_data_in[37:0];  // TODO
@@ -189,6 +174,8 @@ module user_proj_example #(
         .wbs_mode                               (wbs_mode),
         .wbs_debug                              (wbs_debug),
         .wbs_done                               (wbs_done),
+        .wbs_fsm_start                          (wbs_fsm_start),
+        .wbs_fsm_done                           (wbs_fsm_done_synced),
         .wbs_qp_mem_csb0                        (wbs_qp_mem_csb0),
         .wbs_qp_mem_web0                        (wbs_qp_mem_web0),
         .wbs_qp_mem_addr0                       (wbs_qp_mem_addr0),
@@ -224,11 +211,11 @@ module user_proj_example #(
     //     .LEAF_ADDRW(LEAF_ADDRW)
     // ) 
     dut(
-        .clk(wb_clk_i), //todo fix
+        .clk(clkmux_clk),
         .rst_n(rstmux_rst_n),
 
         .load_kdtree(load_kdtree),
-        .fsm_start(fsm_start),
+        .fsm_start(fsm_start | wbs_fsm_start_synced),
         .fsm_done(fsm_done),
         .send_best_arr(send_best_arr),
 
@@ -260,6 +247,23 @@ module user_proj_example #(
         .wbs_best_arr_addr1                     (wbs_best_arr_addr1),
         .wbs_best_arr_rdata1                    (wbs_best_arr_rdata1)
     );
+
+    SyncPulse fsm_start_sync (
+        .sCLK(wb_clk_i),
+        .sRST(),  // not needed
+        .sEN(wbs_fsm_start),
+        .dCLK(clkmux_clk),
+        .dPulse(wbs_fsm_start_synced)
+    );
+
+    SyncPulse fsm_done_sync (
+        .sCLK(clkmux_clk),
+        .sRST(),  // not needed
+        .sEN(fsm_done),
+        .dCLK(wb_clk_i),
+        .dPulse(wbs_fsm_done_synced)
+    );
+
 
 endmodule
 

@@ -358,8 +358,10 @@ module WishBoneCtrl_tb();
         wbs_we_i = 1'b0;
         wbs_dat_i = '0;
         wbs_adr_i = '0;
+        
+        #10
 
-        // mem write
+        // mem write (frist elemetn
         @(posedge wb_clk_i);
         wbs_cyc_i = 1'b1;
         wbs_stb_i = 1'b1;
@@ -372,7 +374,7 @@ module WishBoneCtrl_tb();
         wbs_cyc_i = 1'b1;
         wbs_stb_i = 1'b1;
         wbs_we_i = 1'b0;
-        wbs_dat_i = {10'b0, 11'd55, 11'd1};
+        wbs_dat_i = '0l
  
 
         @(negedge wbs_ack_o);

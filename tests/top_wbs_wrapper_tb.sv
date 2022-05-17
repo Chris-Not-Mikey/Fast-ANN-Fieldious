@@ -467,8 +467,8 @@ module top_wrapper_tb();
             $fwrite(received_idx_data_file, "%d\n", received_idx[i]);
             if (expected_idx[i] != received_idx[i])
                 $display("mismatch %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
-            // else
-            //     $display("match %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
+            else
+                $display("match %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
         end
 
         $display("===============Runtime Summary===============");

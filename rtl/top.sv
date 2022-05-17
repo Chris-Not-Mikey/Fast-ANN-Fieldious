@@ -545,7 +545,7 @@ module top
         .rdata1             (best_arr_rdata1)
     );
 
-    assign wbs_best_arr_rdata1 = best_arr_rdata1;
+    assign wbs_best_arr_rdata1 = best_arr_rdata1[0];
     assign best_arr_csb0 = ~sl0_valid_out;
     assign best_arr_web0 = 1'b0;
 

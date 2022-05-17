@@ -390,12 +390,21 @@ module top_wrapper_tb();
 
         #100;
         @(negedge wb_clk_i) wbs_adr_i = WBS_FSM_START_ADDR;
-         wbs_we_i = 1'b1;
+        wbs_we_i = 1'b1;
+        wbs_cyc_i = 1'b1;
+        wbs_stb_i = 1'b1;
+        wbs_we_i = 1'b1;
+        wbs_sel_i = '1;
         
         $display("[T=%0t] Start algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
         simtime = $realtime;
         @(negedge wb_clk_i) wbs_we_i = 1'b0;
-        
+        wbs_cyc_i = 1'b0;
+        wbs_stb_i = 1'b0;
+        wbs_we_i = 1'b0;
+        wbs_dat_i = '0;
+        wbs_adr_i = '0;
+
         
         #20000
         $finish;

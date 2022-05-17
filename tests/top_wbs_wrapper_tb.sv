@@ -344,12 +344,12 @@ module top_wrapper_tb();
              @(posedge wb_clk_i);
              
      
-            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[10:0]);
-            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[21:11]);
-            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[32:22]);
+            scan_file = $fscanf(query_data_file, "%d\n", leafReadHold[10:0]);
+            scan_file = $fscanf(query_data_file, "%d\n", leafReadHold[21:11]);
+            scan_file = $fscanf(query_data_file, "%d\n", leafReadHold[32:22]);
             
-            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[43:33]);
-            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[54:44]);
+            scan_file = $fscanf(query_data_file, "%d\n", leafReadHold[43:33]);
+            scan_file = $fscanf(query_data_file, "%d\n", leafReadHold[54:44]);
             //  scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[63:55]); //Empty bc 55 bits
             
             
@@ -431,7 +431,7 @@ module top_wrapper_tb();
                                 wbs_stb_i = 1'b1;
                                 wbs_we_i = 1'b0;
                                 wbs_sel_i = '1;
-                                wbs_adr_i = WBS_BEST_ADDR + (addr<<3) + (0<<2); // addr 7, lower
+                                wbs_adr_i = WBS_BEST_ADDR + (addr<<3) + (px<<2); // addr 7, lower
 
                              @(negedge (wbs_ack_o));
                             

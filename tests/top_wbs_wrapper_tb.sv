@@ -406,54 +406,77 @@ module top_wrapper_tb();
         wbs_adr_i = '0;
 
         
-        #20000
-        $finish;
+       
         
 
-        // wait(io_out[31] == 1'b1);
-        // $display("[T=%0t] Finished algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
-        // fsmtime = $realtime - simtime;
+        wait(io_out[31] == 1'b1);
+        $display("[T=%0t] Finished algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
+        fsmtime = $realtime - simtime;
 
-        // @(negedge wb_clk_i) io_in[16] = 1'b1;
-        // $display("[T=%0t] Start receiving outputs", $realtime);
-        // simtime = $realtime;
-        // @(negedge wb_clk_i) io_in[16] = 1'b0;
+        @(negedge wb_clk_i) wbs_adr_i = WBS_BEST_ADDR;
+        $display("[T=%0t] Start receiving outputs", $realtime);
+        simtime = $realtime;
+        @(negedge wb_clk_i);
 
-        // for(int px=0; px<2; px=px+1) begin
-        //     for(x=0; x<4; x=x+1) begin
-        //         // for(x=0; x<(ROW_SIZE/2/BLOCKING); x=x+1) begin  // for row_size = 26
-        //         for(y=0; y<COL_SIZE; y=y+1) begin
-        //             for(xi=0; xi<BLOCKING; xi=xi+1) begin
-        //                 if ((x != 3) || (xi < 1)) begin  // for row_size = 26
-        //                     wait(io_out[30]);
-        //                     @(negedge wb_clk_i)
-        //                     io_in[14] = 1'b1;
-        //                     addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
-        //                     received_idx[addr] = io_out[29:19];
-        //                     @(posedge wb_clk_i); #1;
-        //                 end
-        //             end
-        //         end
-        //     end
-        // end
-        // @(negedge wb_clk_i) io_in[14] = 1'b0;
-        // $display("[T=%0t] Finished receiving outputs", $realtime);
-        // outputtime = $realtime - simtime;
+        for(int px=0; px<2; px=px+1) begin
+            for(x=0; x<4; x=x+1) begin
+                // for(x=0; x<(ROW_SIZE/2/BLOCKING); x=x+1) begin  // for row_size = 26
+                for(y=0; y<COL_SIZE; y=y+1) begin
+                    for(xi=0; xi<BLOCKING; xi=xi+1) begin
+                        if ((x != 3) || (xi < 1)) begin  // for row_size = 26
+                            //wait(io_out[30]);
+                            
+                               addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
+                               @(posedge wb_clk_i);
+                                wbs_cyc_i = 1'b1;
+                                wbs_stb_i = 1'b1;
+                                wbs_we_i = 1'b0;
+                                wbs_sel_i = '1;
+                                wbs_adr_i = WBS_BEST_ADDR + (addr<<3) + (0<<2); // addr 7, lower
 
-        // received_idx_data_file = $fopen("data/IO_data/received_idx.txt", "w");
-        // for(int i=0; i<NUM_QUERYS; i=i+1) begin
-        //     $fwrite(received_idx_data_file, "%d\n", received_idx[i]);
-        //     if (expected_idx[i] != received_idx[i])
-        //         $display("mismatch %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
-        //     // else
-        //     //     $display("match %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
-        // end
+                                @(negedge (~wbs_best_arr_csb1));
+                            
+                                
+                            received_idx[addr] = wbs_dat_o[10:0];
+//                             @(posedge wb_clk_i); #1;
+                            
+//                                @(negedge wbs_ack_o);
+//                                 wbs_cyc_i = 1'b1;
+//                                 wbs_stb_i = 1'b1;
+//                                 wbs_we_i = 1'b0;
+//                                 wbs_sel_i = '1;
+//                                 wbs_adr_i = WBS_BEST_ADDR + (addr<<3) + (1<<2);  // addr 7, upper
 
-        // $display("===============Runtime Summary===============");
-        // $display("KD tree: %t", kdtreetime);
-        // $display("Query patches: %t", querytime);
-        // $display("Main Algorithm: %t", fsmtime);
-        // $display("Outputs: %t", outputtime);
+//                                 @(negedge (~wbs_best_arr_csb1));
+                            
+//                             @(negedge wb_clk_i)
+//                             io_in[14] = 1'b1;
+//                             addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
+//                             received_idx[addr] = io_out[29:19];
+//                             @(posedge wb_clk_i); #1;
+                        end
+                    end
+                end
+            end
+        end
+        @(negedge wb_clk_i) io_in[14] = 1'b0;
+        $display("[T=%0t] Finished receiving outputs", $realtime);
+        outputtime = $realtime - simtime;
+
+        received_idx_data_file = $fopen("data/IO_data/received_idx.txt", "w");
+        for(int i=0; i<NUM_QUERYS; i=i+1) begin
+            $fwrite(received_idx_data_file, "%d\n", received_idx[i]);
+            if (expected_idx[i] != received_idx[i])
+                $display("mismatch %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
+            // else
+            //     $display("match %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
+        end
+
+        $display("===============Runtime Summary===============");
+        $display("KD tree: %t", kdtreetime);
+        $display("Query patches: %t", querytime);
+        $display("Main Algorithm: %t", fsmtime);
+        $display("Outputs: %t", outputtime);
 
 
         #200;

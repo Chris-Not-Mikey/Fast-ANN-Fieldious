@@ -386,7 +386,6 @@ module top_wrapper_tb();
         querytime = $realtime - simtime;
         
     
-        
 
         #100;
         @(negedge wb_clk_i) wbs_adr_i = WBS_FSM_START_ADDR;
@@ -409,7 +408,7 @@ module top_wrapper_tb();
        
         
 
-        wait(io_out[31] == 1'b1);
+        wait(io_out[31] == 1'b1); //TODO: Replace with WSB
         $display("[T=%0t] Finished algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
         fsmtime = $realtime - simtime;
 

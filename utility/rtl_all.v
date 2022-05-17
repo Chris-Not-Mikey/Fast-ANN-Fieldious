@@ -1963,9 +1963,11 @@ module MainFSM #(
     input                                                           clk,
     input                                                           rst_n,
     input logic                                                     load_kdtree,
+    output logic                                                    load_done,
     input logic                                                     fsm_start,
     output logic                                                    fsm_done,
     input logic                                                     send_best_arr,
+    output logic                                                    send_done,
 
     input logic                                                     agg_receiver_enq,
     output logic                                                    agg_receiver_full_n,
@@ -2089,7 +2091,9 @@ module MainFSM #(
     always_comb begin
         nextState = currState;
 
+        load_done = '0;
         fsm_done = '0;
+        send_done = '0;
 
         agg_change_fetch_width = '0;
         agg_input_fetch_width = '0;
@@ -2203,6 +2207,7 @@ module MainFSM #(
                     qp_mem_addr0 = counter;
                     if (counter_done) begin
                         nextState = Idle;
+                        load_done = 1'b1;
                     end
                 end
             end
@@ -2656,6 +2661,7 @@ module MainFSM #(
                     counter_en = 1'b1;
                     if (counter_done) begin
                         nextState = Idle;
+                        send_done = 1'b1;
                     end
                 end
             end
@@ -3682,6 +3688,93 @@ endmodule
 // // synopsys translate_on
 
 
+
+`ifdef BSV_ASSIGNMENT_DELAY
+`else
+  `define BSV_ASSIGNMENT_DELAY
+`endif
+
+`ifdef BSV_POSITIVE_RESET
+  `define BSV_RESET_VALUE 1'b1
+  `define BSV_RESET_EDGE posedge
+`else
+  `define BSV_RESET_VALUE 1'b0
+  `define BSV_RESET_EDGE negedge
+`endif
+
+
+
+// A one bit data synchronization module, where data is synchronized
+// by passing through 2 registers of the destination clock
+module SyncBit (
+                sCLK,
+                sRST,
+                dCLK,
+                sEN,
+                sD_IN,
+                dD_OUT
+                );
+   parameter init = 1'b0;       // initial value for all registers
+
+   // Signals on source clock (sCLK)
+   input     sCLK;
+   input     sRST;
+   input     sEN;
+   input     sD_IN;
+
+   // Signals on destination clock (dCLK)
+   input     dCLK;
+   output    dD_OUT;
+
+   reg       sSyncReg;
+   reg       dSyncReg1, dSyncReg2;
+
+   assign    dD_OUT = dSyncReg2 ;
+
+   always @(posedge sCLK or `BSV_RESET_EDGE sRST)
+      begin
+         if (sRST == `BSV_RESET_VALUE)
+            begin
+               sSyncReg <= `BSV_ASSIGNMENT_DELAY init ;
+            end // if (sRST == `BSV_RESET_VALUE)
+         else
+            begin
+               if ( sEN )
+                 begin
+                    sSyncReg <= `BSV_ASSIGNMENT_DELAY (sD_IN == 1'b1) ? 1'b1 : 1'b0  ;
+                 end // if ( sEN )
+            end // else: !if(sRST == `BSV_RESET_VALUE)
+      end // always @ (posedge sCLK or `BSV_RESET_EDGE sRST)
+
+   always @(posedge dCLK or `BSV_RESET_EDGE sRST)
+      begin
+         if (sRST == `BSV_RESET_VALUE)
+            begin
+               dSyncReg1 <= `BSV_ASSIGNMENT_DELAY init ;
+               dSyncReg2 <= `BSV_ASSIGNMENT_DELAY init ;
+            end // if (sRST == `BSV_RESET_VALUE)
+         else
+            begin
+               dSyncReg1 <= `BSV_ASSIGNMENT_DELAY sSyncReg ; // clock domain crossing
+               dSyncReg2 <= `BSV_ASSIGNMENT_DELAY dSyncReg1 ;
+            end // else: !if(sRST == `BSV_RESET_VALUE)
+      end // always @ (posedge dCLK or `BSV_RESET_EDGE sRST)
+
+
+`ifdef BSV_NO_INITIAL_BLOCKS
+`else // not BSV_NO_INITIAL_BLOCKS
+   // synopsys translate_off
+   initial
+      begin
+         sSyncReg  = init ;
+         dSyncReg1 = init ;
+         dSyncReg2 = init ;
+      end // initial begin
+   // synopsys translate_on
+`endif // BSV_NO_INITIAL_BLOCKS
+
+endmodule // BitSync
+
 `ifdef BSV_ASSIGNMENT_DELAY
 `else
   `define BSV_ASSIGNMENT_DELAY
@@ -4109,9 +4202,11 @@ module top
     // testbench use
     // might need to add clock domain crossing modules for these controls
     input logic                                             load_kdtree,
+    output logic                                            load_done,
     input logic                                             fsm_start,
     output logic                                            fsm_done,
     input logic                                             send_best_arr,
+    output logic                                            send_done,
 
     // FIFO
     input logic                                             io_clk,
@@ -4395,8 +4490,10 @@ module top
         .clk                                    (clk),
         .rst_n                                  (rst_n),
         .load_kdtree                            (load_kdtree),
+        .load_done                              (load_done),
         .fsm_start                              (fsm_start),
         .fsm_done                               (fsm_done),
+        .send_done                              (send_done),
         .send_best_arr                          (send_best_arr),
         .agg_receiver_enq                       (agg_receiver_enq),
         .agg_receiver_full_n                    (agg_receiver_full_n),
@@ -4549,7 +4646,7 @@ module top
         .rst_n              (rst_n),
         .fsm_enable         (int_node_fsm_enable), //based on whether we are at the proper I/O portion
         .sender_enable      (int_node_sender_enable),
-        .sender_data        (wbs_debug ? wbs_node_mem_wdata : int_node_sender_data),
+        .sender_data        (wbs_debug ? wbs_node_mem_wdata[2*DATA_WIDTH-1:0] : int_node_sender_data),
         .patch_en           (int_node_patch_en),
         .patch_in           (int_node_patch_in),
         .leaf_index         (int_node_leaf_index),
@@ -4559,7 +4656,7 @@ module top
         .leaf_index_two     (int_node_leaf_index2),
         .receiver_two_en    (int_node_leaf_valid2),
         .wb_mode            (wbs_debug),
-        .wbs_we_i(wbs_node_mem_web), 
+        .wbs_we_i(wbs_we_i && wbs_node_mem_web), 
         .wbs_adr_i(wbs_node_mem_addr), 
         .wbs_dat_o(wbs_node_mem_rdata)
     );
@@ -4951,6 +5048,7 @@ module top
 
 endmodule
 
+
 module wbsCtrl
 #(
     parameter DATA_WIDTH = 11,
@@ -4979,8 +5077,11 @@ module wbsCtrl
     output logic wbs_mode,
     output logic wbs_debug,
     output logic wbs_done,
+    output logic wbs_cfg_done,
     output logic wbs_fsm_start,
-    output logic wbs_fsm_done,
+    input logic acc_fsm_done,
+    input logic acc_load_done,
+    input logic acc_send_done,
 
     output logic                                                    wbs_qp_mem_csb0,
     output logic                                                    wbs_qp_mem_web0,
@@ -5009,7 +5110,10 @@ module wbsCtrl
     localparam WBS_DEBUG_ADDR       = 32'h3000_0004;
     localparam WBS_DONE_ADDR        = 32'h3000_0008;
     localparam WBS_FSM_START_ADDR   = 32'h3000_000C;
-    localparam WBS_FSM_BUSY_ADDR    = 32'h3000_0010;
+    localparam WBS_FSM_DONE_ADDR    = 32'h3000_0010;
+    localparam WBS_LOAD_DONE_ADDR   = 32'h3000_0014;
+    localparam WBS_SEND_DONE_ADDR   = 32'h3000_0018;
+    localparam WBS_CFG_DONE_ADDR    = 32'h3000_001C;
     localparam WBS_QUERY_ADDR       = 32'h3001_0000;
     localparam WBS_LEAF_ADDR        = 32'h3002_0000;
     localparam WBS_BEST_ADDR        = 32'h3003_0000;
@@ -5038,7 +5142,9 @@ module wbsCtrl
     logic [31:0] wbs_dat_o_q;
     logic [31:0] wbs_dat_o_d;
     logic wbs_dat_o_d_valid;
-    logic wbs_fsm_busy;
+    logic wbs_fsm_done;
+    logic wbs_load_done;
+    logic wbs_send_done;
 
     assign wbs_valid = wbs_cyc_i & wbs_stb_i;
     assign wbs_ack_o = wbs_ack_o_q;
@@ -5136,8 +5242,12 @@ module wbsCtrl
                     wbs_dat_o_d = wbs_node_mem_rdata;
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_BEST_ADDR)
                     wbs_dat_o_d = wbs_adr_i_q[2] ?wbs_best_arr_rdata1[63:32] :wbs_best_arr_rdata1[31:0];
-                else if (wbs_adr_i_q == WBS_FSM_BUSY_ADDR)
-                    wbs_dat_o_d = {31'd0, wbs_fsm_busy};
+                else if (wbs_adr_i_q == WBS_FSM_DONE_ADDR)
+                    wbs_dat_o_d = {31'd0, wbs_fsm_done};
+                else if (wbs_adr_i_q == WBS_LOAD_DONE_ADDR)
+                    wbs_dat_o_d = {31'd0, wbs_load_done};
+                else if (wbs_adr_i_q == WBS_SEND_DONE_ADDR)
+                    wbs_dat_o_d = {31'd0, wbs_send_done};
             end
 
             Ack: begin
@@ -5154,7 +5264,7 @@ module wbsCtrl
                     wbs_leaf_mem_addr0 = wbs_adr_i_q[11:6];
                     wbs_leaf_mem_wleaf0 = {wbs_dat_i_q, wbs_dat_i_lower_q};
                 end
-                else if (wbs_we_i_q & wbs_adr_i_q[2] & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)) begin
+                else if (wbs_we_i_q & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)) begin //remove addr_i_q[2] condition
                     wbs_node_mem_web = 1'b1; //Write enabled
                     wbs_node_mem_wdata = wbs_dat_i_q;
                 end
@@ -5245,13 +5355,38 @@ module wbsCtrl
             wbs_fsm_start <= 1'b0;
     end
 
-    // if 1, FSM is busy
+    // if 1, FSM is done
     always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
-        if (wb_rst_i) wbs_fsm_busy <= '0;
-        else if (wbs_fsm_start)
-            wbs_fsm_busy <= 1'b1;
-        else if (wbs_fsm_done)
-            wbs_fsm_busy <= 1'b0;
+        if (wb_rst_i) wbs_fsm_done <= '0;
+        else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_FSM_DONE_ADDR))
+            wbs_fsm_done <= 1'b0;
+        else if (acc_fsm_done)
+            wbs_fsm_done <= 1'b1;
+    end
+
+    // if 1, load data structure is done
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) wbs_load_done <= '0;
+        else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_LOAD_DONE_ADDR))
+            wbs_load_done <= 1'b0;
+        else if (acc_load_done)
+            wbs_load_done <= 1'b1;
+    end
+
+    // if 1, send best array is done
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) wbs_send_done <= '0;
+        else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_SEND_DONE_ADDR))
+            wbs_send_done <= 1'b0;
+        else if (acc_send_done)
+            wbs_send_done <= 1'b1;
+    end
+
+    // if 1, IO pad configuration is done
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) wbs_cfg_done <= '0;
+        else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_CFG_DONE_ADDR))
+            wbs_cfg_done <= wbs_dat_i_q[0];
     end
 
 endmodule

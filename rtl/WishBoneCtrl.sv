@@ -26,8 +26,11 @@ module wbsCtrl
     output logic wbs_mode,
     output logic wbs_debug,
     output logic wbs_done,
+    output logic wbs_cfg_done,
     output logic wbs_fsm_start,
-    output logic wbs_fsm_done,
+    input logic acc_fsm_done,
+    input logic acc_load_done,
+    input logic acc_send_done,
 
     output logic                                                    wbs_qp_mem_csb0,
     output logic                                                    wbs_qp_mem_web0,
@@ -56,7 +59,10 @@ module wbsCtrl
     localparam WBS_DEBUG_ADDR       = 32'h3000_0004;
     localparam WBS_DONE_ADDR        = 32'h3000_0008;
     localparam WBS_FSM_START_ADDR   = 32'h3000_000C;
-    localparam WBS_FSM_BUSY_ADDR    = 32'h3000_0010;
+    localparam WBS_FSM_DONE_ADDR    = 32'h3000_0010;
+    localparam WBS_LOAD_DONE_ADDR   = 32'h3000_0014;
+    localparam WBS_SEND_DONE_ADDR   = 32'h3000_0018;
+    localparam WBS_CFG_DONE_ADDR    = 32'h3000_001C;
     localparam WBS_QUERY_ADDR       = 32'h3001_0000;
     localparam WBS_LEAF_ADDR        = 32'h3002_0000;
     localparam WBS_BEST_ADDR        = 32'h3003_0000;
@@ -85,7 +91,9 @@ module wbsCtrl
     logic [31:0] wbs_dat_o_q;
     logic [31:0] wbs_dat_o_d;
     logic wbs_dat_o_d_valid;
-    logic wbs_fsm_busy;
+    logic wbs_fsm_done;
+    logic wbs_load_done;
+    logic wbs_send_done;
 
     assign wbs_valid = wbs_cyc_i & wbs_stb_i;
     assign wbs_ack_o = wbs_ack_o_q;
@@ -183,8 +191,12 @@ module wbsCtrl
                     wbs_dat_o_d = wbs_node_mem_rdata;
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_BEST_ADDR)
                     wbs_dat_o_d = wbs_adr_i_q[2] ?wbs_best_arr_rdata1[63:32] :wbs_best_arr_rdata1[31:0];
-                else if (wbs_adr_i_q == WBS_FSM_BUSY_ADDR)
-                    wbs_dat_o_d = {31'd0, wbs_fsm_busy};
+                else if (wbs_adr_i_q == WBS_FSM_DONE_ADDR)
+                    wbs_dat_o_d = {31'd0, wbs_fsm_done};
+                else if (wbs_adr_i_q == WBS_LOAD_DONE_ADDR)
+                    wbs_dat_o_d = {31'd0, wbs_load_done};
+                else if (wbs_adr_i_q == WBS_SEND_DONE_ADDR)
+                    wbs_dat_o_d = {31'd0, wbs_send_done};
             end
 
             Ack: begin
@@ -293,13 +305,38 @@ module wbsCtrl
             wbs_fsm_start <= 1'b0;
     end
 
-    // if 1, FSM is busy
+    // if 1, FSM is done
     always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
-        if (wb_rst_i) wbs_fsm_busy <= '0;
-        else if (wbs_fsm_start)
-            wbs_fsm_busy <= 1'b1;
-        else if (wbs_fsm_done)
-            wbs_fsm_busy <= 1'b0;
+        if (wb_rst_i) wbs_fsm_done <= '0;
+        else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_FSM_DONE_ADDR))
+            wbs_fsm_done <= 1'b0;
+        else if (acc_fsm_done)
+            wbs_fsm_done <= 1'b1;
+    end
+
+    // if 1, load data structure is done
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) wbs_load_done <= '0;
+        else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_LOAD_DONE_ADDR))
+            wbs_load_done <= 1'b0;
+        else if (acc_load_done)
+            wbs_load_done <= 1'b1;
+    end
+
+    // if 1, send best array is done
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) wbs_send_done <= '0;
+        else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_SEND_DONE_ADDR))
+            wbs_send_done <= 1'b0;
+        else if (acc_send_done)
+            wbs_send_done <= 1'b1;
+    end
+
+    // if 1, IO pad configuration is done
+    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
+        if (wb_rst_i) wbs_cfg_done <= '0;
+        else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_CFG_DONE_ADDR))
+            wbs_cfg_done <= wbs_dat_i_q[0];
     end
 
 endmodule

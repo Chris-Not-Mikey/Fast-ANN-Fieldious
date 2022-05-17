@@ -21,9 +21,11 @@ module top
     // testbench use
     // might need to add clock domain crossing modules for these controls
     input logic                                             load_kdtree,
+    output logic                                            load_done,
     input logic                                             fsm_start,
     output logic                                            fsm_done,
     input logic                                             send_best_arr,
+    output logic                                            send_done,
 
     // FIFO
     input logic                                             io_clk,
@@ -307,8 +309,10 @@ module top
         .clk                                    (clk),
         .rst_n                                  (rst_n),
         .load_kdtree                            (load_kdtree),
+        .load_done                              (load_done),
         .fsm_start                              (fsm_start),
         .fsm_done                               (fsm_done),
+        .send_done                              (send_done),
         .send_best_arr                          (send_best_arr),
         .agg_receiver_enq                       (agg_receiver_enq),
         .agg_receiver_full_n                    (agg_receiver_full_n),
@@ -461,7 +465,7 @@ module top
         .rst_n              (rst_n),
         .fsm_enable         (int_node_fsm_enable), //based on whether we are at the proper I/O portion
         .sender_enable      (int_node_sender_enable),
-        .sender_data        (wbs_debug ? wbs_node_mem_wdata : int_node_sender_data),
+        .sender_data        (wbs_debug ? wbs_node_mem_wdata[2*DATA_WIDTH-1:0] : int_node_sender_data),
         .patch_en           (int_node_patch_en),
         .patch_in           (int_node_patch_in),
         .leaf_index         (int_node_leaf_index),

@@ -17,7 +17,7 @@ import os
 
 
 #Take from runtests.py for top level
-allow_files = ['top.sv', 'ClockMux.v', 'ResetMux.v', 'SyncPulse.v', 'WishBoneCtrl.sv', 'QueryPatchMem.v',  'aggregator.v', 'sram_1kbyte_1rw1r.v', 'sky130_sram_1kbyte_1rw1r_32x256_8.v', 'internal_node_2.v', 'internal_node_tree_2.v', 'LeavesMem.sv', 'BitonicSorter.sv', 'kBestArrays.sv', 'L2Kernel.sv', 'MainFSM.sv', 'RunningMin.sv', 'SyncFIFO.v', 'SortedList.sv']
+allow_files = ['top.sv', 'ClockMux.v', 'ResetMux.v', 'SyncPulse.v', 'SyncBit.v', 'WishBoneCtrl.sv', 'QueryPatchMem.v',  'aggregator.v', 'sram_1kbyte_1rw1r.v', 'sky130_sram_1kbyte_1rw1r_32x256_8.v', 'internal_node_2.v', 'internal_node_tree_2.v', 'LeavesMem.sv', 'BitonicSorter.sv', 'kBestArrays.sv', 'L2Kernel.sv', 'MainFSM.sv', 'RunningMin.sv', 'SyncFIFO.v', 'SortedList.sv']
 
 
 if __name__ == "__main__":

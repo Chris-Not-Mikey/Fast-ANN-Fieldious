@@ -22,9 +22,11 @@ module MainFSM #(
     input                                                           clk,
     input                                                           rst_n,
     input logic                                                     load_kdtree,
+    output logic                                                    load_done,
     input logic                                                     fsm_start,
     output logic                                                    fsm_done,
     input logic                                                     send_best_arr,
+    output logic                                                    send_done,
 
     input logic                                                     agg_receiver_enq,
     output logic                                                    agg_receiver_full_n,
@@ -148,7 +150,9 @@ module MainFSM #(
     always_comb begin
         nextState = currState;
 
+        load_done = '0;
         fsm_done = '0;
+        send_done = '0;
 
         agg_change_fetch_width = '0;
         agg_input_fetch_width = '0;
@@ -262,6 +266,7 @@ module MainFSM #(
                     qp_mem_addr0 = counter;
                     if (counter_done) begin
                         nextState = Idle;
+                        load_done = 1'b1;
                     end
                 end
             end
@@ -715,6 +720,7 @@ module MainFSM #(
                     counter_en = 1'b1;
                     if (counter_done) begin
                         nextState = Idle;
+                        send_done = 1'b1;
                     end
                 end
             end

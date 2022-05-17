@@ -81,6 +81,9 @@ module user_proj_example #(
     wire                                                    wbs_debug;
     wire                                                    wbs_done;
     wire                                                    wbs_fsm_start;
+    wire                                                    wbs_fsm_done;
+    wire                                                    acc_load_done;
+    wire                                                    acc_send_done;
     wire                                                    wbs_qp_mem_csb0;
     wire                                                    wbs_qp_mem_web0;
     wire [8:0]                                              wbs_qp_mem_addr0;
@@ -175,7 +178,9 @@ module user_proj_example #(
         .wbs_debug                              (wbs_debug),
         .wbs_done                               (wbs_done),
         .wbs_fsm_start                          (wbs_fsm_start),
-        .wbs_fsm_done                           (wbs_fsm_done_synced),
+        .acc_fsm_done                           (wbs_fsm_done), 
+        .acc_load_done                          (acc_load_done),
+        .acc_send_done                          (acc_send_done),
         .wbs_qp_mem_csb0                        (wbs_qp_mem_csb0),
         .wbs_qp_mem_web0                        (wbs_qp_mem_web0),
         .wbs_qp_mem_addr0                       (wbs_qp_mem_addr0),

@@ -385,15 +385,21 @@ module top_wrapper_tb();
         $display("[T=%0t] Finished sending queries", $realtime);
         querytime = $realtime - simtime;
         
-        #100
-        $finish;
+    
         
 
-        // #100;
-        // @(negedge wb_clk_i) io_in[15] = 1'b1;
-        // $display("[T=%0t] Start algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
-        // simtime = $realtime;
-        // @(negedge wb_clk_i) io_in[15] = 1'b0;
+        #100;
+        @(negedge wb_clk_i) wbs_adr_i = WBS_FSM_START_ADDR;
+         wbs_we_i = 1'b1;
+        
+        $display("[T=%0t] Start algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
+        simtime = $realtime;
+        @(negedge wb_clk_i) wbs_we_i = 1'b0;
+        
+        
+        #20000
+        $finish;
+        
 
         // wait(io_out[31] == 1'b1);
         // $display("[T=%0t] Finished algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);

@@ -433,7 +433,7 @@ module top_wrapper_tb();
                                 wbs_sel_i = '1;
                                 wbs_adr_i = WBS_BEST_ADDR + (addr<<3) + (0<<2); // addr 7, lower
 
-                                @(negedge (~wbs_best_arr_csb1));
+                                @(negedge (wbs_ack_o));
                             
                                 
                             received_idx[addr] = wbs_dat_o[10:0];

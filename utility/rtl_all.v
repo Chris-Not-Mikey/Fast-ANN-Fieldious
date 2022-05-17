@@ -4656,7 +4656,7 @@ module top
         .leaf_index_two     (int_node_leaf_index2),
         .receiver_two_en    (int_node_leaf_valid2),
         .wb_mode            (wbs_debug),
-        .wbs_we_i(wbs_we_i && wbs_node_mem_web), 
+        .wbs_we_i(wbs_node_mem_web), 
         .wbs_adr_i(wbs_node_mem_addr), 
         .wbs_dat_o(wbs_node_mem_rdata)
     );
@@ -4726,6 +4726,7 @@ module top
         .rdata1             (best_arr_rdata1)
     );
 
+    assign wbs_best_arr_rdata1 = best_arr_rdata1;
     assign best_arr_csb0 = ~sl0_valid_out;
     assign best_arr_web0 = 1'b0;
 
@@ -5266,6 +5267,7 @@ module wbsCtrl
                 end
                 else if (wbs_we_i_q & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)) begin //remove addr_i_q[2] condition
                     wbs_node_mem_web = 1'b1; //Write enabled
+                    wbs_node_mem_addr = wbs_adr_i_q;
                     wbs_node_mem_wdata = wbs_dat_i_q;
                 end
             end

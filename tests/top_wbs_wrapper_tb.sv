@@ -332,20 +332,60 @@ module top_wrapper_tb();
         
         $finish;
         
-        // $display("[T=%0t] Start sending queries", $realtime);
-        // simtime = $realtime;
-        // // send query patches, 5 lines per query patch
-        // // each patch has 5 lines of data
-        // for(int i=0; i<NUM_QUERYS*5; i=i+1) begin
-        //     @(negedge wb_clk_i)
-        //     io_in[2] = 1'b1;
-        //     scan_file = $fscanf(query_data_file, "%d\n", io_in[13:3]);
-        // end
-        // @(negedge wb_clk_i)
-        // io_in[2] = 0;
-        // io_in[13:3] = '0;
-        // $display("[T=%0t] Finished sending queries", $realtime);
-        // querytime = $realtime - simtime;
+        $display("[T=%0t] Start sending queries", $realtime);
+        simtime = $realtime;
+        // send query patches, 5 lines per query patch
+        // each patch has 5 lines of data
+        for(int i=0; i<NUM_QUERYS*5; i=i+1) begin
+//             @(negedge wb_clk_i)
+//             io_in[2] = 1'b1;
+//             scan_file = $fscanf(query_data_file, "%d\n", io_in[13:3]);
+            
+             @(posedge wb_clk_i);
+             
+     
+            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[10:0]);
+            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[21:11]);
+            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[32:22]);
+            
+            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[43:33]);
+            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[54:44]);
+            //  scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[63:55]); //Empty bc 55 bits
+            
+            
+            
+            wbs_cyc_i = 1'b1;
+            wbs_stb_i = 1'b1;
+            wbs_we_i = 1'b1;
+            wbs_sel_i = '1;
+            wbs_dat_i = leafReadHold[31:0];
+            wbs_adr_i = WBS_QUERY_ADDR + (i<<3) + (0<<2);  // addr 2, lower
+
+            @(negedge wbs_ack_o);
+            wbs_cyc_i = 1'b1;
+            wbs_stb_i = 1'b1;
+            wbs_we_i = 1'b1;
+            wbs_sel_i = '1;
+            wbs_dat_i = leafReadHold[63:32];
+            wbs_adr_i = WBS_QUERY_ADDR + (i<<3) + (1<<2);  // addr 2, upper
+
+            @(negedge wbs_ack_o);
+            wbs_cyc_i = 1'b0;
+            wbs_stb_i = 1'b0;
+            wbs_we_i = 1'b0;
+            wbs_dat_i = '0;
+            wbs_adr_i = '0;
+            
+            
+            
+        end
+        @(negedge wb_clk_i)
+//         io_in[2] = 0;
+//         io_in[13:3] = '0;
+        $display("[T=%0t] Finished sending queries", $realtime);
+        querytime = $realtime - simtime;
+        
+        finish;
         
 
         // #100;

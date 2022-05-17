@@ -243,7 +243,7 @@ module top_wrapper_tb();
             io_in[2] = 1'b1; //fifo wenq (TODO: Change to wbs)
             scan_file = $fscanf(int_nodes_data_file, "%d\n", wbs_dat_i[10:0]);
             scan_file = $fscanf(int_nodes_data_file, "%d\n", wbs_dat_i[21:11]);
-            wbs_dat_i[32:22] = 10'b0;
+            wbs_dat_i[31:22] = 10'b0;
             wbs_cyc_i = 1'b1;
             wbs_stb_i = 1'b1;
             wbs_we_i = 1'b1;
@@ -433,7 +433,14 @@ module top_wrapper_tb();
                                 wbs_sel_i = '1;
                                 wbs_adr_i = WBS_BEST_ADDR + (addr<<3) + (0<<2); // addr 7, lower
 
-                                @(negedge (wbs_ack_o));
+                             @(negedge (wbs_ack_o));
+                            
+                             @(posedge wb_clk_i);
+                            wbs_cyc_i = 1'b0;
+                            wbs_stb_i = 1'b0;
+                            wbs_we_i = 1'b0;
+                            wbs_sel_i = '0;
+                            wbs_adr_i = WBS_BEST_ADDR + (addr<<3) + (0<<2); // addr 7, lower
                             
                                 
                             received_idx[addr] = wbs_dat_o[10:0];

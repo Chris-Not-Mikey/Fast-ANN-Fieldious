@@ -330,7 +330,7 @@ module top_wrapper_tb();
         $display("[T=%0t] Finished sending KD tree internal nodes and leaves", $realtime);
         kdtreetime = $realtime - simtime;
         
-        $finish;
+       
         
         $display("[T=%0t] Start sending queries", $realtime);
         simtime = $realtime;
@@ -385,7 +385,8 @@ module top_wrapper_tb();
         $display("[T=%0t] Finished sending queries", $realtime);
         querytime = $realtime - simtime;
         
-        finish;
+        #100
+        $finish;
         
 
         // #100;

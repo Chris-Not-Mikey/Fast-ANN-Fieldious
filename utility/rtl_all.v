@@ -518,9 +518,9 @@ module internal_node_tree
 (
   input clk,
   input rst_n,
-  input fsm_enable, //based on whether we are at the proper I/O portion
   input sender_enable,
   input [INTERNAL_WIDTH - 1 : 0] sender_data,
+  input [5:0] sender_addr,
   input patch_en,
   input patch_two_en, 
   input [PATCH_WIDTH - 1 : 0] patch_in,
@@ -529,53 +529,29 @@ module internal_node_tree
   output logic [ADDRESS_WIDTH - 1 : 0] leaf_index_two,
   output receiver_en,
   output receiver_two_en,
-    input wb_mode,
-    input wbs_we_i, 
-    input [31:0] wbs_adr_i, 
-    output [31:0] wbs_dat_o
+  input wbs_rd_en_i, 
+  output logic [21:0] wbs_dat_o
 
 
 );
 
 wire wen;
-assign wen = fsm_enable && sender_enable && (!wb_mode);
+assign wen = sender_enable;
 
 
 
 reg [INTERNAL_WIDTH-1:0] rdata_storage [63:0]; //For index and median read from tree
 reg [INTERNAL_WIDTH - 1 : 0]  write_data;
 
-//Wishbone signals
-reg wb_wen;
-reg [31:0] wb_out;
-wire signed [7:0] wb_addr; //Will only use top 6 bits of this
-assign wb_addr = wbs_adr_i[7:0] - 8'd1; //subtract one to index by 0
-assign wbs_dat_o = {10'b0, wb_out[21:0]}; //First 10 bits are 0's (11 + 11 bits read)
 
 
-always @(*) begin 
-
-    if (wb_mode) begin
-
-        //Write
-        if (wbs_we_i) begin //active high wen
-            write_data[21:0] = sender_data[21:0]; //if index is 0
-            wb_wen = 1'b1;
-        end
-
-        //if not write, then read
-        else begin
-           
-            wb_out[21:0] = rdata_storage[wb_addr[5:0]][21:0]; //read address is same as write address
-            wb_wen = 1'b0;
-        end
-
+always @ (posedge clk) begin 
+    if (rst_n == 0) begin
+        wbs_dat_o <= {INTERNAL_WIDTH{1'b0}};
     end
-    //Normal I/O mode
-    else begin 
-        write_data = sender_data[21:0];
+    else if (wbs_rd_en_i) begin
+        wbs_dat_o = rdata_storage[sender_addr]; //read address is same as write address
     end
-
 end
 
  
@@ -637,20 +613,6 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
  assign receiver_two_en = latency_track_reciever_two_en[6];
 
 
-//Register for storing and updating address
-always @ (posedge clk) begin
-
-    if (rst_n == 0) begin
-        wadr <= 0;
-    end
-    else if (wen && !wb_mode ) begin
-        wadr <= wadr + 1;
-    end
-    else begin
-        wadr <= wadr;
-    end
-
-end
 
 //Create 7:128 Decoder to create address system for writing to internal nodes
 //Result is a 1 hot signal, where the index that includes the 1 corresponds to the internal_node that will be written to.
@@ -658,22 +620,11 @@ always @(*) begin
 
     for (int q = 0; q < 128; q++) begin
 
-        if (wb_mode) begin  //If in wishbone mode, this will read from the wb_addr
-            if (q == wb_addr) begin
-                one_hot_address_en[q] = 1'b1; 
-            end
-            else begin
-                one_hot_address_en[q] = 1'b0;
-            end
-
+        if (q == sender_addr) begin
+            one_hot_address_en[q] = 1'b1; //TODO: Does this synthesize well?
         end
         else begin
-            if (q == wadr) begin
-                one_hot_address_en[q] = 1'b1; //TODO: Does this synthesize well?
-            end
-            else begin
-                one_hot_address_en[q] = 1'b0;
-            end
+            one_hot_address_en[q] = 1'b0;
         end
     end
 end
@@ -721,10 +672,10 @@ generate
             (
             .clk(clk),
             .rst_n(rst_n),
-            .wen((wen || wb_wen ) && one_hot_address_en[(((2**i)) + j-1)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
+            .wen(wen && one_hot_address_en[(((2**i)) + j-1)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
             .valid(level_valid[j][i]),
             .valid_two(level_valid_two[j][i]),
-            .wdata(write_data), //writing mechanics are NOT pipelined
+            .wdata(sender_data), //writing mechanics are NOT pipelined
             .patch_in(level_patches[i]),
             .patch_in_two(level_patches_two[i]),
             .valid_left(level_valid_storage[j*2][i]),
@@ -1974,7 +1925,8 @@ module MainFSM #(
     output logic                                                    agg_change_fetch_width,
     output logic [2:0]                                              agg_input_fetch_width,
 
-    output logic                                                    int_node_fsm_enable,
+    output logic                                                    int_node_sender_enable,
+    output logic [5:0]                                              int_node_sender_addr,
     output logic                                                    int_node_patch_en,
     input logic [LEAF_ADDRW-1:0]                                    int_node_leaf_index,
     output logic                                                    int_node_patch_en2,
@@ -2098,7 +2050,8 @@ module MainFSM #(
         agg_change_fetch_width = '0;
         agg_input_fetch_width = '0;
         agg_receiver_full_n = '0;
-        int_node_fsm_enable = '0;
+        int_node_sender_enable = '0;
+        int_node_sender_addr = '0;
         int_node_patch_en = '0;
         int_node_patch_en2 = '0;
         qp_mem_csb0 = 1'b1;
@@ -2170,8 +2123,9 @@ module MainFSM #(
             LoadInternalNodes: begin
                 counter_in = NUM_NODES - 1;
                 agg_receiver_full_n = 1'b1;
-                int_node_fsm_enable = 1'b1;
+                int_node_sender_addr = counter;
                 if (agg_receiver_enq) begin
+                    int_node_sender_enable = 1'b1;
                     counter_en = 1'b1;
                     if (counter_done) begin
                         nextState = LoadLeaves;
@@ -4234,10 +4188,11 @@ module top
     input logic [7:0]                                       wbs_best_arr_addr1,
     output logic [63:0]                                     wbs_best_arr_rdata1,
 
-    input logic                                             wbs_node_mem_web,
-    input logic [31:0]                                      wbs_node_mem_addr,
-    input logic [31:0]                                      wbs_node_mem_wdata,
-    output logic [31:0]                                     wbs_node_mem_rdata 
+    input logic                                             wbs_node_mem_we,
+    input logic                                             wbs_node_mem_rd,
+    input logic [5:0]                                       wbs_node_mem_addr,
+    input logic [2*DATA_WIDTH-1:0]                          wbs_node_mem_wdata,
+    output logic [2*DATA_WIDTH-1:0]                         wbs_node_mem_rdata 
 
 );
 
@@ -4260,9 +4215,10 @@ module top
     logic                                                   agg_change_fetch_width;
     logic [2:0]                                             agg_input_fetch_width;
 
-    logic                                                   int_node_fsm_enable;
+    // logic                                                   int_node_fsm_enable;
     logic                                                   int_node_sender_enable;
     logic [2*DATA_WIDTH-1:0]                                int_node_sender_data;
+    logic [5:0]                                             int_node_sender_addr;
     logic                                                   int_node_patch_en;
     logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]                 int_node_patch_in;
     logic [LEAF_ADDRW-1:0]                                  int_node_leaf_index;
@@ -4499,7 +4455,8 @@ module top
         .agg_receiver_full_n                    (agg_receiver_full_n),
         .agg_change_fetch_width                 (agg_change_fetch_width),
         .agg_input_fetch_width                  (agg_input_fetch_width),
-        .int_node_fsm_enable                    (int_node_fsm_enable),
+        .int_node_sender_enable                 (int_node_sender_enable),
+        .int_node_sender_addr                   (int_node_sender_addr),
         .int_node_patch_en                      (int_node_patch_en),
         .int_node_leaf_index                    (int_node_leaf_index),
         .int_node_patch_en2                     (int_node_patch_en2),
@@ -4644,9 +4601,9 @@ module top
     ) internal_node_inst (
         .clk                (clk),
         .rst_n              (rst_n),
-        .fsm_enable         (int_node_fsm_enable), //based on whether we are at the proper I/O portion
-        .sender_enable      (int_node_sender_enable),
-        .sender_data        (wbs_debug ? wbs_node_mem_wdata[2*DATA_WIDTH-1:0] : int_node_sender_data),
+        .sender_enable      (wbs_debug ? wbs_node_mem_we : int_node_sender_enable),
+        .sender_data        (wbs_debug ? wbs_node_mem_wdata : int_node_sender_data),
+        .sender_addr        (wbs_debug ? wbs_node_mem_addr : int_node_sender_addr),
         .patch_en           (int_node_patch_en),
         .patch_in           (int_node_patch_in),
         .leaf_index         (int_node_leaf_index),
@@ -4655,13 +4612,10 @@ module top
         .patch_in_two       (int_node_patch_in2),
         .leaf_index_two     (int_node_leaf_index2),
         .receiver_two_en    (int_node_leaf_valid2),
-        .wb_mode            (wbs_debug),
-        .wbs_we_i(wbs_node_mem_web), 
-        .wbs_adr_i(wbs_node_mem_addr), 
-        .wbs_dat_o(wbs_node_mem_rdata)
+        .wbs_rd_en_i        (wbs_debug ? wbs_node_mem_rd : 1'b0), 
+        .wbs_dat_o          (wbs_node_mem_rdata)
     );
 
-    assign int_node_sender_enable = agg_receiver_enq;
     assign int_node_sender_data = agg_receiver_data[2*DATA_WIDTH-1:0];
     assign int_node_patch_in = qp_mem_rpatch0;
     assign int_node_patch_in2 = qp_mem_rpatch1;
@@ -4726,7 +4680,7 @@ module top
         .rdata1             (best_arr_rdata1)
     );
 
-    assign wbs_best_arr_rdata1 = best_arr_rdata1;
+    assign wbs_best_arr_rdata1 = best_arr_rdata1[0];
     assign best_arr_csb0 = ~sl0_valid_out;
     assign best_arr_web0 = 1'b0;
 
@@ -5096,10 +5050,11 @@ module wbsCtrl
     output logic [63:0]                                             wbs_leaf_mem_wleaf0,
     input logic [63:0]                                              wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0],
 
-    output logic                                                    wbs_node_mem_web,
-    output logic [31:0]                                             wbs_node_mem_addr,
-    output logic [31:0]                                             wbs_node_mem_wdata,
-    input logic [31:0]                                              wbs_node_mem_rdata,
+    output logic                                                    wbs_node_mem_rd,
+    output logic                                                    wbs_node_mem_we,
+    output logic [5:0]                                              wbs_node_mem_addr,
+    output logic [2*DATA_WIDTH-1:0]                                 wbs_node_mem_wdata,
+    input logic [2*DATA_WIDTH-1:0]                                  wbs_node_mem_rdata,
 
     output logic                                                    wbs_best_arr_csb1,
     output logic [7:0]                                              wbs_best_arr_addr1,
@@ -5181,10 +5136,10 @@ module wbsCtrl
         wbs_best_arr_csb1 = 1'b1;
         wbs_best_arr_addr1 = '0;
 
-        wbs_node_mem_web = 1'b0;
+        wbs_node_mem_we = 1'b0;
+        wbs_node_mem_rd = 1'b0;
         wbs_node_mem_addr = '0;
         wbs_node_mem_wdata = '0;
-       // wbs_node_mem_rdata = '0;
 
 
         unique case (currState)
@@ -5219,8 +5174,8 @@ module wbsCtrl
                 end
 
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR) begin
-                    wbs_node_mem_web = 1'b0; //Write disable, hence read enabled
-                    wbs_node_mem_addr = wbs_adr_i_q;
+                    wbs_node_mem_rd = 1'b1;
+                    wbs_node_mem_addr = wbs_adr_i_q[7:2];
                 end
 
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_BEST_ADDR) begin
@@ -5240,7 +5195,7 @@ module wbsCtrl
                     wbs_dat_o_d = wbs_adr_i_q[2] ?wbs_leaf_mem_rleaf0[wbs_adr_i_q[5:3]][63:32] :wbs_leaf_mem_rleaf0[wbs_adr_i_q[5:3]][31:0];
 
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)
-                    wbs_dat_o_d = wbs_node_mem_rdata;
+                    wbs_dat_o_d = {10'd0, wbs_node_mem_rdata};
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_BEST_ADDR)
                     wbs_dat_o_d = wbs_adr_i_q[2] ?wbs_best_arr_rdata1[63:32] :wbs_best_arr_rdata1[31:0];
                 else if (wbs_adr_i_q == WBS_FSM_DONE_ADDR)
@@ -5266,9 +5221,9 @@ module wbsCtrl
                     wbs_leaf_mem_wleaf0 = {wbs_dat_i_q, wbs_dat_i_lower_q};
                 end
                 else if (wbs_we_i_q & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)) begin //remove addr_i_q[2] condition
-                    wbs_node_mem_web = 1'b1; //Write enabled
-                    wbs_node_mem_addr = wbs_adr_i_q;
-                    wbs_node_mem_wdata = wbs_dat_i_q;
+                    wbs_node_mem_we = 1'b1; //Write enabled
+                    wbs_node_mem_addr = wbs_adr_i_q[7:2];
+                    wbs_node_mem_wdata = wbs_dat_i_q[21:0];
                 end
             end
         endcase

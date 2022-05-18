@@ -53,10 +53,11 @@ module top
     input logic [7:0]                                       wbs_best_arr_addr1,
     output logic [63:0]                                     wbs_best_arr_rdata1,
 
-    input logic                                             wbs_node_mem_web,
-    input logic [31:0]                                      wbs_node_mem_addr,
-    input logic [31:0]                                      wbs_node_mem_wdata,
-    output logic [31:0]                                     wbs_node_mem_rdata 
+    input logic                                             wbs_node_mem_we,
+    input logic                                             wbs_node_mem_rd,
+    input logic [5:0]                                       wbs_node_mem_addr,
+    input logic [2*DATA_WIDTH-1:0]                          wbs_node_mem_wdata,
+    output logic [2*DATA_WIDTH-1:0]                         wbs_node_mem_rdata 
 
 );
 
@@ -79,9 +80,10 @@ module top
     logic                                                   agg_change_fetch_width;
     logic [2:0]                                             agg_input_fetch_width;
 
-    logic                                                   int_node_fsm_enable;
+    // logic                                                   int_node_fsm_enable;
     logic                                                   int_node_sender_enable;
     logic [2*DATA_WIDTH-1:0]                                int_node_sender_data;
+    logic [5:0]                                             int_node_sender_addr;
     logic                                                   int_node_patch_en;
     logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]                 int_node_patch_in;
     logic [LEAF_ADDRW-1:0]                                  int_node_leaf_index;
@@ -318,7 +320,8 @@ module top
         .agg_receiver_full_n                    (agg_receiver_full_n),
         .agg_change_fetch_width                 (agg_change_fetch_width),
         .agg_input_fetch_width                  (agg_input_fetch_width),
-        .int_node_fsm_enable                    (int_node_fsm_enable),
+        .int_node_sender_enable                 (int_node_sender_enable),
+        .int_node_sender_addr                   (int_node_sender_addr),
         .int_node_patch_en                      (int_node_patch_en),
         .int_node_leaf_index                    (int_node_leaf_index),
         .int_node_patch_en2                     (int_node_patch_en2),
@@ -463,9 +466,9 @@ module top
     ) internal_node_inst (
         .clk                (clk),
         .rst_n              (rst_n),
-        .fsm_enable         (int_node_fsm_enable), //based on whether we are at the proper I/O portion
-        .sender_enable      (int_node_sender_enable),
-        .sender_data        (wbs_debug ? wbs_node_mem_wdata[2*DATA_WIDTH-1:0] : int_node_sender_data),
+        .sender_enable      (wbs_debug ? wbs_node_mem_we : int_node_sender_enable),
+        .sender_data        (wbs_debug ? wbs_node_mem_wdata : int_node_sender_data),
+        .sender_addr        (wbs_debug ? wbs_node_mem_addr : int_node_sender_addr),
         .patch_en           (int_node_patch_en),
         .patch_in           (int_node_patch_in),
         .leaf_index         (int_node_leaf_index),
@@ -474,13 +477,10 @@ module top
         .patch_in_two       (int_node_patch_in2),
         .leaf_index_two     (int_node_leaf_index2),
         .receiver_two_en    (int_node_leaf_valid2),
-        .wb_mode            (wbs_debug),
-        .wbs_we_i(wbs_node_mem_web), 
-        .wbs_adr_i(wbs_node_mem_addr), 
-        .wbs_dat_o(wbs_node_mem_rdata)
+        .wbs_rd_en_i        (wbs_debug ? wbs_node_mem_rd : 1'b0), 
+        .wbs_dat_o          (wbs_node_mem_rdata)
     );
 
-    assign int_node_sender_enable = agg_receiver_enq;
     assign int_node_sender_data = agg_receiver_data[2*DATA_WIDTH-1:0];
     assign int_node_patch_in = qp_mem_rpatch0;
     assign int_node_patch_in2 = qp_mem_rpatch1;

@@ -33,7 +33,8 @@ module MainFSM #(
     output logic                                                    agg_change_fetch_width,
     output logic [2:0]                                              agg_input_fetch_width,
 
-    output logic                                                    int_node_fsm_enable,
+    output logic                                                    int_node_sender_enable,
+    output logic [5:0]                                              int_node_sender_addr,
     output logic                                                    int_node_patch_en,
     input logic [LEAF_ADDRW-1:0]                                    int_node_leaf_index,
     output logic                                                    int_node_patch_en2,
@@ -157,7 +158,8 @@ module MainFSM #(
         agg_change_fetch_width = '0;
         agg_input_fetch_width = '0;
         agg_receiver_full_n = '0;
-        int_node_fsm_enable = '0;
+        int_node_sender_enable = '0;
+        int_node_sender_addr = '0;
         int_node_patch_en = '0;
         int_node_patch_en2 = '0;
         qp_mem_csb0 = 1'b1;
@@ -229,8 +231,9 @@ module MainFSM #(
             LoadInternalNodes: begin
                 counter_in = NUM_NODES - 1;
                 agg_receiver_full_n = 1'b1;
-                int_node_fsm_enable = 1'b1;
+                int_node_sender_addr = counter;
                 if (agg_receiver_enq) begin
+                    int_node_sender_enable = 1'b1;
                     counter_en = 1'b1;
                     if (counter_done) begin
                         nextState = LoadLeaves;

@@ -15,9 +15,9 @@ module internal_node_tree
 (
   input clk,
   input rst_n,
-  input fsm_enable, //based on whether we are at the proper I/O portion
   input sender_enable,
   input [INTERNAL_WIDTH - 1 : 0] sender_data,
+  input [5:0] sender_addr,
   input patch_en,
   input patch_two_en, 
   input [PATCH_WIDTH - 1 : 0] patch_in,
@@ -26,53 +26,29 @@ module internal_node_tree
   output logic [ADDRESS_WIDTH - 1 : 0] leaf_index_two,
   output receiver_en,
   output receiver_two_en,
-    input wb_mode,
-    input wbs_we_i, 
-    input [31:0] wbs_adr_i, 
-    output [31:0] wbs_dat_o
+  input wbs_rd_en_i, 
+  output logic [21:0] wbs_dat_o
 
 
 );
 
 wire wen;
-assign wen = fsm_enable && sender_enable && (!wb_mode);
+assign wen = sender_enable;
 
 
 
 reg [INTERNAL_WIDTH-1:0] rdata_storage [63:0]; //For index and median read from tree
 reg [INTERNAL_WIDTH - 1 : 0]  write_data;
 
-//Wishbone signals
-reg wb_wen;
-reg [31:0] wb_out;
-wire signed [7:0] wb_addr; //Will only use top 6 bits of this
-assign wb_addr = wbs_adr_i[7:0] - 8'd1; //subtract one to index by 0
-assign wbs_dat_o = {10'b0, wb_out[21:0]}; //First 10 bits are 0's (11 + 11 bits read)
 
 
-always @(*) begin 
-
-    if (wb_mode) begin
-
-        //Write
-        if (wbs_we_i) begin //active high wen
-            write_data[21:0] = sender_data[21:0]; //if index is 0
-            wb_wen = 1'b1;
-        end
-
-        //if not write, then read
-        else begin
-           
-            wb_out[21:0] = rdata_storage[wb_addr[5:0]][21:0]; //read address is same as write address
-            wb_wen = 1'b0;
-        end
-
+always @ (posedge clk) begin 
+    if (rst_n == 0) begin
+        wbs_dat_o <= {INTERNAL_WIDTH{1'b0}};
     end
-    //Normal I/O mode
-    else begin 
-        write_data = sender_data[21:0];
+    else if (wbs_rd_en_i) begin
+        wbs_dat_o = rdata_storage[sender_addr]; //read address is same as write address
     end
-
 end
 
  
@@ -134,20 +110,6 @@ wire [PATCH_WIDTH - 1 : 0] patch_out;
  assign receiver_two_en = latency_track_reciever_two_en[6];
 
 
-//Register for storing and updating address
-always @ (posedge clk) begin
-
-    if (rst_n == 0) begin
-        wadr <= 0;
-    end
-    else if (wen && !wb_mode ) begin
-        wadr <= wadr + 1;
-    end
-    else begin
-        wadr <= wadr;
-    end
-
-end
 
 //Create 7:128 Decoder to create address system for writing to internal nodes
 //Result is a 1 hot signal, where the index that includes the 1 corresponds to the internal_node that will be written to.
@@ -155,22 +117,11 @@ always @(*) begin
 
     for (int q = 0; q < 128; q++) begin
 
-        if (wb_mode) begin  //If in wishbone mode, this will read from the wb_addr
-            if (q == wb_addr) begin
-                one_hot_address_en[q] = 1'b1; 
-            end
-            else begin
-                one_hot_address_en[q] = 1'b0;
-            end
-
+        if (q == sender_addr) begin
+            one_hot_address_en[q] = 1'b1; //TODO: Does this synthesize well?
         end
         else begin
-            if (q == wadr) begin
-                one_hot_address_en[q] = 1'b1; //TODO: Does this synthesize well?
-            end
-            else begin
-                one_hot_address_en[q] = 1'b0;
-            end
+            one_hot_address_en[q] = 1'b0;
         end
     end
 end
@@ -218,10 +169,10 @@ generate
             (
             .clk(clk),
             .rst_n(rst_n),
-            .wen((wen || wb_wen ) && one_hot_address_en[(((2**i)) + j-1)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
+            .wen(wen && one_hot_address_en[(((2**i)) + j-1)]), //Determined by FSM, reciever enq, and DECODER indexed at i. TODO Check slice
             .valid(level_valid[j][i]),
             .valid_two(level_valid_two[j][i]),
-            .wdata(write_data), //writing mechanics are NOT pipelined
+            .wdata(sender_data), //writing mechanics are NOT pipelined
             .patch_in(level_patches[i]),
             .patch_in_two(level_patches_two[i]),
             .valid_left(level_valid_storage[j*2][i]),

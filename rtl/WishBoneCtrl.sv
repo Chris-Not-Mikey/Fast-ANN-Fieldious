@@ -44,10 +44,11 @@ module wbsCtrl
     output logic [63:0]                                             wbs_leaf_mem_wleaf0,
     input logic [63:0]                                              wbs_leaf_mem_rleaf0 [LEAF_SIZE-1:0],
 
-    output logic                                                    wbs_node_mem_web,
-    output logic [31:0]                                             wbs_node_mem_addr,
-    output logic [31:0]                                             wbs_node_mem_wdata,
-    input logic [31:0]                                              wbs_node_mem_rdata,
+    output logic                                                    wbs_node_mem_rd,
+    output logic                                                    wbs_node_mem_we,
+    output logic [5:0]                                              wbs_node_mem_addr,
+    output logic [2*DATA_WIDTH-1:0]                                 wbs_node_mem_wdata,
+    input logic [2*DATA_WIDTH-1:0]                                  wbs_node_mem_rdata,
 
     output logic                                                    wbs_best_arr_csb1,
     output logic [7:0]                                              wbs_best_arr_addr1,
@@ -129,10 +130,10 @@ module wbsCtrl
         wbs_best_arr_csb1 = 1'b1;
         wbs_best_arr_addr1 = '0;
 
-        wbs_node_mem_web = 1'b0;
+        wbs_node_mem_we = 1'b0;
+        wbs_node_mem_rd = 1'b0;
         wbs_node_mem_addr = '0;
         wbs_node_mem_wdata = '0;
-       // wbs_node_mem_rdata = '0;
 
 
         unique case (currState)
@@ -167,8 +168,8 @@ module wbsCtrl
                 end
 
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR) begin
-                    wbs_node_mem_web = 1'b0; //Write disable, hence read enabled
-                    wbs_node_mem_addr = wbs_adr_i_q;
+                    wbs_node_mem_rd = 1'b1;
+                    wbs_node_mem_addr = wbs_adr_i_q[7:2];
                 end
 
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_BEST_ADDR) begin
@@ -188,7 +189,7 @@ module wbsCtrl
                     wbs_dat_o_d = wbs_adr_i_q[2] ?wbs_leaf_mem_rleaf0[wbs_adr_i_q[5:3]][63:32] :wbs_leaf_mem_rleaf0[wbs_adr_i_q[5:3]][31:0];
 
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)
-                    wbs_dat_o_d = wbs_node_mem_rdata;
+                    wbs_dat_o_d = {10'd0, wbs_node_mem_rdata};
                 else if ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_BEST_ADDR)
                     wbs_dat_o_d = wbs_adr_i_q[2] ?wbs_best_arr_rdata1[63:32] :wbs_best_arr_rdata1[31:0];
                 else if (wbs_adr_i_q == WBS_FSM_DONE_ADDR)
@@ -214,9 +215,9 @@ module wbsCtrl
                     wbs_leaf_mem_wleaf0 = {wbs_dat_i_q, wbs_dat_i_lower_q};
                 end
                 else if (wbs_we_i_q & ((wbs_adr_i_q & WBS_ADDR_MASK) == WBS_NODE_ADDR)) begin //remove addr_i_q[2] condition
-                    wbs_node_mem_web = 1'b1; //Write enabled
-                    wbs_node_mem_addr = wbs_adr_i_q;
-                    wbs_node_mem_wdata = wbs_dat_i_q;
+                    wbs_node_mem_we = 1'b1; //Write enabled
+                    wbs_node_mem_addr = wbs_adr_i_q[7:2];
+                    wbs_node_mem_wdata = wbs_dat_i_q[21:0];
                 end
             end
         endcase

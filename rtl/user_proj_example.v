@@ -35,6 +35,10 @@
  *-------------------------------------------------------------
  */
 
+`ifndef MPRJ_IO_PADS
+    `define MPRJ_IO_PADS 38
+`endif
+
 module user_proj_example #(
     parameter BITS = 32
 )(
@@ -45,7 +49,7 @@ module user_proj_example #(
 
     // Wishbone Slave ports (WB MI A)
     input wb_clk_i,
-    input wb_rst_i,
+    input wire wb_rst_i,
     input wbs_stb_i,
     input wbs_cyc_i,
     input wbs_we_i,
@@ -93,14 +97,14 @@ module user_proj_example #(
     wire [7:0]                                              wbs_leaf_mem_web0;
     wire [5:0]                                              wbs_leaf_mem_addr0;
     wire [63:0]                                             wbs_leaf_mem_wleaf0;
-    wire [63:0]                                       wbs_leaf_mem_rleaf0[7:0] ;
+    wire [63:0]                                             wbs_leaf_mem_rleaf0 [7:0];
     wire                                                    wbs_best_arr_csb1;
     wire [7:0]                                              wbs_best_arr_addr1;
     wire [63:0]                                             wbs_best_arr_rdata1;
     wire                                                    wbs_node_mem_web;
-    wire [31:0]                                             wbs_node_mem_addr;
-    wire [31:0]                                             wbs_node_mem_wdata;
-    wire [31:0]                                             wbs_node_mem_rdata;
+    wire [5:0]                                              wbs_node_mem_addr;
+    wire [21:0]                                             wbs_node_mem_wdata;
+    wire [21:0]                                             wbs_node_mem_rdata;
 
     wire                                                    wbs_fsm_start_synced;
     wire                                                    wbs_fsm_done_synced;

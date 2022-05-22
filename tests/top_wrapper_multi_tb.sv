@@ -15,6 +15,18 @@ module top_wrapper_tb();
     parameter NUM_NODES = NUM_LEAVES - 1;
     parameter BLOCKING = 4;
     parameter ADDR_WIDTH = $clog2(NUM_LEAVES);
+    
+    
+    parameter WBS_ADDR_MASK        = 32'hFFFF_0000;
+    parameter WBS_MODE_ADDR        = 32'h3000_0000;
+    parameter WBS_DEBUG_ADDR       = 32'h3000_0004;
+    parameter WBS_DONE_ADDR        = 32'h3000_0008;
+    parameter WBS_FSM_START_ADDR   = 32'h3000_000C;
+    parameter WBS_FSM_BUSY_ADDR    = 32'h3000_0010;
+    parameter WBS_QUERY_ADDR       = 32'h3001_0000;
+    parameter WBS_LEAF_ADDR        = 32'h3002_0000;
+    parameter WBS_BEST_ADDR        = 32'h3003_0000;
+    parameter WBS_NODE_ADDR        = 32'h3004_0000;
 
     // logic                                   clk;
     // logic                                   rst_n;
@@ -57,6 +69,14 @@ module top_wrapper_tb();
 
     // IRQ
     logic [2:0] irq;
+    
+        //Node variables
+    logic [6:0] counter;
+    
+    //Leaf variables
+    
+    logic [11:0] leafCounter;
+    logic [63:0] leafReadHold;
 
 
 

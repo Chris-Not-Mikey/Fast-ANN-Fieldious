@@ -91,7 +91,7 @@ module user_proj_example #(
     wire [7:0]                                              wbs_leaf_mem_web0;
     wire [5:0]                                              wbs_leaf_mem_addr0;
     wire [63:0]                                             wbs_leaf_mem_wleaf0;
-    wire [63:0][7:0]                                        wbs_leaf_mem_rleaf0;
+    wire [63:0]                                             wbs_leaf_mem_rleaf0[7:0];
     wire                                                    wbs_best_arr_csb1;
     wire [7:0]                                              wbs_best_arr_addr1;
     wire [63:0]                                             wbs_best_arr_rdata1;

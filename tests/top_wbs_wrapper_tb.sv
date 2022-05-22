@@ -339,7 +339,7 @@ module top_wrapper_tb();
         simtime = $realtime;
         // send query patches, 5 lines per query patch
         // each patch has 5 lines of data
-        for(int i=0; i<NUM_QUERYS*5; i=i+1) begin
+        for(int i=0; i<NUM_QUERYS; i=i+5) begin
 //             @(negedge wb_clk_i)
 //             io_in[2] = 1'b1;
 //             scan_file = $fscanf(query_data_file, "%d\n", io_in[13:3]);

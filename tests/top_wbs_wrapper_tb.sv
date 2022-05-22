@@ -249,7 +249,7 @@ module top_wrapper_tb();
             wbs_we_i = 1'b1;
             wbs_sel_i = '1;
             //wbs_dat_i = {10'b0, 11'd55, 11'd1}; //10 0's, median of 55, and index of 1 
-            wbs_adr_i = WBS_NODE_ADDR + (counter<<3)  + (0<<2); // addr 1
+            wbs_adr_i = WBS_NODE_ADDR + (i<<3); // addr 1
         
             @(posedge wb_clk_i);
             wbs_cyc_i = 1'b1;

@@ -143,9 +143,9 @@ if __name__ == "__main__":
     gold_l2 = float(lines[image_idx]) #Select image to compare l2 from provided command line arg
     
     if abs(l2 - gold_l2) > 1:
-        print("failed")
+        print("L2 Failed")
     else:
-        print("Sucess")
+        print("L2 Sucess")
 
         
     #Compare squared l2 distances with a 30% margine of error
@@ -159,11 +159,11 @@ if __name__ == "__main__":
 
         margin = 0.3*expected
 
-        if abs(result - expected) > margin and abs(result - expected) > 11:
-            print("failed")
-            print(abs(result - expected))
-        else:
-            print("Sucess")
+#         if abs(result - expected) > margin and abs(result - expected) > 11:
+#             print("failed")
+#             print(abs(result - expected))
+#         else:
+#             print("Success")
 
 
 

@@ -307,6 +307,325 @@ module top_wrapper_tb();
     
           
         end //end of inner loop per image pair
+        
+        //*********************************************************WISHBONE SECTION***********************************************************
+        //start wishbone test
+         wb_rst_i = 1'b1;
+        wbs_stb_i = 1'b0;
+        wbs_cyc_i = 1'b0;
+        wbs_we_i = 1'b0;
+        wbs_sel_i = '1;
+        wbs_dat_i = '0;
+        wbs_adr_i = '0;
+        
+        
+        rst_n = 0;
+        io_in[15] = 0;
+        io_in[16] = 0;
+        io_in[17] = 0;
+        io_in[1] = 0;
+        io_in[2] = 0;
+        io_in[13:3] = '0;
+        io_in[14] = '0;
+        wbs_adr_i = WBS_DEBUG_ADDR;
+        
+        #20
+        wb_rst_i = 0;      
+        rst_n = 1;
+        io_in[1] = 1;
+        #40;
+        
+        wbs_cyc_i = 1'b1;
+        wbs_stb_i = 1'b1;
+        wbs_we_i = 1'b1;
+        wbs_dat_i = 32'b1;
+        wbs_adr_i = WBS_DEBUG_ADDR;
+        
+        #100
+        
+        wbs_adr_i = WBS_MODE_ADDR;
+        #100
+        wbs_cyc_i = 1'b0;
+        wbs_stb_i = 1'b0;
+        wbs_we_i = 1'b0;
+       
+        
+      
+        
+        
+         #20
+
+
+        // // start load kd tree internal nodes and leaves
+        // for (int node_num = 0; node_num < 63; node_num++) begin
+
+         
+        // end
+
+        
+
+        // send internal nodes, 2 lines per node
+        // index
+        // median
+     
+        counter = 7'b1;
+        simtime = $realtime;
+        $display("[T=%0t] Start sending KD tree internal nodes and leaves", $realtime);
+        for(int i=0; i<NUM_NODES; i=i+1) begin
+            @(posedge wb_clk_i)
+            io_in[2] = 1'b1; //fifo wenq (TODO: Change to wbs)
+            scan_file = $fscanf(int_nodes_data_file, "%d\n", wbs_dat_i[10:0]);
+            scan_file = $fscanf(int_nodes_data_file, "%d\n", wbs_dat_i[21:11]);
+            wbs_dat_i[31:22] = 10'b0;
+            wbs_cyc_i = 1'b1;
+            wbs_stb_i = 1'b1;
+            wbs_we_i = 1'b1;
+            wbs_sel_i = '1;
+            //wbs_dat_i = {10'b0, 11'd55, 11'd1}; //10 0's, median of 55, and index of 1 
+            wbs_adr_i = WBS_NODE_ADDR + (i<<2); // addr 1
+        
+            @(posedge wb_clk_i);
+            wbs_cyc_i = 1'b1;
+            wbs_stb_i = 1'b1;
+            wbs_we_i = 1'b1;
+            //wbs_dat_i = '0;
+           
+    
+
+            @(negedge wb_clk_i);
+            wbs_cyc_i = 1'b0;
+            wbs_stb_i = 1'b0;
+            wbs_we_i = 1'b0;
+            wbs_dat_i = '0;
+            
+            @(negedge wbs_ack_o);
+            counter = counter + 1'b1;
+        end
+
+
+        @(negedge wb_clk_i)
+        io_in[2] = 0;
+        io_in[13:3] = '0;
+
+        // send leaves, 6*8 lines per leaf
+        // 8 patches per leaf
+        // each patch has 5 lines of data
+        // and 1 line of patch index in the original image (for reconstruction)
+        for(int i=0; i<NUM_LEAVES*6; i=i+1) begin
+            
+            for (int j=0; j < 8; j=j+1) begin
+                
+
+                // mem write
+
+                @(posedge wb_clk_i);
+
+
+                scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[10:0]);
+                scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[21:11]);
+                scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[32:22]);
+
+                scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[43:33]);
+                scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[54:44]);
+                scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[63:55]); //smaller because idx 9 bits
+
+
+
+                wbs_cyc_i = 1'b1;
+                wbs_stb_i = 1'b1;
+                wbs_we_i = 1'b1;
+                wbs_sel_i = '1;
+                wbs_dat_i = leafReadHold[31:0];
+                wbs_adr_i = WBS_LEAF_ADDR + (j<<3) + (0<<2) + (i<<5);  // addr 2, lower
+
+                @(negedge wbs_ack_o);
+                wbs_cyc_i = 1'b1;
+                wbs_stb_i = 1'b1;
+                wbs_we_i = 1'b1;
+                wbs_sel_i = '1;
+                wbs_dat_i = leafReadHold[63:32];
+                wbs_adr_i = WBS_LEAF_ADDR + (j<<3) + (1<<2) + (i<<5);  // addr 2, upper
+
+                @(negedge wbs_ack_o);
+                wbs_cyc_i = 1'b0;
+                wbs_stb_i = 1'b0;
+                wbs_we_i = 1'b0;
+                wbs_dat_i = '0;
+                wbs_adr_i = '0;
+
+
+                
+            end
+
+            
+            
+        end
+        @(negedge wb_clk_i)
+        io_in[2] = 0;
+        io_in[13:3] = '0;
+        $display("[T=%0t] Finished sending KD tree internal nodes and leaves", $realtime);
+        kdtreetime = $realtime - simtime;
+        
+       
+        
+        $display("[T=%0t] Start sending queries", $realtime);
+        simtime = $realtime;
+        // send query patches, 5 lines per query patch
+        // each patch has 5 lines of data
+        for(int i=0; i<NUM_QUERYS; i=i+1) begin
+//             @(negedge wb_clk_i)
+//             io_in[2] = 1'b1;
+//             scan_file = $fscanf(query_data_file, "%d\n", io_in[13:3]);
+            
+             @(posedge wb_clk_i);
+             
+     
+            scan_file = $fscanf(query_data_file, "%d\n", leafReadHold[10:0]);
+            scan_file = $fscanf(query_data_file, "%d\n", leafReadHold[21:11]);
+            scan_file = $fscanf(query_data_file, "%d\n", leafReadHold[32:22]);
+            
+            scan_file = $fscanf(query_data_file, "%d\n", leafReadHold[43:33]);
+            scan_file = $fscanf(query_data_file, "%d\n", leafReadHold[54:44]);
+            leafReadHold[63:55] = 9'b0;
+            //  scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[63:55]); //Empty bc 55 bits
+            
+            
+            
+            wbs_cyc_i = 1'b1;
+            wbs_stb_i = 1'b1;
+            wbs_we_i = 1'b1;
+            wbs_sel_i = '1;
+            wbs_dat_i = leafReadHold[31:0];
+            wbs_adr_i = WBS_QUERY_ADDR + (i<<3) + (0<<2);  // addr 2, lower
+
+            @(negedge wbs_ack_o);
+            wbs_cyc_i = 1'b1;
+            wbs_stb_i = 1'b1;
+            wbs_we_i = 1'b1;
+            wbs_sel_i = '1;
+            wbs_dat_i = leafReadHold[63:32];
+            wbs_adr_i = WBS_QUERY_ADDR + (i<<3) + (1<<2);  // addr 2, upper
+
+            @(negedge wbs_ack_o);
+            wbs_cyc_i = 1'b0;
+            wbs_stb_i = 1'b0;
+            wbs_we_i = 1'b0;
+            wbs_dat_i = '0;
+            wbs_adr_i = '0;
+            
+            
+            
+        end
+        @(negedge wb_clk_i)
+//         io_in[2] = 0;
+//         io_in[13:3] = '0;
+        $display("[T=%0t] Finished sending queries", $realtime);
+        querytime = $realtime - simtime;
+        
+    
+
+        #100;
+        @(negedge wb_clk_i) io_in[15] = 1'b1; //wbs_adr_i = WBS_FSM_START_ADDR;
+        wbs_we_i = 1'b1;
+        wbs_cyc_i = 1'b1;
+        wbs_stb_i = 1'b1;
+        wbs_we_i = 1'b1;
+        wbs_sel_i = '1;
+        
+        $display("[T=%0t] Start algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
+        simtime = $realtime;
+        @(negedge wb_clk_i) io_in[15] = 1'b0; // wbs_we_i = 1'b0;
+        wbs_cyc_i = 1'b0;
+        wbs_stb_i = 1'b0;
+        wbs_we_i = 1'b0;
+        wbs_dat_i = '0;
+        wbs_adr_i = '0;
+
+        
+       
+        
+
+        wait(io_out[31] == 1'b1); //TODO: Replace with WSB
+        $display("[T=%0t] Finished algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
+        fsmtime = $realtime - simtime;
+
+        @(negedge wb_clk_i) wbs_adr_i = WBS_BEST_ADDR;
+        $display("[T=%0t] Start receiving outputs", $realtime);
+        simtime = $realtime;
+        @(negedge wb_clk_i);
+
+        for(int px=0; px<2; px=px+1) begin
+            for(x=0; x<4; x=x+1) begin
+                // for(x=0; x<(ROW_SIZE/2/BLOCKING); x=x+1) begin  // for row_size = 26
+                for(y=0; y<COL_SIZE; y=y+1) begin
+                    for(xi=0; xi<BLOCKING; xi=xi+1) begin
+                        if ((x != 3) || (xi < 1)) begin  // for row_size = 26
+                            //wait(io_out[30]);
+                            
+                               addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
+                               @(posedge wb_clk_i);
+                                wbs_cyc_i = 1'b1;
+                                wbs_stb_i = 1'b1;
+                                wbs_we_i = 1'b0;
+                                wbs_sel_i = '1;
+                            wbs_adr_i = WBS_BEST_ADDR + (addr<<3) + (0<<2); // addr 7, lower
+
+                             @(negedge (wbs_ack_o));
+                            
+                             @(posedge wb_clk_i);
+                            wbs_cyc_i = 1'b1;
+                            wbs_stb_i = 1'b1;
+                            wbs_we_i = 1'b0;
+                            wbs_sel_i = '1;
+                            wbs_adr_i = WBS_BEST_ADDR + (addr<<3) + (1<<2); // addr 7, upper
+                            
+                            
+                            @(negedge (wbs_ack_o));
+                             wbs_cyc_i = 1'b0;
+                            wbs_stb_i = 1'b0;
+                            wbs_we_i = 1'b0;
+                            wbs_sel_i = '0;
+                            received_idx[addr] = wbs_dat_o[10:0];
+//                             @(posedge wb_clk_i); #1;
+                            
+//                                @(negedge wbs_ack_o);
+//                                 wbs_cyc_i = 1'b1;
+//                                 wbs_stb_i = 1'b1;
+//                                 wbs_we_i = 1'b0;
+//                                 wbs_sel_i = '1;
+//                                 wbs_adr_i = WBS_BEST_ADDR + (addr<<3) + (1<<2);  // addr 7, upper
+
+//                                 @(negedge (~wbs_best_arr_csb1));
+                            
+//                             @(negedge wb_clk_i)
+//                             io_in[14] = 1'b1;
+//                             addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
+//                             received_idx[addr] = io_out[29:19];
+//                             @(posedge wb_clk_i); #1;
+                        end
+                    end
+                end
+            end
+        end
+        @(negedge wb_clk_i) io_in[14] = 1'b0;
+        $display("[T=%0t] Finished receiving outputs", $realtime);
+        outputtime = $realtime - simtime;
+
+      
+        for(int i=0; i<NUM_QUERYS; i=i+1) begin
+            $fwrite(received_idx_data_file, "%d\n", received_idx[i]);
+            if (expected_idx[i] != received_idx[i])
+                $display("mismatch %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
+            else
+                $display("match %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
+        end
+
+        $display("===============Runtime Summary===============");
+        $display("KD tree: %t", kdtreetime);
+        $display("Query patches: %t", querytime);
+        $display("Main Algorithm: %t", fsmtime);
+        $display("Outputs: %t", outputtime);
+        
       
         #200;
         $finish;

@@ -278,52 +278,52 @@ module top_wrapper_tb();
         // 8 patches per leaf
         // each patch has 5 lines of data
         // and 1 line of patch index in the original image (for reconstruction)
-        for(int i=0; i<NUM_LEAVES*6*8; i=i+1) begin
-//             @(negedge wb_clk_i)
-//             io_in[2] = 1'b1;
-//             scan_file = $fscanf(leaves_data_file, "%d\n", io_in[13:3]);
+        for(int i=0; i<NUM_LEAVES*6; i=i+1) begin
             
-            
-            // mem write
-            
-            @(posedge wb_clk_i);
-             
-     
-            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[10:0]);
-            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[21:11]);
-            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[32:22]);
-            
-            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[43:33]);
-            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[54:44]);
-            scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[63:55]); //smaller because idx 9 bits
-            
-            
-            
-            wbs_cyc_i = 1'b1;
-            wbs_stb_i = 1'b1;
-            wbs_we_i = 1'b1;
-            wbs_sel_i = '1;
-            wbs_dat_i = leafReadHold[31:0];
-            wbs_adr_i = WBS_LEAF_ADDR + (i<<3) + (0<<2);  // addr 2, lower
+            for (int j=0; j < 8; j=j+1) begin
+                
 
-            @(negedge wbs_ack_o);
-            wbs_cyc_i = 1'b1;
-            wbs_stb_i = 1'b1;
-            wbs_we_i = 1'b1;
-            wbs_sel_i = '1;
-            wbs_dat_i = leafReadHold[63:32];
-            wbs_adr_i = WBS_LEAF_ADDR + (i<<3) + (1<<2);  // addr 2, upper
+                // mem write
 
-            @(negedge wbs_ack_o);
-            wbs_cyc_i = 1'b0;
-            wbs_stb_i = 1'b0;
-            wbs_we_i = 1'b0;
-            wbs_dat_i = '0;
-            wbs_adr_i = '0;
+                @(posedge wb_clk_i);
 
-            
-            
-            
+
+                scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[10:0]);
+                scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[21:11]);
+                scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[32:22]);
+
+                scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[43:33]);
+                scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[54:44]);
+                scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[63:55]); //smaller because idx 9 bits
+
+
+
+                wbs_cyc_i = 1'b1;
+                wbs_stb_i = 1'b1;
+                wbs_we_i = 1'b1;
+                wbs_sel_i = '1;
+                wbs_dat_i = leafReadHold[31:0];
+                wbs_adr_i = WBS_LEAF_ADDR + (j<<3) + (0<<2) + (i<<5);  // addr 2, lower
+
+                @(negedge wbs_ack_o);
+                wbs_cyc_i = 1'b1;
+                wbs_stb_i = 1'b1;
+                wbs_we_i = 1'b1;
+                wbs_sel_i = '1;
+                wbs_dat_i = leafReadHold[63:32];
+                wbs_adr_i = WBS_LEAF_ADDR + (j<<3) + (1<<2) + (i<<5);  // addr 2, upper
+
+                @(negedge wbs_ack_o);
+                wbs_cyc_i = 1'b0;
+                wbs_stb_i = 1'b0;
+                wbs_we_i = 1'b0;
+                wbs_dat_i = '0;
+                wbs_adr_i = '0;
+
+
+                
+            end
+
             
             
         end

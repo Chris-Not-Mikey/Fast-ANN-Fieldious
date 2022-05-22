@@ -282,6 +282,15 @@ module top_wrapper_tb();
             // else
             //     $display("match %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
         end
+            
+        received_dist_data_file = $fopen("data/IO_data/received_dist.txt", "a");
+        for(int i=0; i<NUM_QUERYS; i=i+1) begin
+            $fwrite(received_dist_data_file, "%d\n", received_dist[i]);
+            // if (expected_idx[i] != received_dist[i])
+            //     $display("mismatch %d: expected: %d, received %d", i, expected_idx[i], received_dist[i]);
+            // else
+            //     $display("match %d: expected: %d, received %d", i, expected_idx[i], received_dist[i]);
+        end
 
         $display("===============Runtime Summary===============");
         $display("KD tree: %t", kdtreetime);

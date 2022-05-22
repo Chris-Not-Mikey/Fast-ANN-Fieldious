@@ -239,7 +239,7 @@ module top_wrapper_tb();
         simtime = $realtime;
         $display("[T=%0t] Start sending KD tree internal nodes and leaves", $realtime);
         for(int i=0; i<NUM_NODES; i=i+1) begin
-            @(negedge wb_clk_i)
+            @(posedge wb_clk_i)
             io_in[2] = 1'b1; //fifo wenq (TODO: Change to wbs)
             scan_file = $fscanf(int_nodes_data_file, "%d\n", wbs_dat_i[10:0]);
             scan_file = $fscanf(int_nodes_data_file, "%d\n", wbs_dat_i[21:11]);
@@ -259,11 +259,13 @@ module top_wrapper_tb();
            
     
 
-            @(negedge wbs_ack_o);
+            @(posedge wb_clk_i);
             wbs_cyc_i = 1'b0;
             wbs_stb_i = 1'b0;
             wbs_we_i = 1'b0;
             wbs_dat_i = '0;
+            
+            @(negedge wbs_ack_o);
             counter = counter + 1'b1;
         end
 

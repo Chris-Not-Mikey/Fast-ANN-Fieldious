@@ -328,6 +328,8 @@ module top_wrapper_tb();
           
         end //end of inner loop per image pair
         
+        #200
+        
         //*********************************************************WISHBONE SECTION***********************************************************
         //start wishbone test
         
@@ -656,6 +658,7 @@ module top_wrapper_tb();
         end //end of wishbone pair inner loop
         
         //****************************************FINAL IO TEST AFTER WISHBONE***********************
+        #200
         
         for (int q=0; q<1; q=q+1) begin
             $display("Starting new image");

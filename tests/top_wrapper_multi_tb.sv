@@ -169,6 +169,9 @@ module top_wrapper_tb();
             $display("query_data_file handle was NULL");
             $finish;
         end
+        
+        received_idx_data_file = $fopen("data/IO_data/received_idx.txt", "w");
+        received_dist_data_file = $fopen("data/IO_data/received_dist.txt", "w");
       
         for (int q=0; q<2; q=q+1) begin
             $display("Starting new image");
@@ -274,7 +277,7 @@ module top_wrapper_tb();
         $display("[T=%0t] Finished receiving outputs", $realtime);
         outputtime = $realtime - simtime;
 
-        received_idx_data_file = $fopen("data/IO_data/received_idx.txt", "a");
+        
         for(int i=0; i<NUM_QUERYS; i=i+1) begin
             $fwrite(received_idx_data_file, "%d\n", received_idx[i]);
             if (expected_idx[i] != received_idx[i])
@@ -283,7 +286,7 @@ module top_wrapper_tb();
             //     $display("match %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
         end
             
-        received_dist_data_file = $fopen("data/IO_data/received_dist.txt", "a");
+        
         for(int i=0; i<NUM_QUERYS; i=i+1) begin
             $fwrite(received_dist_data_file, "%d\n", received_dist[i]);
             // if (expected_idx[i] != received_dist[i])

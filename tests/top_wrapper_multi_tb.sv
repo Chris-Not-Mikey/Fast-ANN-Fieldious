@@ -661,6 +661,14 @@ module top_wrapper_tb();
             $display("Starting new image");
 
         wb_rst_i = 1;
+        wbs_stb_i = 1'b0;
+        wbs_cyc_i = 1'b0;
+        wbs_we_i = 1'b0;
+        wbs_sel_i = '0;
+        wbs_dat_i = '0;
+        wbs_adr_i = '0;
+            
+            
         rst_n = 0;
         io_in[15] = 0;
         io_in[16] = 0;

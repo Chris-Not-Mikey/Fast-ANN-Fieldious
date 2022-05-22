@@ -35,10 +35,6 @@
  *-------------------------------------------------------------
  */
 
-`ifndef MPRJ_IO_PADS
-    `define MPRJ_IO_PADS 38
-`endif
-
 module user_proj_example #(
     parameter BITS = 32
 )(
@@ -49,7 +45,7 @@ module user_proj_example #(
 
     // Wishbone Slave ports (WB MI A)
     input wb_clk_i,
-    input wire wb_rst_i,
+    input wb_rst_i,
     input wbs_stb_i,
     input wbs_cyc_i,
     input wbs_we_i,
@@ -84,10 +80,8 @@ module user_proj_example #(
     wire                                                    wbs_mode;
     wire                                                    wbs_debug;
     wire                                                    wbs_done;
+    wire                                                    wbs_cfg_done;
     wire                                                    wbs_fsm_start;
-    wire                                                    wbs_fsm_done;
-    wire                                                    acc_load_done;
-    wire                                                    acc_send_done;
     wire                                                    wbs_qp_mem_csb0;
     wire                                                    wbs_qp_mem_web0;
     wire [8:0]                                              wbs_qp_mem_addr0;
@@ -97,21 +91,29 @@ module user_proj_example #(
     wire [7:0]                                              wbs_leaf_mem_web0;
     wire [5:0]                                              wbs_leaf_mem_addr0;
     wire [63:0]                                             wbs_leaf_mem_wleaf0;
-    wire [63:0]                                             wbs_leaf_mem_rleaf0 [7:0];
+    wire [63:0][7:0]                                        wbs_leaf_mem_rleaf0;
     wire                                                    wbs_best_arr_csb1;
     wire [7:0]                                              wbs_best_arr_addr1;
     wire [63:0]                                             wbs_best_arr_rdata1;
-    wire                                                    wbs_node_mem_web;
+    wire                                                    wbs_node_mem_we;
+    wire                                                    wbs_node_mem_rd;
     wire [5:0]                                              wbs_node_mem_addr;
     wire [21:0]                                             wbs_node_mem_wdata;
     wire [21:0]                                             wbs_node_mem_rdata;
 
     wire                                                    wbs_fsm_start_synced;
-    wire                                                    wbs_fsm_done_synced;
+    wire                                                    fsm_done_synced;
+    wire                                                    load_done_synced;
+    wire                                                    send_done_synced;
+    wire                                                    wbs_busy_synced;
+    wire                                                    wbs_done_synced;
+    wire                                                    wbs_cfg_done_synced;
     wire                                                    fsm_start;
     wire                                                    fsm_done;
     wire                                                    send_best_arr;
+    wire                                                    send_done;
     wire                                                    load_kdtree;
+    wire                                                    load_done;
     wire                                                    in_fifo_wenq;
     wire [10:0]                                             in_fifo_wdata;
     wire                                                    in_fifo_wfull_n;
@@ -123,7 +125,11 @@ module user_proj_example #(
     // IRQ
     assign irq = 3'b000;	// Unused
     assign la_data_out = 128'd0;  // Unused
-    assign io_oeb = la_data_in[37:0];  // TODO
+    // assign io_oeb = la_data_in[37:0];  // TODO
+    // assign io_oeb[17:0] = 18'd0;
+    // assign io_oeb[37:18] = {20{1'b1}};
+    assign io_oeb[17:0] = {18{1'b1}};
+    assign io_oeb[37:18] = {20{1'b0}};
 
     // define all IO pin locations
     assign io_clk = io_in[0];
@@ -138,9 +144,11 @@ module user_proj_example #(
     assign io_out[29:19] = out_fifo_rdata;
     assign io_out[30] = out_fifo_rempty_n;
     assign io_out[31] = fsm_done;
-    assign io_out[32] = wbs_done;
+    assign io_out[32] = wbs_done_synced;
+    assign io_out[33] = wbs_busy_synced;
+    assign io_out[34] = wbs_cfg_done_synced;
     assign io_out[17:0] = 18'd0;
-    assign io_out[37:33] = 5'd0;
+    assign io_out[37:35] = 3'd0;
 
 
     ClockMux clockmux_inst (
@@ -181,10 +189,11 @@ module user_proj_example #(
         .wbs_mode                               (wbs_mode),
         .wbs_debug                              (wbs_debug),
         .wbs_done                               (wbs_done),
+        .wbs_cfg_done                           (wbs_cfg_done),
         .wbs_fsm_start                          (wbs_fsm_start),
-        .acc_fsm_done                           (wbs_fsm_done), 
-        .acc_load_done                          (acc_load_done),
-        .acc_send_done                          (acc_send_done),
+        .acc_fsm_done                           (fsm_done_synced),
+        .acc_load_done                          (load_done_synced),
+        .acc_send_done                          (send_done_synced),
         .wbs_qp_mem_csb0                        (wbs_qp_mem_csb0),
         .wbs_qp_mem_web0                        (wbs_qp_mem_web0),
         .wbs_qp_mem_addr0                       (wbs_qp_mem_addr0),
@@ -220,14 +229,16 @@ module user_proj_example #(
     //     .BLOCKING(BLOCKING),
     //     .LEAF_ADDRW(LEAF_ADDRW)
     // ) 
-    dut(
-        .clk(wb_clk_i),
+    acc_inst (
+        .clk(clkmux_clk),
         .rst_n(rstmux_rst_n),
 
         .load_kdtree(load_kdtree),
+        .load_done(load_done),
         .fsm_start(fsm_start | wbs_fsm_start_synced),
         .fsm_done(fsm_done),
         .send_best_arr(send_best_arr),
+        .send_done(send_done),
 
         .io_clk(io_clk),
         .io_rst_n(io_rst_n),
@@ -272,7 +283,50 @@ module user_proj_example #(
         .sRST(),  // not needed
         .sEN(fsm_done),
         .dCLK(wb_clk_i),
-        .dPulse(wbs_fsm_done_synced)
+        .dPulse(fsm_done_synced)
+    );
+
+    SyncPulse load_done_sync (
+        .sCLK(clkmux_clk),
+        .sRST(),  // not needed
+        .sEN(load_done),
+        .dCLK(wb_clk_i),
+        .dPulse(load_done_synced)
+    );
+
+    SyncPulse send_done_sync (
+        .sCLK(clkmux_clk),
+        .sRST(),  // not needed
+        .sEN(send_done),
+        .dCLK(wb_clk_i),
+        .dPulse(send_done_synced)
+    );
+
+    SyncBit wbs_mode_sync (
+        .sCLK(wb_clk_i),
+        .sRST(~wb_rst_i),
+        .sEN(1'b1),
+        .sD_IN(wbs_mode),
+        .dCLK(io_clk),
+        .dD_OUT(wbs_busy_synced)
+    );
+
+    SyncBit wbs_done_sync (
+        .sCLK(wb_clk_i),
+        .sRST(~wb_rst_i),
+        .sEN(1'b1),
+        .sD_IN(wbs_done),
+        .dCLK(io_clk),
+        .dD_OUT(wbs_done_synced)
+    );
+
+    SyncBit wbs_cfg_done_sync (
+        .sCLK(wb_clk_i),
+        .sRST(~wb_rst_i),
+        .sEN(1'b1),
+        .sD_IN(wbs_cfg_done),
+        .dCLK(io_clk),
+        .dD_OUT(wbs_cfg_done_synced)
     );
 
 

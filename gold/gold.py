@@ -1191,8 +1191,8 @@ def _apply_inverse_pca(patches_reduced, _pca_model):
 if __name__ == "__main__":
 
 
-    images_a_storage = ["vid_1", "vid_3"]
-    images_b_storage = ["vid_2", "vid_4"]
+    images_a_storage = ["vid_1", "vid_3", "vid_5"]
+    images_b_storage = ["vid_2", "vid_4", "vid_6"]
 
     multi_images = False
     #our max l2 distance truncates at 23 bits

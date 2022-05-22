@@ -434,18 +434,23 @@ module top_wrapper_tb();
                                 wbs_stb_i = 1'b1;
                                 wbs_we_i = 1'b0;
                                 wbs_sel_i = '1;
-                                wbs_adr_i = WBS_BEST_ADDR + (addr<<3) + (px<<2); // addr 7, lower
+                               wbs_adr_i = WBS_BEST_ADDR + (addr<<3) + (0<<2); // addr 7, lower
 
                              @(negedge (wbs_ack_o));
                             
                              @(posedge wb_clk_i);
-                            wbs_cyc_i = 1'b0;
+                            wbs_cyc_i = 1'b1;
+                            wbs_stb_i = 1'b1;
+                            wbs_we_i = 1'b0;
+                            wbs_sel_i = '1;
+                            wbs_adr_i = WBS_BEST_ADDR + (addr<<3) + (1<<2); // addr 7, upper
+                            
+                            
+                            @(negedge (wbs_ack_o));
+                             wbs_cyc_i = 1'b0;
                             wbs_stb_i = 1'b0;
                             wbs_we_i = 1'b0;
                             wbs_sel_i = '0;
-                            wbs_adr_i = WBS_BEST_ADDR + (addr<<3) + (0<<2); // addr 7, lower
-                            
-                                
                             received_idx[addr] = wbs_dat_o[10:0];
 //                             @(posedge wb_clk_i); #1;
                             

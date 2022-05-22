@@ -115,14 +115,14 @@ module top_wrapper_tb();
     initial begin 
         wb_clk_i = 0;
         forever begin
-            #10 wb_clk_i = ~wb_clk_i;
+            #5 wb_clk_i = ~wb_clk_i;
         end 
     end
 
     initial begin 
         io_in[0] = 0; //Our clock is IO pin1
         forever begin
-            #5 io_in[0] = ~io_in[0];
+            #10 io_in[0] = ~io_in[0];
         end 
     end
 
@@ -251,12 +251,12 @@ module top_wrapper_tb();
             //wbs_dat_i = {10'b0, 11'd55, 11'd1}; //10 0's, median of 55, and index of 1 
             wbs_adr_i = WBS_NODE_ADDR + counter  + 0; // addr 1
         
-            @(negedge wbs_ack_o);
-            wbs_cyc_i = 1'b1;
-            wbs_stb_i = 1'b1;
-            wbs_we_i = 1'b1;
-            //wbs_dat_i = '0;
-            counter = counter + 1'b1;
+//             @(negedge wbs_ack_o);
+//             wbs_cyc_i = 1'b1;
+//             wbs_stb_i = 1'b1;
+//             wbs_we_i = 1'b1;
+//             //wbs_dat_i = '0;
+           
     
 
             @(negedge wbs_ack_o);
@@ -264,6 +264,7 @@ module top_wrapper_tb();
             wbs_stb_i = 1'b0;
             wbs_we_i = 1'b0;
             wbs_dat_i = '0;
+            counter = counter + 1'b1;
         end
 
 

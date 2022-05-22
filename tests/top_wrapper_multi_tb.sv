@@ -330,6 +330,11 @@ module top_wrapper_tb();
         
         //*********************************************************WISHBONE SECTION***********************************************************
         //start wishbone test
+        
+        for (int q=0; q<2; q=q+1) begin
+            $display("Starting new image");
+            
+            
          wb_rst_i = 1'b1;
         wbs_stb_i = 1'b0;
         wbs_cyc_i = 1'b0;
@@ -647,6 +652,8 @@ module top_wrapper_tb();
         $display("Outputs: %t", outputtime);
         
       
+            
+        end //end of wishbone pair inner loop
         #200;
         $finish;
 

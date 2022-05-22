@@ -654,6 +654,144 @@ module top_wrapper_tb();
       
             
         end //end of wishbone pair inner loop
+        
+        //****************************************FINAL IO TEST AFTER WISHBONE***********************
+        
+        for (int q=0; q<1; q=q+1) begin
+            $display("Starting new image");
+
+        wb_rst_i = 1;
+        rst_n = 0;
+        io_in[15] = 0;
+        io_in[16] = 0;
+        io_in[17] = 0;
+        io_in[1] = 0;
+        io_in[2] = 0;
+        io_in[13:3] = '0;
+        io_in[14] = '0;
+        
+        #20
+        wb_rst_i = 0;      
+        rst_n = 1;
+        io_in[1] = 1;
+        #40;
+
+        // start load kd tree internal nodes and leaves
+        @(negedge io_in[0]) io_in[17] = 1'b1;
+        simtime = $realtime;
+        $display("[T=%0t] Start sending KD tree internal nodes and leaves", $realtime);
+        @(negedge io_in[0]) io_in[17] = 1'b0;
+
+        // send internal nodes, 2 lines per node
+        // index
+        // median
+        for(int i=0; i<NUM_NODES*2; i=i+1) begin
+            @(negedge io_in[0])
+            io_in[2] = 1'b1;
+            scan_file = $fscanf(int_nodes_data_file, "%d\n", io_in[13:3]);
+        end
+        @(negedge io_in[0])
+        io_in[2] = 0;
+        io_in[13:3] = '0;
+
+        // send leaves, 6*8 lines per leaf
+        // 8 patches per leaf
+        // each patch has 5 lines of data
+        // and 1 line of patch index in the original image (for reconstruction)
+        for(int i=0; i<NUM_LEAVES*6*8; i=i+1) begin
+            @(negedge io_in[0])
+            io_in[2] = 1'b1;
+            scan_file = $fscanf(leaves_data_file, "%d\n", io_in[13:3]);
+        end
+        @(negedge io_in[0])
+        io_in[2] = 0;
+        io_in[13:3] = '0;
+        $display("[T=%0t] Finished sending KD tree internal nodes and leaves", $realtime);
+        kdtreetime = $realtime - simtime;
+        
+        $display("[T=%0t] Start sending queries", $realtime);
+        simtime = $realtime;
+        // send query patches, 5 lines per query patch
+        // each patch has 5 lines of data
+        for(int i=0; i<NUM_QUERYS*5; i=i+1) begin
+            @(negedge io_in[0])
+            io_in[2] = 1'b1;
+            scan_file = $fscanf(query_data_file, "%d\n", io_in[13:3]);
+        end
+        @(negedge io_in[0])
+        io_in[2] = 0;
+        io_in[13:3] = '0;
+        $display("[T=%0t] Finished sending queries", $realtime);
+        querytime = $realtime - simtime;
+        
+
+        #100;
+        @(negedge io_in[0]) io_in[15] = 1'b1;
+        $display("[T=%0t] Start algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
+        simtime = $realtime;
+        @(negedge io_in[0]) io_in[15] = 1'b0;
+
+        wait(io_out[31] == 1'b1);
+        $display("[T=%0t] Finished algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
+        fsmtime = $realtime - simtime;
+
+        @(negedge io_in[0]) io_in[16] = 1'b1;
+        $display("[T=%0t] Start receiving outputs", $realtime);
+        simtime = $realtime;
+        @(negedge io_in[0]) io_in[16] = 1'b0;
+
+        for(int px=0; px<2; px=px+1) begin
+            for(x=0; x<4; x=x+1) begin
+                // for(x=0; x<(ROW_SIZE/2/BLOCKING); x=x+1) begin  // for row_size = 26
+                for(y=0; y<COL_SIZE; y=y+1) begin
+                    for(xi=0; xi<BLOCKING; xi=xi+1) begin
+                        if ((x != 3) || (xi < 1)) begin  // for row_size = 26
+                            wait(io_out[30]);
+                            @(negedge io_in[0])
+                            io_in[14] = 1'b1;
+                            addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
+                            received_idx[addr] = io_out[29:19];
+                            @(posedge io_in[0]); #1;
+                        end
+                    end
+                end
+            end
+        end
+        @(negedge io_in[0]) io_in[14] = 1'b0;
+        $display("[T=%0t] Finished receiving outputs", $realtime);
+        outputtime = $realtime - simtime;
+
+        
+        for(int i=0; i<NUM_QUERYS; i=i+1) begin
+            $fwrite(received_idx_data_file, "%d\n", received_idx[i]);
+            if (expected_idx[i] != received_idx[i])
+                $display("mismatch %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
+            // else
+            //     $display("match %d: expected: %d, received %d", i, expected_idx[i], received_idx[i]);
+        end
+            
+        
+        for(int i=0; i<NUM_QUERYS; i=i+1) begin
+            $fwrite(received_dist_data_file, "%d\n", received_dist[i]);
+            // if (expected_idx[i] != received_dist[i])
+            //     $display("mismatch %d: expected: %d, received %d", i, expected_idx[i], received_dist[i]);
+            // else
+            //     $display("match %d: expected: %d, received %d", i, expected_idx[i], received_dist[i]);
+        end
+
+        $display("===============Runtime Summary===============");
+        $display("KD tree: %t", kdtreetime);
+        $display("Query patches: %t", querytime);
+        $display("Main Algorithm: %t", fsmtime);
+        $display("Outputs: %t", outputtime);
+
+
+    
+          
+        end //end of inner loop per image pair
+        
+        
+        
         #200;
         $finish;
 

@@ -353,6 +353,7 @@ module top_wrapper_tb();
             
             scan_file = $fscanf(query_data_file, "%d\n", leafReadHold[43:33]);
             scan_file = $fscanf(query_data_file, "%d\n", leafReadHold[54:44]);
+            leafReadHold[63:55] = 9'b0;
             //  scan_file = $fscanf(leaves_data_file, "%d\n", leafReadHold[63:55]); //Empty bc 55 bits
             
             

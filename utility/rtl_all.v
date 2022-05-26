@@ -4196,6 +4196,12 @@ module top
 
 );
 
+    logic                                                   load_kdtree_r;
+    logic                                                   load_done_w;
+    logic                                                   fsm_start_r;
+    logic                                                   fsm_done_w;
+    logic                                                   send_best_arr_r;
+    logic                                                   send_done_w;
 
     logic                                                   in_fifo_deq;
     logic [DATA_WIDTH-1:0]                                  in_fifo_rdata;
@@ -4433,6 +4439,24 @@ module top
     logic [LEAF_ADDRW-1:0]                                  computes1_leaf_idx [K-1:0];
 
 
+    always_ff @(posedge clk, negedge rst_n) begin
+        if (~rst_n) begin
+            load_kdtree_r <= '0;
+            fsm_start_r <= '0;
+            send_best_arr_r <= '0;
+            load_done <= '0;
+            fsm_done <= '0;
+            send_done <= '0;
+        end else begin
+            load_kdtree_r <= load_kdtree;
+            fsm_start_r <= fsm_start;
+            send_best_arr_r <= send_best_arr;
+            load_done <= load_done_w;
+            fsm_done <= fsm_done_w;
+            send_done <= send_done_w;
+        end
+    end
+
     MainFSM #(
         .DATA_WIDTH                             (DATA_WIDTH),
         .LEAF_SIZE                              (LEAF_SIZE),
@@ -4445,12 +4469,12 @@ module top
     ) main_fsm_inst (
         .clk                                    (clk),
         .rst_n                                  (rst_n),
-        .load_kdtree                            (load_kdtree),
-        .load_done                              (load_done),
-        .fsm_start                              (fsm_start),
-        .fsm_done                               (fsm_done),
-        .send_done                              (send_done),
-        .send_best_arr                          (send_best_arr),
+        .load_kdtree                            (load_kdtree_r),
+        .load_done                              (load_done_w),
+        .fsm_start                              (fsm_start_r),
+        .fsm_done                               (fsm_done_w),
+        .send_done                              (send_done_w),
+        .send_best_arr                          (send_best_arr_r),
         .agg_receiver_enq                       (agg_receiver_enq),
         .agg_receiver_full_n                    (agg_receiver_full_n),
         .agg_change_fetch_width                 (agg_change_fetch_width),

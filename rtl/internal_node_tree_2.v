@@ -47,7 +47,7 @@ always @ (posedge clk) begin
         wbs_dat_o <= {INTERNAL_WIDTH{1'b0}};
     end
     else if (wbs_rd_en_i) begin
-        wbs_dat_o = rdata_storage[sender_addr]; //read address is same as write address
+        wbs_dat_o <= rdata_storage[sender_addr]; //read address is same as write address
     end
 end
 

@@ -1,3 +1,8 @@
+
+
+`ifndef MPRJ_IO_PADS
+    `define MPRJ_IO_PADS 38
+`endif
 // SPDX-FileCopyrightText: 2020 Efabless Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,9 +74,9 @@ module user_proj_example #(
     output [2:0] irq
 );
 
-    wire [`MPRJ_IO_PADS-1:0] io_in;
-    wire [`MPRJ_IO_PADS-1:0] io_out;
-    wire [`MPRJ_IO_PADS-1:0] io_oeb;
+//     wire [`MPRJ_IO_PADS-1:0] io_in;
+//     wire [`MPRJ_IO_PADS-1:0] io_out;
+//     wire [`MPRJ_IO_PADS-1:0] io_oeb;
 
     wire                                                    io_clk;
     wire                                                    io_rst_n;

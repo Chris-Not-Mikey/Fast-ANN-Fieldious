@@ -13,7 +13,7 @@ module wbsCtrl
 )
 (
     input  logic wb_clk_i,
-    input  logic wb_rst_i,
+    input  logic wb_rst_n_i,
     input  logic wbs_stb_i,
     input  logic wbs_cyc_i,
     input  logic wbs_we_i,
@@ -23,6 +23,7 @@ module wbsCtrl
     output logic wbs_ack_o,
     output logic [31:0] wbs_dat_o,
 
+    output logic wbs_usrclk_sel,
     output logic wbs_mode,
     output logic wbs_debug,
     output logic wbs_done,
@@ -64,6 +65,7 @@ module wbsCtrl
     localparam WBS_LOAD_DONE_ADDR   = 32'h3000_0014;
     localparam WBS_SEND_DONE_ADDR   = 32'h3000_0018;
     localparam WBS_CFG_DONE_ADDR    = 32'h3000_001C;
+    localparam WBS_USRCLK_SEL_ADDR  = 32'h3000_0020;
     localparam WBS_QUERY_ADDR       = 32'h3001_0000;
     localparam WBS_LEAF_ADDR        = 32'h3002_0000;
     localparam WBS_BEST_ADDR        = 32'h3003_0000;
@@ -102,8 +104,8 @@ module wbsCtrl
 
     // CONTROLLER
 
-    always_ff @(posedge wb_clk_i or posedge wb_rst_i) begin
-        if (wb_rst_i) begin
+    always_ff @(posedge wb_clk_i or negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) begin
             currState <= Idle;
         end else begin
             currState <= nextState;
@@ -225,15 +227,15 @@ module wbsCtrl
 
 
     // input registers
-    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
-        if (wb_rst_i) wbs_valid_q <= '0;
+    always_ff @(posedge wb_clk_i, negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) wbs_valid_q <= '0;
         else begin
             wbs_valid_q <= wbs_valid;
         end
     end
 
-    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
-        if (wb_rst_i) begin
+    always_ff @(posedge wb_clk_i, negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) begin
             wbs_we_i_q <= '0;
             wbs_sel_i_q <= '0;
             wbs_dat_i_q <= '0;
@@ -246,8 +248,8 @@ module wbsCtrl
         end
     end
 
-    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
-        if (wb_rst_i) begin
+    always_ff @(posedge wb_clk_i, negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) begin
             wbs_dat_i_lower_q <= '0;
         end else begin
             wbs_dat_i_lower_q <= wbs_dat_i_q;
@@ -255,15 +257,15 @@ module wbsCtrl
     end
 
     // output registers
-    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
-        if (wb_rst_i) wbs_ack_o_q <= '0;
+    always_ff @(posedge wb_clk_i, negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) wbs_ack_o_q <= '0;
         else begin
             wbs_ack_o_q <= wbs_ack_o_d;
         end
     end
 
-    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
-        if (wb_rst_i) wbs_dat_o_q <= '0;
+    always_ff @(posedge wb_clk_i, negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) wbs_dat_o_q <= '0;
         else if (wbs_dat_o_d_valid) begin
             wbs_dat_o_q <= wbs_dat_o_d;
         end
@@ -273,16 +275,16 @@ module wbsCtrl
     // Wishbone mapped accelerator control registers
     
     // if 1, makes the entire chip use the wishbone clock and reset
-    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
-        if (wb_rst_i) wbs_mode <= '0;
+    always_ff @(posedge wb_clk_i, negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) wbs_mode <= '0;
         else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_MODE_ADDR)) begin
             wbs_mode <= wbs_dat_i_q[0];
         end
     end
 
     // if 1, occupies all memory's control
-    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
-        if (wb_rst_i) wbs_debug <= '0;
+    always_ff @(posedge wb_clk_i, negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) wbs_debug <= '0;
         else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_DEBUG_ADDR)) begin
             wbs_debug <= wbs_dat_i_q[0];
         end
@@ -290,16 +292,16 @@ module wbsCtrl
 
     // caravel debugging only
     // if 1, RISC-V done instructions
-    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
-        if (wb_rst_i) wbs_done <= '0;
+    always_ff @(posedge wb_clk_i, negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) wbs_done <= '0;
         else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_DONE_ADDR)) begin
             wbs_done <= wbs_dat_i_q[0];
         end
     end
 
     // if 1, FSM start pulse
-    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
-        if (wb_rst_i) wbs_fsm_start <= '0;
+    always_ff @(posedge wb_clk_i, negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) wbs_fsm_start <= '0;
         else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_FSM_START_ADDR))
             wbs_fsm_start <= 1'b1;
         else
@@ -307,8 +309,8 @@ module wbsCtrl
     end
 
     // if 1, FSM is done
-    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
-        if (wb_rst_i) wbs_fsm_done <= '0;
+    always_ff @(posedge wb_clk_i, negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) wbs_fsm_done <= '0;
         else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_FSM_DONE_ADDR))
             wbs_fsm_done <= 1'b0;
         else if (acc_fsm_done)
@@ -316,8 +318,8 @@ module wbsCtrl
     end
 
     // if 1, load data structure is done
-    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
-        if (wb_rst_i) wbs_load_done <= '0;
+    always_ff @(posedge wb_clk_i, negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) wbs_load_done <= '0;
         else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_LOAD_DONE_ADDR))
             wbs_load_done <= 1'b0;
         else if (acc_load_done)
@@ -325,8 +327,8 @@ module wbsCtrl
     end
 
     // if 1, send best array is done
-    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
-        if (wb_rst_i) wbs_send_done <= '0;
+    always_ff @(posedge wb_clk_i, negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) wbs_send_done <= '0;
         else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_SEND_DONE_ADDR))
             wbs_send_done <= 1'b0;
         else if (acc_send_done)
@@ -334,10 +336,17 @@ module wbsCtrl
     end
 
     // if 1, IO pad configuration is done
-    always_ff @(posedge wb_clk_i, posedge wb_rst_i) begin
-        if (wb_rst_i) wbs_cfg_done <= '0;
+    always_ff @(posedge wb_clk_i, negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) wbs_cfg_done <= '0;
         else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_CFG_DONE_ADDR))
             wbs_cfg_done <= wbs_dat_i_q[0];
+    end
+
+    // if 1, selects user_clock2, else selects io_clk
+    always_ff @(posedge wb_clk_i, negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) wbs_usrclk_sel <= '0;
+        else if (wbs_valid_q & wbs_we_i_q & (wbs_adr_i_q == WBS_USRCLK_SEL_ADDR))
+            wbs_usrclk_sel <= wbs_dat_i_q[0];
     end
 
 endmodule

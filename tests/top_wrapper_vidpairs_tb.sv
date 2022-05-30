@@ -180,7 +180,7 @@ module top_wrapper_tb();
         // $readmemh("leaves_mem_dummy1.txt", dut.leaf_mem_inst.loop_ram_patch_gen[7].ram_patch_inst.loop_depth_gen[0].loop_width_gen[1].genblk1.sram_macro.mem);
         
       for (int q=0; q<126; q=q+1) begin
-            expected_idx_data_file = $fopen("inputs/expectedIndex.txt", "r");
+            expected_idx_data_file = $fopen("./data/IO_data/expectedIndex.txt", "r");
             // expected_idx_data_file = $fopen("data/IO_data/topToBottomLeafIndex.txt", "r");
             if (expected_idx_data_file == 0) begin
                 $display("expected_idx_data_file handle was NULL");
@@ -190,19 +190,19 @@ module top_wrapper_tb();
                 scan_file = $fscanf(expected_idx_data_file, "%d\n", expected_idx[i]);
             end
             
-            int_nodes_data_file = $fopen("inputs/internalNodes.txt", "r");
+            int_nodes_data_file = $fopen("./data/IO_data/internalNodes.txt", "r");
             if (int_nodes_data_file == 0) begin
                 $display("int_nodes_data_file handle was NULL");
                 $finish;
             end
             
-            leaves_data_file = $fopen("inputs/leafNodes.txt", "r");
+            leaves_data_file = $fopen("./data/IO_data/leafNodes.txt", "r");
             if (leaves_data_file == 0) begin
                 $display("leaves_data_file handle was NULL");
                 $finish;
             end
             
-            query_data_file = $fopen("inputs/patches.txt", "r");
+            query_data_file = $fopen("./data/IO_data/patches.txt", "r");
             if (query_data_file == 0) begin
                 $display("query_data_file handle was NULL");
                 $finish;

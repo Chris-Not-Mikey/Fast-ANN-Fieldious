@@ -246,7 +246,7 @@ def test_top_multi_tb():
 def test_top_wrapper_multi_tb():
     print("Running test_top_wrapper_multi_tb")
     run_python_process(['python3', './gold/gold.py', args.images[0], args.images[1], './data/IO_data/', 'multi'])
-    run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/top_wrapper_multi_tb.sv', 'rtl/user_proj_example.v', 'rtl/SyncPulse.v', 'rtl/SyncBit.v', 'rtl/ClockMux.v', 'rtl/ResetMux.v', 'rtl/WishBoneCtrl.sv',  'rtl/top.sv', 'rtl/QueryPatchMem.v',  'rtl/aggregator.v', 'rtl/sram_1kbyte_1rw1r.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v', 'rtl/internal_node_2.v', 'rtl/internal_node_tree_2.v', 'rtl/LeavesMem.sv', 'rtl/BitonicSorter.sv', 'rtl/kBestArrays.sv', 'rtl/L2Kernel.sv', 'rtl/MainFSM.sv', 'rtl/RunningMin.sv', 'rtl/SyncFIFO.v', 'rtl/SortedList.sv'])
+    run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/top_wrapper_multi_tb.sv', 'rtl/user_proj_example.v', 'rtl/SyncPulse.v', 'rtl/SyncResetA.v', 'rtl/SyncBit.v', 'rtl/ClockMux.v', 'rtl/ResetMux.v', 'rtl/WishBoneCtrl.sv',  'rtl/top.sv', 'rtl/QueryPatchMem.v',  'rtl/aggregator.v', 'rtl/sram_1kbyte_1rw1r.v', 'rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v', 'rtl/internal_node_2.v', 'rtl/internal_node_tree_2.v', 'rtl/LeavesMem.sv', 'rtl/BitonicSorter.sv', 'rtl/kBestArrays.sv', 'rtl/L2Kernel.sv', 'rtl/MainFSM.sv', 'rtl/RunningMin.sv', 'rtl/SyncFIFO.v', 'rtl/SortedList.sv'])
 
     
     

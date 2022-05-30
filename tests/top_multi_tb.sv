@@ -146,8 +146,8 @@ module top_tb();
               $finish;
           end
         
-         for (int q=0; q<2; q=q+1) begin
-            $display("Starting new image");
+          for (int q=0; q<126; q=q+1) begin
+              $display("Starting new image of Vidpairs dataset");
 
           rst_n = 0;
           fsm_start = 0;

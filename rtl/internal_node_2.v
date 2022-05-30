@@ -20,7 +20,7 @@ module internal_node
   input [STORAGE_WIDTH -1 : 0] wdata,
   input [DATA_WIDTH - 1 : 0] patch_in,
   input [DATA_WIDTH - 1 : 0] patch_in_two,
-  output [DATA_WIDTH - 1 : 0] patch_out, //Same patch, but we will be pipeling so it will be useful to adopt this input/ouput scheme
+//   output [DATA_WIDTH - 1 : 0] patch_out, //Same patch, but we will be pipeling so it will be useful to adopt this input/ouput scheme
   output valid_left,
   output valid_right,
   output valid_left_two,
@@ -124,7 +124,7 @@ assign valid_right_two = (!comparison_two) && valid_two;
 
 
 
-assign patch_out = patch_in; //deprecated
+// assign patch_out = patch_in; //deprecated
 
 assign rdata = {median, 8'b0, idx}; //fill to 22 in width
 

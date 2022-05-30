@@ -77,9 +77,9 @@ module user_proj_example #(
     input user_clock2
 );
 
-    wire [`MPRJ_IO_PADS-1:0] io_in;
-    wire [`MPRJ_IO_PADS-1:0] io_out;
-    wire [`MPRJ_IO_PADS-1:0] io_oeb;
+//     wire [`MPRJ_IO_PADS-1:0] io_in;
+//     wire [`MPRJ_IO_PADS-1:0] io_out;
+//     wire [`MPRJ_IO_PADS-1:0] io_oeb;
 
     wire                                                    clkmux_usrclk;
     wire                                                    io_clk;

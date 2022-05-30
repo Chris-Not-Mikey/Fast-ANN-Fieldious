@@ -246,7 +246,7 @@ def test_top_multi_tb():
 def test_top_wrapper_multi_tb():
     print("Running test_top_wrapper_multi_tb")
     run_python_process(['python3', './gold/gold.py', args.images[0], args.images[1], './data/IO_data/', 'multi'])
-    run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/top_wrapper_multi_tb.sv', 'rtl/user_proj_example.v', 'rtl/ann_all.v'])
+    run_process(['vcs', '-full64', '-sverilog', '-timescale=1ns/1ps', '-debug_access+pp', 'tests/top_wrapper_vidpairs_tb.sv', 'rtl/user_proj_example.v', 'rtl/ann_all.v'])
 
     
     

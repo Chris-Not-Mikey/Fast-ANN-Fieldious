@@ -80,10 +80,10 @@ if __name__ == "__main__":
     print(file_name_b)
         
 
-    image_a_str = "./data/gold_data/" + file_name_a + ".png"
+    image_a_str = "./data/gold_data/" + file_name_a + ".jpg"
     image_a = cv2.imread(image_a_str)
 
-    image_b_str = "./data/gold_data/" + file_name_b + ".png"
+    image_b_str = "./data/gold_data/" + file_name_b + ".jpg"
     image_b = cv2.imread(image_b_str)
   
       

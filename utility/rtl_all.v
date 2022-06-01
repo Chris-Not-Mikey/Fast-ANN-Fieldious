@@ -79,14 +79,15 @@ module BitonicSorter (
   input logic [24:0] data_in_5,
   input logic [24:0] data_in_6,
   input logic [24:0] data_in_7,
-  input logic [14:0] idx_in_0,
-  input logic [14:0] idx_in_1,
-  input logic [14:0] idx_in_2,
-  input logic [14:0] idx_in_3,
-  input logic [14:0] idx_in_4,
-  input logic [14:0] idx_in_5,
-  input logic [14:0] idx_in_6,
-  input logic [14:0] idx_in_7,
+  input logic [8:0] idx_in_0,
+  input logic [8:0] idx_in_1,
+  input logic [8:0] idx_in_2,
+  input logic [8:0] idx_in_3,
+  input logic [8:0] idx_in_4,
+  input logic [8:0] idx_in_5,
+  input logic [8:0] idx_in_6,
+  input logic [8:0] idx_in_7,
+  input logic [5:0] leaf_idx_in,
   input logic query_first_in,
   input logic query_last_in,
   input logic rst_n,
@@ -95,34 +96,40 @@ module BitonicSorter (
   output logic [24:0] data_out_1,
   output logic [24:0] data_out_2,
   output logic [24:0] data_out_3,
-  output logic [14:0] idx_out_0,
-  output logic [14:0] idx_out_1,
-  output logic [14:0] idx_out_2,
-  output logic [14:0] idx_out_3,
+  output logic [8:0] idx_out_0,
+  output logic [8:0] idx_out_1,
+  output logic [8:0] idx_out_2,
+  output logic [8:0] idx_out_3,
+  output logic [5:0] leaf_idx_out,
   output logic query_first_out,
   output logic query_last_out,
   output logic valid_out
 );
 
+logic [5:0] leaf_idx_r0;
+logic [5:0] leaf_idx_r1;
+logic [5:0] leaf_idx_r2;
+logic [5:0] leaf_idx_r3;
+logic [5:0] leaf_idx_r4;
 logic [5:0] query_first_shft;
 logic [5:0] query_last_shft;
 logic [24:0] stage0_data [7:0];
-logic [14:0] stage0_idx [7:0];
+logic [8:0] stage0_idx [7:0];
 logic stage0_valid;
 logic [24:0] stage1_data [7:0];
-logic [14:0] stage1_idx [7:0];
+logic [8:0] stage1_idx [7:0];
 logic stage1_valid;
 logic [24:0] stage2_data [7:0];
-logic [14:0] stage2_idx [7:0];
+logic [8:0] stage2_idx [7:0];
 logic stage2_valid;
 logic [24:0] stage3_data [3:0];
-logic [14:0] stage3_idx [3:0];
+logic [8:0] stage3_idx [3:0];
 logic stage3_valid;
 logic [24:0] stage4_data [3:0];
-logic [14:0] stage4_idx [3:0];
+logic [8:0] stage4_idx [3:0];
 logic stage4_valid;
 logic [24:0] stage5_data [3:0];
-logic [14:0] stage5_idx [3:0];
+logic [8:0] stage5_idx [3:0];
 logic stage5_valid;
 
 always_ff @(posedge clk, negedge rst_n) begin
@@ -143,7 +150,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     stage0_valid <= 1'h0;
     for (int unsigned p = 0; p < 8; p += 1) begin
         stage0_data[3'(p)] <= 25'h0;
-        stage0_idx[3'(p)] <= 15'h0;
+        stage0_idx[3'(p)] <= 9'h0;
       end
   end
   else begin
@@ -174,7 +181,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     stage1_valid <= 1'h0;
     for (int unsigned p = 0; p < 8; p += 1) begin
         stage1_data[3'(p)] <= 25'h0;
-        stage1_idx[3'(p)] <= 15'h0;
+        stage1_idx[3'(p)] <= 9'h0;
       end
   end
   else begin
@@ -205,7 +212,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     stage2_valid <= 1'h0;
     for (int unsigned p = 0; p < 8; p += 1) begin
         stage2_data[3'(p)] <= 25'h0;
-        stage2_idx[3'(p)] <= 15'h0;
+        stage2_idx[3'(p)] <= 9'h0;
       end
   end
   else begin
@@ -236,7 +243,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     stage3_valid <= 1'h0;
     for (int unsigned p = 0; p < 4; p += 1) begin
         stage3_data[2'(p)] <= 25'h0;
-        stage3_idx[2'(p)] <= 15'h0;
+        stage3_idx[2'(p)] <= 9'h0;
       end
   end
   else begin
@@ -259,7 +266,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     stage4_valid <= 1'h0;
     for (int unsigned p = 0; p < 4; p += 1) begin
         stage4_data[2'(p)] <= 25'h0;
-        stage4_idx[2'(p)] <= 15'h0;
+        stage4_idx[2'(p)] <= 9'h0;
       end
   end
   else begin
@@ -282,7 +289,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     stage5_valid <= 1'h0;
     for (int unsigned p = 0; p < 4; p += 1) begin
         stage5_data[2'(p)] <= 25'h0;
-        stage5_idx[2'(p)] <= 15'h0;
+        stage5_idx[2'(p)] <= 9'h0;
       end
   end
   else begin
@@ -308,6 +315,37 @@ assign data_out_2 = stage5_data[2];
 assign idx_out_2 = stage5_idx[2];
 assign data_out_3 = stage5_data[3];
 assign idx_out_3 = stage5_idx[3];
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    leaf_idx_r0 <= 6'h0;
+    leaf_idx_r1 <= 6'h0;
+    leaf_idx_r2 <= 6'h0;
+    leaf_idx_r3 <= 6'h0;
+    leaf_idx_r4 <= 6'h0;
+    leaf_idx_out <= 6'h0;
+  end
+  else begin
+    if (valid_in) begin
+      leaf_idx_r0 <= leaf_idx_in;
+    end
+    if (stage0_valid) begin
+      leaf_idx_r1 <= leaf_idx_r0;
+    end
+    if (stage1_valid) begin
+      leaf_idx_r2 <= leaf_idx_r1;
+    end
+    if (stage2_valid) begin
+      leaf_idx_r3 <= leaf_idx_r2;
+    end
+    if (stage3_valid) begin
+      leaf_idx_r4 <= leaf_idx_r3;
+    end
+    if (stage4_valid) begin
+      leaf_idx_out <= leaf_idx_r4;
+    end
+  end
+end
 endmodule   // BitonicSorter
 
 
@@ -1024,105 +1062,123 @@ logic [5:0] leaf_idx_r0;
 logic [5:0] leaf_idx_r1;
 logic [5:0] leaf_idx_r2;
 logic [5:0] leaf_idx_r3;
+logic [5:0] leaf_idx_r4;
 logic [22:0] p0_add_tree0 [2:0];
 logic [23:0] p0_add_tree1 [1:0];
 logic [24:0] p0_add_tree2;
+logic signed [4:0][10:0] p0_data_in_r;
 logic signed [21:0] p0_diff2 [4:0];
 logic [21:0] p0_diff2_unsigned [4:0];
 logic [8:0] p0_idx_r0;
 logic [8:0] p0_idx_r1;
 logic [8:0] p0_idx_r2;
 logic [8:0] p0_idx_r3;
+logic [8:0] p0_idx_r4;
 logic signed [10:0] p0_patch_diff [4:0];
 logic [22:0] p1_add_tree0 [2:0];
 logic [23:0] p1_add_tree1 [1:0];
 logic [24:0] p1_add_tree2;
+logic signed [4:0][10:0] p1_data_in_r;
 logic signed [21:0] p1_diff2 [4:0];
 logic [21:0] p1_diff2_unsigned [4:0];
 logic [8:0] p1_idx_r0;
 logic [8:0] p1_idx_r1;
 logic [8:0] p1_idx_r2;
 logic [8:0] p1_idx_r3;
+logic [8:0] p1_idx_r4;
 logic signed [10:0] p1_patch_diff [4:0];
 logic [22:0] p2_add_tree0 [2:0];
 logic [23:0] p2_add_tree1 [1:0];
 logic [24:0] p2_add_tree2;
+logic signed [4:0][10:0] p2_data_in_r;
 logic signed [21:0] p2_diff2 [4:0];
 logic [21:0] p2_diff2_unsigned [4:0];
 logic [8:0] p2_idx_r0;
 logic [8:0] p2_idx_r1;
 logic [8:0] p2_idx_r2;
 logic [8:0] p2_idx_r3;
+logic [8:0] p2_idx_r4;
 logic signed [10:0] p2_patch_diff [4:0];
 logic [22:0] p3_add_tree0 [2:0];
 logic [23:0] p3_add_tree1 [1:0];
 logic [24:0] p3_add_tree2;
+logic signed [4:0][10:0] p3_data_in_r;
 logic signed [21:0] p3_diff2 [4:0];
 logic [21:0] p3_diff2_unsigned [4:0];
 logic [8:0] p3_idx_r0;
 logic [8:0] p3_idx_r1;
 logic [8:0] p3_idx_r2;
 logic [8:0] p3_idx_r3;
+logic [8:0] p3_idx_r4;
 logic signed [10:0] p3_patch_diff [4:0];
 logic [22:0] p4_add_tree0 [2:0];
 logic [23:0] p4_add_tree1 [1:0];
 logic [24:0] p4_add_tree2;
+logic signed [4:0][10:0] p4_data_in_r;
 logic signed [21:0] p4_diff2 [4:0];
 logic [21:0] p4_diff2_unsigned [4:0];
 logic [8:0] p4_idx_r0;
 logic [8:0] p4_idx_r1;
 logic [8:0] p4_idx_r2;
 logic [8:0] p4_idx_r3;
+logic [8:0] p4_idx_r4;
 logic signed [10:0] p4_patch_diff [4:0];
 logic [22:0] p5_add_tree0 [2:0];
 logic [23:0] p5_add_tree1 [1:0];
 logic [24:0] p5_add_tree2;
+logic signed [4:0][10:0] p5_data_in_r;
 logic signed [21:0] p5_diff2 [4:0];
 logic [21:0] p5_diff2_unsigned [4:0];
 logic [8:0] p5_idx_r0;
 logic [8:0] p5_idx_r1;
 logic [8:0] p5_idx_r2;
 logic [8:0] p5_idx_r3;
+logic [8:0] p5_idx_r4;
 logic signed [10:0] p5_patch_diff [4:0];
 logic [22:0] p6_add_tree0 [2:0];
 logic [23:0] p6_add_tree1 [1:0];
 logic [24:0] p6_add_tree2;
+logic signed [4:0][10:0] p6_data_in_r;
 logic signed [21:0] p6_diff2 [4:0];
 logic [21:0] p6_diff2_unsigned [4:0];
 logic [8:0] p6_idx_r0;
 logic [8:0] p6_idx_r1;
 logic [8:0] p6_idx_r2;
 logic [8:0] p6_idx_r3;
+logic [8:0] p6_idx_r4;
 logic signed [10:0] p6_patch_diff [4:0];
 logic [22:0] p7_add_tree0 [2:0];
 logic [23:0] p7_add_tree1 [1:0];
 logic [24:0] p7_add_tree2;
+logic signed [4:0][10:0] p7_data_in_r;
 logic signed [21:0] p7_diff2 [4:0];
 logic [21:0] p7_diff2_unsigned [4:0];
 logic [8:0] p7_idx_r0;
 logic [8:0] p7_idx_r1;
 logic [8:0] p7_idx_r2;
 logic [8:0] p7_idx_r3;
+logic [8:0] p7_idx_r4;
 logic signed [10:0] p7_patch_diff [4:0];
-logic [4:0] query_first_shft;
-logic [4:0] query_last_shft;
-logic [4:0] valid_shft;
+logic [5:0] query_first_shft;
+logic [5:0] query_last_shft;
+logic signed [4:0][10:0] query_patch_in_r;
+logic [5:0] valid_shft;
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin
-    query_first_shft <= 5'h0;
-    query_last_shft <= 5'h0;
-    valid_shft <= 5'h0;
+    query_first_shft <= 6'h0;
+    query_last_shft <= 6'h0;
+    valid_shft <= 6'h0;
   end
   else begin
-    query_first_shft <= {query_first_shft[3:0], query_first_in};
-    query_last_shft <= {query_last_shft[3:0], query_last_in};
-    valid_shft <= {valid_shft[3:0], query_valid};
+    query_first_shft <= {query_first_shft[4:0], query_first_in};
+    query_last_shft <= {query_last_shft[4:0], query_last_in};
+    valid_shft <= {valid_shft[4:0], query_valid};
   end
 end
-assign query_first_out = query_first_shft[4];
-assign query_last_out = query_last_shft[4];
-assign dist_valid = valid_shft[4];
+assign query_first_out = query_first_shft[5];
+assign query_last_out = query_last_shft[5];
+assign dist_valid = valid_shft[5];
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin
@@ -1130,6 +1186,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     leaf_idx_r1 <= 6'h0;
     leaf_idx_r2 <= 6'h0;
     leaf_idx_r3 <= 6'h0;
+    leaf_idx_r4 <= 6'h0;
     leaf_idx_out <= 6'h0;
   end
   else begin
@@ -1146,8 +1203,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       leaf_idx_r3 <= leaf_idx_r2;
     end
     if (valid_shft[3]) begin
-      leaf_idx_out <= leaf_idx_r3;
+      leaf_idx_r4 <= leaf_idx_r3;
     end
+    if (valid_shft[4]) begin
+      leaf_idx_out <= leaf_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    query_patch_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    query_patch_in_r <= query_patch;
   end
 end
 
@@ -1157,6 +1226,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p0_idx_r1 <= 9'h0;
     p0_idx_r2 <= 9'h0;
     p0_idx_r3 <= 9'h0;
+    p0_idx_r4 <= 9'h0;
     p0_idx_out <= 9'h0;
   end
   else begin
@@ -1173,8 +1243,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p0_idx_r3 <= p0_idx_r2;
     end
     if (valid_shft[3]) begin
-      p0_idx_out <= p0_idx_r3;
+      p0_idx_r4 <= p0_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p0_idx_out <= p0_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p0_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p0_data_in_r <= p0_data;
   end
 end
 
@@ -1184,9 +1266,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p0_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p0_patch_diff[3'(p)] <= query_patch[3'(p)] - p0_data[3'(p)];
+        p0_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p0_data_in_r[3'(p)];
       end
   end
 end
@@ -1202,7 +1284,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p0_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p0_diff2_unsigned[3'(p)] <= unsigned'(p0_diff2[3'(p)]);
       end
@@ -1219,16 +1301,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p0_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p0_add_tree0[0] <= 23'(p0_diff2_unsigned[0]) + 23'(p0_diff2_unsigned[1]);
       p0_add_tree0[1] <= 23'(p0_diff2_unsigned[2]) + 23'(p0_diff2_unsigned[3]);
       p0_add_tree0[2] <= 23'(p0_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p0_add_tree1[0] <= 24'(p0_add_tree0[0]) + 24'(p0_add_tree0[1]);
       p0_add_tree1[1] <= 24'(p0_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p0_add_tree2 <= 25'(p0_add_tree1[0]) + 25'(p0_add_tree1[1]);
     end
   end
@@ -1241,6 +1323,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p1_idx_r1 <= 9'h0;
     p1_idx_r2 <= 9'h0;
     p1_idx_r3 <= 9'h0;
+    p1_idx_r4 <= 9'h0;
     p1_idx_out <= 9'h0;
   end
   else begin
@@ -1257,8 +1340,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p1_idx_r3 <= p1_idx_r2;
     end
     if (valid_shft[3]) begin
-      p1_idx_out <= p1_idx_r3;
+      p1_idx_r4 <= p1_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p1_idx_out <= p1_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p1_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p1_data_in_r <= p1_data;
   end
 end
 
@@ -1268,9 +1363,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p1_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p1_patch_diff[3'(p)] <= query_patch[3'(p)] - p1_data[3'(p)];
+        p1_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p1_data_in_r[3'(p)];
       end
   end
 end
@@ -1286,7 +1381,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p1_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p1_diff2_unsigned[3'(p)] <= unsigned'(p1_diff2[3'(p)]);
       end
@@ -1303,16 +1398,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p1_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p1_add_tree0[0] <= 23'(p1_diff2_unsigned[0]) + 23'(p1_diff2_unsigned[1]);
       p1_add_tree0[1] <= 23'(p1_diff2_unsigned[2]) + 23'(p1_diff2_unsigned[3]);
       p1_add_tree0[2] <= 23'(p1_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p1_add_tree1[0] <= 24'(p1_add_tree0[0]) + 24'(p1_add_tree0[1]);
       p1_add_tree1[1] <= 24'(p1_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p1_add_tree2 <= 25'(p1_add_tree1[0]) + 25'(p1_add_tree1[1]);
     end
   end
@@ -1325,6 +1420,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p2_idx_r1 <= 9'h0;
     p2_idx_r2 <= 9'h0;
     p2_idx_r3 <= 9'h0;
+    p2_idx_r4 <= 9'h0;
     p2_idx_out <= 9'h0;
   end
   else begin
@@ -1341,8 +1437,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p2_idx_r3 <= p2_idx_r2;
     end
     if (valid_shft[3]) begin
-      p2_idx_out <= p2_idx_r3;
+      p2_idx_r4 <= p2_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p2_idx_out <= p2_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p2_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p2_data_in_r <= p2_data;
   end
 end
 
@@ -1352,9 +1460,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p2_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p2_patch_diff[3'(p)] <= query_patch[3'(p)] - p2_data[3'(p)];
+        p2_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p2_data_in_r[3'(p)];
       end
   end
 end
@@ -1370,7 +1478,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p2_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p2_diff2_unsigned[3'(p)] <= unsigned'(p2_diff2[3'(p)]);
       end
@@ -1387,16 +1495,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p2_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p2_add_tree0[0] <= 23'(p2_diff2_unsigned[0]) + 23'(p2_diff2_unsigned[1]);
       p2_add_tree0[1] <= 23'(p2_diff2_unsigned[2]) + 23'(p2_diff2_unsigned[3]);
       p2_add_tree0[2] <= 23'(p2_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p2_add_tree1[0] <= 24'(p2_add_tree0[0]) + 24'(p2_add_tree0[1]);
       p2_add_tree1[1] <= 24'(p2_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p2_add_tree2 <= 25'(p2_add_tree1[0]) + 25'(p2_add_tree1[1]);
     end
   end
@@ -1409,6 +1517,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p3_idx_r1 <= 9'h0;
     p3_idx_r2 <= 9'h0;
     p3_idx_r3 <= 9'h0;
+    p3_idx_r4 <= 9'h0;
     p3_idx_out <= 9'h0;
   end
   else begin
@@ -1425,8 +1534,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p3_idx_r3 <= p3_idx_r2;
     end
     if (valid_shft[3]) begin
-      p3_idx_out <= p3_idx_r3;
+      p3_idx_r4 <= p3_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p3_idx_out <= p3_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p3_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p3_data_in_r <= p3_data;
   end
 end
 
@@ -1436,9 +1557,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p3_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p3_patch_diff[3'(p)] <= query_patch[3'(p)] - p3_data[3'(p)];
+        p3_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p3_data_in_r[3'(p)];
       end
   end
 end
@@ -1454,7 +1575,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p3_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p3_diff2_unsigned[3'(p)] <= unsigned'(p3_diff2[3'(p)]);
       end
@@ -1471,16 +1592,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p3_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p3_add_tree0[0] <= 23'(p3_diff2_unsigned[0]) + 23'(p3_diff2_unsigned[1]);
       p3_add_tree0[1] <= 23'(p3_diff2_unsigned[2]) + 23'(p3_diff2_unsigned[3]);
       p3_add_tree0[2] <= 23'(p3_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p3_add_tree1[0] <= 24'(p3_add_tree0[0]) + 24'(p3_add_tree0[1]);
       p3_add_tree1[1] <= 24'(p3_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p3_add_tree2 <= 25'(p3_add_tree1[0]) + 25'(p3_add_tree1[1]);
     end
   end
@@ -1493,6 +1614,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p4_idx_r1 <= 9'h0;
     p4_idx_r2 <= 9'h0;
     p4_idx_r3 <= 9'h0;
+    p4_idx_r4 <= 9'h0;
     p4_idx_out <= 9'h0;
   end
   else begin
@@ -1509,8 +1631,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p4_idx_r3 <= p4_idx_r2;
     end
     if (valid_shft[3]) begin
-      p4_idx_out <= p4_idx_r3;
+      p4_idx_r4 <= p4_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p4_idx_out <= p4_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p4_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p4_data_in_r <= p4_data;
   end
 end
 
@@ -1520,9 +1654,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p4_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p4_patch_diff[3'(p)] <= query_patch[3'(p)] - p4_data[3'(p)];
+        p4_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p4_data_in_r[3'(p)];
       end
   end
 end
@@ -1538,7 +1672,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p4_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p4_diff2_unsigned[3'(p)] <= unsigned'(p4_diff2[3'(p)]);
       end
@@ -1555,16 +1689,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p4_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p4_add_tree0[0] <= 23'(p4_diff2_unsigned[0]) + 23'(p4_diff2_unsigned[1]);
       p4_add_tree0[1] <= 23'(p4_diff2_unsigned[2]) + 23'(p4_diff2_unsigned[3]);
       p4_add_tree0[2] <= 23'(p4_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p4_add_tree1[0] <= 24'(p4_add_tree0[0]) + 24'(p4_add_tree0[1]);
       p4_add_tree1[1] <= 24'(p4_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p4_add_tree2 <= 25'(p4_add_tree1[0]) + 25'(p4_add_tree1[1]);
     end
   end
@@ -1577,6 +1711,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p5_idx_r1 <= 9'h0;
     p5_idx_r2 <= 9'h0;
     p5_idx_r3 <= 9'h0;
+    p5_idx_r4 <= 9'h0;
     p5_idx_out <= 9'h0;
   end
   else begin
@@ -1593,8 +1728,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p5_idx_r3 <= p5_idx_r2;
     end
     if (valid_shft[3]) begin
-      p5_idx_out <= p5_idx_r3;
+      p5_idx_r4 <= p5_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p5_idx_out <= p5_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p5_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p5_data_in_r <= p5_data;
   end
 end
 
@@ -1604,9 +1751,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p5_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p5_patch_diff[3'(p)] <= query_patch[3'(p)] - p5_data[3'(p)];
+        p5_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p5_data_in_r[3'(p)];
       end
   end
 end
@@ -1622,7 +1769,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p5_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p5_diff2_unsigned[3'(p)] <= unsigned'(p5_diff2[3'(p)]);
       end
@@ -1639,16 +1786,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p5_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p5_add_tree0[0] <= 23'(p5_diff2_unsigned[0]) + 23'(p5_diff2_unsigned[1]);
       p5_add_tree0[1] <= 23'(p5_diff2_unsigned[2]) + 23'(p5_diff2_unsigned[3]);
       p5_add_tree0[2] <= 23'(p5_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p5_add_tree1[0] <= 24'(p5_add_tree0[0]) + 24'(p5_add_tree0[1]);
       p5_add_tree1[1] <= 24'(p5_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p5_add_tree2 <= 25'(p5_add_tree1[0]) + 25'(p5_add_tree1[1]);
     end
   end
@@ -1661,6 +1808,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p6_idx_r1 <= 9'h0;
     p6_idx_r2 <= 9'h0;
     p6_idx_r3 <= 9'h0;
+    p6_idx_r4 <= 9'h0;
     p6_idx_out <= 9'h0;
   end
   else begin
@@ -1677,8 +1825,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p6_idx_r3 <= p6_idx_r2;
     end
     if (valid_shft[3]) begin
-      p6_idx_out <= p6_idx_r3;
+      p6_idx_r4 <= p6_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p6_idx_out <= p6_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p6_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p6_data_in_r <= p6_data;
   end
 end
 
@@ -1688,9 +1848,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p6_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p6_patch_diff[3'(p)] <= query_patch[3'(p)] - p6_data[3'(p)];
+        p6_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p6_data_in_r[3'(p)];
       end
   end
 end
@@ -1706,7 +1866,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p6_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p6_diff2_unsigned[3'(p)] <= unsigned'(p6_diff2[3'(p)]);
       end
@@ -1723,16 +1883,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p6_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p6_add_tree0[0] <= 23'(p6_diff2_unsigned[0]) + 23'(p6_diff2_unsigned[1]);
       p6_add_tree0[1] <= 23'(p6_diff2_unsigned[2]) + 23'(p6_diff2_unsigned[3]);
       p6_add_tree0[2] <= 23'(p6_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p6_add_tree1[0] <= 24'(p6_add_tree0[0]) + 24'(p6_add_tree0[1]);
       p6_add_tree1[1] <= 24'(p6_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p6_add_tree2 <= 25'(p6_add_tree1[0]) + 25'(p6_add_tree1[1]);
     end
   end
@@ -1745,6 +1905,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p7_idx_r1 <= 9'h0;
     p7_idx_r2 <= 9'h0;
     p7_idx_r3 <= 9'h0;
+    p7_idx_r4 <= 9'h0;
     p7_idx_out <= 9'h0;
   end
   else begin
@@ -1761,8 +1922,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p7_idx_r3 <= p7_idx_r2;
     end
     if (valid_shft[3]) begin
-      p7_idx_out <= p7_idx_r3;
+      p7_idx_r4 <= p7_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p7_idx_out <= p7_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p7_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p7_data_in_r <= p7_data;
   end
 end
 
@@ -1772,9 +1945,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p7_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p7_patch_diff[3'(p)] <= query_patch[3'(p)] - p7_data[3'(p)];
+        p7_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p7_data_in_r[3'(p)];
       end
   end
 end
@@ -1790,7 +1963,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p7_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p7_diff2_unsigned[3'(p)] <= unsigned'(p7_diff2[3'(p)]);
       end
@@ -1807,16 +1980,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p7_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p7_add_tree0[0] <= 23'(p7_diff2_unsigned[0]) + 23'(p7_diff2_unsigned[1]);
       p7_add_tree0[1] <= 23'(p7_diff2_unsigned[2]) + 23'(p7_diff2_unsigned[3]);
       p7_add_tree0[2] <= 23'(p7_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p7_add_tree1[0] <= 24'(p7_add_tree0[0]) + 24'(p7_add_tree0[1]);
       p7_add_tree1[1] <= 24'(p7_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p7_add_tree2 <= 25'(p7_add_tree1[0]) + 25'(p7_add_tree1[1]);
     end
   end
@@ -1842,7 +2015,7 @@ module LeavesMem
     input logic [LEAF_SIZE-1:0]                         web0,
     input logic [LEAF_ADDRW-1:0]                        addr0,
     input logic [PATCH_SIZE*DATA_WIDTH+IDX_WIDTH-1:0]   wleaf0,
-    output logic [63:0]                                 rleaf0 [LEAF_SIZE-1:0],  // for wishbone
+    output logic [63:0] [LEAF_SIZE-1:0]                 rleaf0,  // for wishbone
     output logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]      rpatch_data0 [LEAF_SIZE-1:0],
     output logic [IDX_WIDTH-1:0]                        rpatch_idx0 [LEAF_SIZE-1:0],
     input logic                                         csb1,
@@ -4126,7 +4299,7 @@ module top
     input logic [LEAF_SIZE-1:0]                             wbs_leaf_mem_web0,
     input logic [LEAF_ADDRW-1:0]                            wbs_leaf_mem_addr0,
     input logic [63:0]                                      wbs_leaf_mem_wleaf0,
-	output logic [(64*8)-1:0]                                     wbs_leaf_mem_rleaf0,
+	output logic [(64*8)-1:0]                               wbs_leaf_mem_rleaf0,
     input logic                                             wbs_best_arr_csb1,
     input logic [7:0]                                       wbs_best_arr_addr1,
     output logic [63:0]                                     wbs_best_arr_rdata1,
@@ -4261,22 +4434,24 @@ module top
     logic [DIST_WIDTH-1:0]                                  s0_data_in_5;
     logic [DIST_WIDTH-1:0]                                  s0_data_in_6;
     logic [DIST_WIDTH-1:0]                                  s0_data_in_7;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_in_0;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_in_1;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_in_2;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_in_3;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_in_4;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_in_5;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_in_6;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_in_7;
+    logic [IDX_WIDTH-1:0]                                   s0_idx_in_0;
+    logic [IDX_WIDTH-1:0]                                   s0_idx_in_1;
+    logic [IDX_WIDTH-1:0]                                   s0_idx_in_2;
+    logic [IDX_WIDTH-1:0]                                   s0_idx_in_3;
+    logic [IDX_WIDTH-1:0]                                   s0_idx_in_4;
+    logic [IDX_WIDTH-1:0]                                   s0_idx_in_5;
+    logic [IDX_WIDTH-1:0]                                   s0_idx_in_6;
+    logic [IDX_WIDTH-1:0]                                   s0_idx_in_7;
+    logic [LEAF_ADDRW-1:0]                                  s0_leaf_idx_in;
+    logic [LEAF_ADDRW-1:0]                                  s0_leaf_idx_out;
     logic [DIST_WIDTH-1:0]                                  s0_data_out_0;
     logic [DIST_WIDTH-1:0]                                  s0_data_out_1;
     logic [DIST_WIDTH-1:0]                                  s0_data_out_2;
     logic [DIST_WIDTH-1:0]                                  s0_data_out_3;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_out_0;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_out_1;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_out_2;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s0_idx_out_3;
+    logic [IDX_WIDTH-1:0]                                   s0_idx_out_0;
+    logic [IDX_WIDTH-1:0]                                   s0_idx_out_1;
+    logic [IDX_WIDTH-1:0]                                   s0_idx_out_2;
+    logic [IDX_WIDTH-1:0]                                   s0_idx_out_3;
     logic                                                   sl0_restart;
     logic                                                   sl0_insert;
     logic                                                   sl0_last_in;
@@ -4349,22 +4524,24 @@ module top
     logic [DIST_WIDTH-1:0]                                  s1_data_in_5;
     logic [DIST_WIDTH-1:0]                                  s1_data_in_6;
     logic [DIST_WIDTH-1:0]                                  s1_data_in_7;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s1_idx_in_0;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s1_idx_in_1;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s1_idx_in_2;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s1_idx_in_3;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s1_idx_in_4;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s1_idx_in_5;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s1_idx_in_6;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s1_idx_in_7;
+    logic [IDX_WIDTH-1:0]                                   s1_idx_in_0;
+    logic [IDX_WIDTH-1:0]                                   s1_idx_in_1;
+    logic [IDX_WIDTH-1:0]                                   s1_idx_in_2;
+    logic [IDX_WIDTH-1:0]                                   s1_idx_in_3;
+    logic [IDX_WIDTH-1:0]                                   s1_idx_in_4;
+    logic [IDX_WIDTH-1:0]                                   s1_idx_in_5;
+    logic [IDX_WIDTH-1:0]                                   s1_idx_in_6;
+    logic [IDX_WIDTH-1:0]                                   s1_idx_in_7;
+    logic [LEAF_ADDRW-1:0]                                  s1_leaf_idx_in;
+    logic [LEAF_ADDRW-1:0]                                  s1_leaf_idx_out;
     logic [DIST_WIDTH-1:0]                                  s1_data_out_0;
     logic [DIST_WIDTH-1:0]                                  s1_data_out_1;
     logic [DIST_WIDTH-1:0]                                  s1_data_out_2;
     logic [DIST_WIDTH-1:0]                                  s1_data_out_3;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s1_idx_out_0;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s1_idx_out_1;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s1_idx_out_2;
-    logic [LEAF_ADDRW+IDX_WIDTH-1:0]                        s1_idx_out_3;
+    logic [IDX_WIDTH-1:0]                                   s1_idx_out_0;
+    logic [IDX_WIDTH-1:0]                                   s1_idx_out_1;
+    logic [IDX_WIDTH-1:0]                                   s1_idx_out_2;
+    logic [IDX_WIDTH-1:0]                                   s1_idx_out_3;
     logic                                                   sl1_restart;
     logic                                                   sl1_insert;
     logic                                                   sl1_last_in;
@@ -4756,6 +4933,8 @@ module top
         .idx_in_5           (s0_idx_in_5),
         .idx_in_6           (s0_idx_in_6),
         .idx_in_7           (s0_idx_in_7),
+        .leaf_idx_in        (s0_leaf_idx_in),
+        .leaf_idx_out       (s0_leaf_idx_out),
         .data_out_0         (s0_data_out_0),
         .data_out_1         (s0_data_out_1),
         .data_out_2         (s0_data_out_2),
@@ -4768,23 +4947,24 @@ module top
 
     assign s0_query_first_in    =   k0_query_first_out;
     assign s0_query_last_in     =   k0_query_last_out;
-    assign s0_valid_in          =   {k0_leaf_idx_out, k0_dist_valid};
-    assign s0_data_in_0         =   {k0_leaf_idx_out, k0_p0_l2_dist};
-    assign s0_data_in_1         =   {k0_leaf_idx_out, k0_p1_l2_dist};
-    assign s0_data_in_2         =   {k0_leaf_idx_out, k0_p2_l2_dist};
-    assign s0_data_in_3         =   {k0_leaf_idx_out, k0_p3_l2_dist};
-    assign s0_data_in_4         =   {k0_leaf_idx_out, k0_p4_l2_dist};
-    assign s0_data_in_5         =   {k0_leaf_idx_out, k0_p5_l2_dist};
-    assign s0_data_in_6         =   {k0_leaf_idx_out, k0_p6_l2_dist};
-    assign s0_data_in_7         =   {k0_leaf_idx_out, k0_p7_l2_dist};
-    assign s0_idx_in_0          =   {k0_leaf_idx_out, k0_p0_idx_out};
-    assign s0_idx_in_1          =   {k0_leaf_idx_out, k0_p1_idx_out};
-    assign s0_idx_in_2          =   {k0_leaf_idx_out, k0_p2_idx_out};
-    assign s0_idx_in_3          =   {k0_leaf_idx_out, k0_p3_idx_out};
-    assign s0_idx_in_4          =   {k0_leaf_idx_out, k0_p4_idx_out};
-    assign s0_idx_in_5          =   {k0_leaf_idx_out, k0_p5_idx_out};
-    assign s0_idx_in_6          =   {k0_leaf_idx_out, k0_p6_idx_out};
-    assign s0_idx_in_7          =   {k0_leaf_idx_out, k0_p7_idx_out};
+    assign s0_valid_in          =   k0_dist_valid;
+    assign s0_data_in_0         =   k0_p0_l2_dist;
+    assign s0_data_in_1         =   k0_p1_l2_dist;
+    assign s0_data_in_2         =   k0_p2_l2_dist;
+    assign s0_data_in_3         =   k0_p3_l2_dist;
+    assign s0_data_in_4         =   k0_p4_l2_dist;
+    assign s0_data_in_5         =   k0_p5_l2_dist;
+    assign s0_data_in_6         =   k0_p6_l2_dist;
+    assign s0_data_in_7         =   k0_p7_l2_dist;
+    assign s0_idx_in_0          =   k0_p0_idx_out;
+    assign s0_idx_in_1          =   k0_p1_idx_out;
+    assign s0_idx_in_2          =   k0_p2_idx_out;
+    assign s0_idx_in_3          =   k0_p3_idx_out;
+    assign s0_idx_in_4          =   k0_p4_idx_out;
+    assign s0_idx_in_5          =   k0_p5_idx_out;
+    assign s0_idx_in_6          =   k0_p6_idx_out;
+    assign s0_idx_in_7          =   k0_p7_idx_out;
+    assign s0_leaf_idx_in       =   k0_leaf_idx_out;
 
     SortedList sl0(
         .clk                    (clk),
@@ -4809,7 +4989,7 @@ module top
     assign sl0_insert           =   s0_valid_out;
     assign sl0_last_in          =   s0_query_last_out;
     assign sl0_l2_dist_in       =   s0_data_out_0;
-    assign sl0_merged_idx_in    =   s0_idx_out_0;
+    assign sl0_merged_idx_in    =   {s0_leaf_idx_out, s0_idx_out_0};
     
     
     // Computes 1
@@ -4913,6 +5093,8 @@ module top
         .idx_in_5           (s1_idx_in_5),
         .idx_in_6           (s1_idx_in_6),
         .idx_in_7           (s1_idx_in_7),
+        .leaf_idx_in        (s1_leaf_idx_in),
+        .leaf_idx_out       (s1_leaf_idx_out),
         .data_out_0         (s1_data_out_0),
         .data_out_1         (s1_data_out_1),
         .data_out_2         (s1_data_out_2),
@@ -4925,23 +5107,24 @@ module top
 
     assign s1_query_first_in    =   k1_query_first_out;
     assign s1_query_last_in     =   k1_query_last_out;
-    assign s1_valid_in          =   {k1_leaf_idx_out, k1_dist_valid};
-    assign s1_data_in_0         =   {k1_leaf_idx_out, k1_p0_l2_dist};
-    assign s1_data_in_1         =   {k1_leaf_idx_out, k1_p1_l2_dist};
-    assign s1_data_in_2         =   {k1_leaf_idx_out, k1_p2_l2_dist};
-    assign s1_data_in_3         =   {k1_leaf_idx_out, k1_p3_l2_dist};
-    assign s1_data_in_4         =   {k1_leaf_idx_out, k1_p4_l2_dist};
-    assign s1_data_in_5         =   {k1_leaf_idx_out, k1_p5_l2_dist};
-    assign s1_data_in_6         =   {k1_leaf_idx_out, k1_p6_l2_dist};
-    assign s1_data_in_7         =   {k1_leaf_idx_out, k1_p7_l2_dist};
-    assign s1_idx_in_0          =   {k1_leaf_idx_out, k1_p0_idx_out};
-    assign s1_idx_in_1          =   {k1_leaf_idx_out, k1_p1_idx_out};
-    assign s1_idx_in_2          =   {k1_leaf_idx_out, k1_p2_idx_out};
-    assign s1_idx_in_3          =   {k1_leaf_idx_out, k1_p3_idx_out};
-    assign s1_idx_in_4          =   {k1_leaf_idx_out, k1_p4_idx_out};
-    assign s1_idx_in_5          =   {k1_leaf_idx_out, k1_p5_idx_out};
-    assign s1_idx_in_6          =   {k1_leaf_idx_out, k1_p6_idx_out};
-    assign s1_idx_in_7          =   {k1_leaf_idx_out, k1_p7_idx_out};
+    assign s1_valid_in          =   k1_dist_valid;
+    assign s1_data_in_0         =   k1_p0_l2_dist;
+    assign s1_data_in_1         =   k1_p1_l2_dist;
+    assign s1_data_in_2         =   k1_p2_l2_dist;
+    assign s1_data_in_3         =   k1_p3_l2_dist;
+    assign s1_data_in_4         =   k1_p4_l2_dist;
+    assign s1_data_in_5         =   k1_p5_l2_dist;
+    assign s1_data_in_6         =   k1_p6_l2_dist;
+    assign s1_data_in_7         =   k1_p7_l2_dist;
+    assign s1_idx_in_0          =   k1_p0_idx_out;
+    assign s1_idx_in_1          =   k1_p1_idx_out;
+    assign s1_idx_in_2          =   k1_p2_idx_out;
+    assign s1_idx_in_3          =   k1_p3_idx_out;
+    assign s1_idx_in_4          =   k1_p4_idx_out;
+    assign s1_idx_in_5          =   k1_p5_idx_out;
+    assign s1_idx_in_6          =   k1_p6_idx_out;
+    assign s1_idx_in_7          =   k1_p7_idx_out;
+    assign s1_leaf_idx_in       =   k1_leaf_idx_out;
 
     SortedList sl1(
         .clk                    (clk),
@@ -4966,7 +5149,7 @@ module top
     assign sl1_insert           =   s1_valid_out;
     assign sl1_last_in          =   s1_query_last_out;
     assign sl1_l2_dist_in       =   s1_data_out_0;
-    assign sl1_merged_idx_in    =   s1_idx_out_0;
+    assign sl1_merged_idx_in    =   {s1_leaf_idx_out, s1_idx_out_0};
 
 endmodule
 

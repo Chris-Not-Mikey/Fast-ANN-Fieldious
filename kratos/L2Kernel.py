@@ -45,9 +45,12 @@ class L2Kernel(Generator):
 
 
         # pipeline registers
-        self._query_first_shft = self.var(f"query_first_shft", 5)
-        self._query_last_shft = self.var(f"query_last_shft", 5)
-        self._valid_shft = self.var(f"valid_shft", 5)
+        # self._query_first_shft = self.var(f"query_first_shft", 5)
+        # self._query_last_shft = self.var(f"query_last_shft", 5)
+        # self._valid_shft = self.var(f"valid_shft", 5)
+        self._query_first_shft = self.var(f"query_first_shft", 6)
+        self._query_last_shft = self.var(f"query_last_shft", 6)
+        self._valid_shft = self.var(f"valid_shft", 6)
 
         @always_ff((posedge, "clk"), (negedge, "rst_n"))
         def update_pipeline_shift(self):
@@ -69,6 +72,7 @@ class L2Kernel(Generator):
         self._leaf_idx_r1 = self.var("leaf_idx_r1", clog2(self.num_leaves))
         self._leaf_idx_r2 = self.var("leaf_idx_r2", clog2(self.num_leaves))
         self._leaf_idx_r3 = self.var("leaf_idx_r3", clog2(self.num_leaves))
+        self._leaf_idx_r4 = self.var("leaf_idx_r4", clog2(self.num_leaves))
         @always_ff((posedge, "clk"), (negedge, "rst_n"))
         def update_leaf_idx(self):
             if ~self._rst_n:
@@ -76,6 +80,7 @@ class L2Kernel(Generator):
                 self._leaf_idx_r1 = 0
                 self._leaf_idx_r2 = 0
                 self._leaf_idx_r3 = 0
+                self._leaf_idx_r4 = 0
                 self._leaf_idx_out = 0
             else:
                 if self._query_valid:
@@ -87,9 +92,28 @@ class L2Kernel(Generator):
                 if self._valid_shft[2]:
                     self._leaf_idx_r3 = self._leaf_idx_r2
                 if self._valid_shft[3]:
-                    self._leaf_idx_out = self._leaf_idx_r3
+                    self._leaf_idx_r4 = self._leaf_idx_r3
+                # if self._valid_shft[3]:
+                #     self._leaf_idx_out = self._leaf_idx_r3
+                if self._valid_shft[4]:
+                    self._leaf_idx_out = self._leaf_idx_r4
         self.add_code(update_leaf_idx)
 
+
+        # input registers
+        self._query_patch_in_r = self.var("query_patch_in_r",
+                                          width=self.data_width,
+                                          size=self.pca_size,
+                                          is_signed=True,
+                                          packed=True,
+                                          explicit_array=True)        
+        @always_ff((posedge, "clk"), (negedge, "rst_n"))
+        def update_qp_input_reg(self):
+            if ~self._rst_n:
+                self._query_patch_in_r = 0
+            elif self._query_valid:
+                self._query_patch_in_r = self._query_patch
+        self.add_code(update_qp_input_reg)
 
         # computation per patch
         for i in range(leaf_size):
@@ -107,6 +131,7 @@ class L2Kernel(Generator):
             self._idx_r1 = self.var(f"p{i}_idx_r1", self.idx_width)
             self._idx_r2 = self.var(f"p{i}_idx_r2", self.idx_width)
             self._idx_r3 = self.var(f"p{i}_idx_r3", self.idx_width)
+            self._idx_r4 = self.var(f"p{i}_idx_r4", self.idx_width)
             @always_ff((posedge, "clk"), (negedge, "rst_n"))
             def update_idx(self):
                 if ~self._rst_n:
@@ -114,6 +139,7 @@ class L2Kernel(Generator):
                     self._idx_r1 = 0
                     self._idx_r2 = 0
                     self._idx_r3 = 0
+                    self._idx_r4 = 0
                     self._idx_out = 0
                 else:
                     if self._query_valid:
@@ -125,8 +151,27 @@ class L2Kernel(Generator):
                     if self._valid_shft[2]:
                         self._idx_r3 = self._idx_r2
                     if self._valid_shft[3]:
-                        self._idx_out = self._idx_r3
+                        self._idx_r4 = self._idx_r3
+                    # if self._valid_shft[3]:
+                    #     self._idx_out = self._idx_r3
+                    if self._valid_shft[4]:
+                        self._idx_out = self._idx_r4
             self.add_code(update_idx)
+
+            # input registers
+            self._data_in_r = self.var(f"p{i}_data_in_r",
+                                       width=self.data_width,
+                                       size=self.pca_size,
+                                       is_signed=True,
+                                       packed=True,
+                                       explicit_array=True)
+            @always_ff((posedge, "clk"), (negedge, "rst_n"))
+            def update_leaf_input_reg(self):
+                if ~self._rst_n:
+                    self._data_in_r = 0
+                elif self._query_valid:
+                    self._data_in_r = self._data
+            self.add_code(update_leaf_input_reg)
 
             self._patch_diff = self.var(f"p{i}_patch_diff",
                                         width=self.data_width,
@@ -138,9 +183,10 @@ class L2Kernel(Generator):
                 if ~self._rst_n:
                     for p in range(self.pca_size):
                         self._patch_diff[p] = 0
-                elif self._query_valid:
+                elif self._valid_shft[0]:
                     for p in range(self.pca_size):
-                        self._patch_diff[p] = self._query_patch[p] - self._data[p]
+                        # self._patch_diff[p] = self._query_patch[p] - self._data[p]
+                        self._patch_diff[p] = self._query_patch_in_r[p] - self._data_in_r[p]
             self.add_code(update_patch_diff)
 
             self._diff2 = self.var(f"p{i}_diff2", 
@@ -163,7 +209,7 @@ class L2Kernel(Generator):
                 if ~self._rst_n:
                     for p in range(self.pca_size):
                         self._diff2_unsigned[p] = 0
-                elif self._valid_shft[0]:
+                elif self._valid_shft[1]:
                     for p in range(self.pca_size):
                         # remove the sign bit
                         self._diff2_unsigned[p] = unsigned(self._diff2[p])
@@ -189,16 +235,16 @@ class L2Kernel(Generator):
                     self._add_tree1[1] = 0
                     self._add_tree2 = 0
                 else:
-                    if self._valid_shft[1]:
+                    if self._valid_shft[2]:
                         self._add_tree0[0] = self._diff2_unsigned[0].extend(self.data_width * 2 + 1) + self._diff2_unsigned[1].extend(self.data_width * 2 + 1)
                         self._add_tree0[1] = self._diff2_unsigned[2].extend(self.data_width * 2 + 1) + self._diff2_unsigned[3].extend(self.data_width * 2 + 1)
                         self._add_tree0[2] = self._diff2_unsigned[4].extend(self.data_width * 2 + 1)
                     
-                    if self._valid_shft[2]:
+                    if self._valid_shft[3]:
                         self._add_tree1[0] = self._add_tree0[0].extend(self.data_width * 2 + 2) + self._add_tree0[1].extend(self.data_width * 2 + 2)
                         self._add_tree1[1] = self._add_tree0[2].extend(self.data_width * 2 + 2)
                     
-                    if self._valid_shft[3]:
+                    if self._valid_shft[4]:
                         self._add_tree2 = self._add_tree1[0].extend(self.data_width * 2 + 3) + self._add_tree1[1].extend(self.data_width * 2 + 3)
             self.add_code(update_add_tree)
             

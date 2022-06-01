@@ -48,105 +48,123 @@ logic [5:0] leaf_idx_r0;
 logic [5:0] leaf_idx_r1;
 logic [5:0] leaf_idx_r2;
 logic [5:0] leaf_idx_r3;
+logic [5:0] leaf_idx_r4;
 logic [22:0] p0_add_tree0 [2:0];
 logic [23:0] p0_add_tree1 [1:0];
 logic [24:0] p0_add_tree2;
+logic signed [4:0][10:0] p0_data_in_r;
 logic signed [21:0] p0_diff2 [4:0];
 logic [21:0] p0_diff2_unsigned [4:0];
 logic [8:0] p0_idx_r0;
 logic [8:0] p0_idx_r1;
 logic [8:0] p0_idx_r2;
 logic [8:0] p0_idx_r3;
+logic [8:0] p0_idx_r4;
 logic signed [10:0] p0_patch_diff [4:0];
 logic [22:0] p1_add_tree0 [2:0];
 logic [23:0] p1_add_tree1 [1:0];
 logic [24:0] p1_add_tree2;
+logic signed [4:0][10:0] p1_data_in_r;
 logic signed [21:0] p1_diff2 [4:0];
 logic [21:0] p1_diff2_unsigned [4:0];
 logic [8:0] p1_idx_r0;
 logic [8:0] p1_idx_r1;
 logic [8:0] p1_idx_r2;
 logic [8:0] p1_idx_r3;
+logic [8:0] p1_idx_r4;
 logic signed [10:0] p1_patch_diff [4:0];
 logic [22:0] p2_add_tree0 [2:0];
 logic [23:0] p2_add_tree1 [1:0];
 logic [24:0] p2_add_tree2;
+logic signed [4:0][10:0] p2_data_in_r;
 logic signed [21:0] p2_diff2 [4:0];
 logic [21:0] p2_diff2_unsigned [4:0];
 logic [8:0] p2_idx_r0;
 logic [8:0] p2_idx_r1;
 logic [8:0] p2_idx_r2;
 logic [8:0] p2_idx_r3;
+logic [8:0] p2_idx_r4;
 logic signed [10:0] p2_patch_diff [4:0];
 logic [22:0] p3_add_tree0 [2:0];
 logic [23:0] p3_add_tree1 [1:0];
 logic [24:0] p3_add_tree2;
+logic signed [4:0][10:0] p3_data_in_r;
 logic signed [21:0] p3_diff2 [4:0];
 logic [21:0] p3_diff2_unsigned [4:0];
 logic [8:0] p3_idx_r0;
 logic [8:0] p3_idx_r1;
 logic [8:0] p3_idx_r2;
 logic [8:0] p3_idx_r3;
+logic [8:0] p3_idx_r4;
 logic signed [10:0] p3_patch_diff [4:0];
 logic [22:0] p4_add_tree0 [2:0];
 logic [23:0] p4_add_tree1 [1:0];
 logic [24:0] p4_add_tree2;
+logic signed [4:0][10:0] p4_data_in_r;
 logic signed [21:0] p4_diff2 [4:0];
 logic [21:0] p4_diff2_unsigned [4:0];
 logic [8:0] p4_idx_r0;
 logic [8:0] p4_idx_r1;
 logic [8:0] p4_idx_r2;
 logic [8:0] p4_idx_r3;
+logic [8:0] p4_idx_r4;
 logic signed [10:0] p4_patch_diff [4:0];
 logic [22:0] p5_add_tree0 [2:0];
 logic [23:0] p5_add_tree1 [1:0];
 logic [24:0] p5_add_tree2;
+logic signed [4:0][10:0] p5_data_in_r;
 logic signed [21:0] p5_diff2 [4:0];
 logic [21:0] p5_diff2_unsigned [4:0];
 logic [8:0] p5_idx_r0;
 logic [8:0] p5_idx_r1;
 logic [8:0] p5_idx_r2;
 logic [8:0] p5_idx_r3;
+logic [8:0] p5_idx_r4;
 logic signed [10:0] p5_patch_diff [4:0];
 logic [22:0] p6_add_tree0 [2:0];
 logic [23:0] p6_add_tree1 [1:0];
 logic [24:0] p6_add_tree2;
+logic signed [4:0][10:0] p6_data_in_r;
 logic signed [21:0] p6_diff2 [4:0];
 logic [21:0] p6_diff2_unsigned [4:0];
 logic [8:0] p6_idx_r0;
 logic [8:0] p6_idx_r1;
 logic [8:0] p6_idx_r2;
 logic [8:0] p6_idx_r3;
+logic [8:0] p6_idx_r4;
 logic signed [10:0] p6_patch_diff [4:0];
 logic [22:0] p7_add_tree0 [2:0];
 logic [23:0] p7_add_tree1 [1:0];
 logic [24:0] p7_add_tree2;
+logic signed [4:0][10:0] p7_data_in_r;
 logic signed [21:0] p7_diff2 [4:0];
 logic [21:0] p7_diff2_unsigned [4:0];
 logic [8:0] p7_idx_r0;
 logic [8:0] p7_idx_r1;
 logic [8:0] p7_idx_r2;
 logic [8:0] p7_idx_r3;
+logic [8:0] p7_idx_r4;
 logic signed [10:0] p7_patch_diff [4:0];
-logic [4:0] query_first_shft;
-logic [4:0] query_last_shft;
-logic [4:0] valid_shft;
+logic [5:0] query_first_shft;
+logic [5:0] query_last_shft;
+logic signed [4:0][10:0] query_patch_in_r;
+logic [5:0] valid_shft;
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin
-    query_first_shft <= 5'h0;
-    query_last_shft <= 5'h0;
-    valid_shft <= 5'h0;
+    query_first_shft <= 6'h0;
+    query_last_shft <= 6'h0;
+    valid_shft <= 6'h0;
   end
   else begin
-    query_first_shft <= {query_first_shft[3:0], query_first_in};
-    query_last_shft <= {query_last_shft[3:0], query_last_in};
-    valid_shft <= {valid_shft[3:0], query_valid};
+    query_first_shft <= {query_first_shft[4:0], query_first_in};
+    query_last_shft <= {query_last_shft[4:0], query_last_in};
+    valid_shft <= {valid_shft[4:0], query_valid};
   end
 end
-assign query_first_out = query_first_shft[4];
-assign query_last_out = query_last_shft[4];
-assign dist_valid = valid_shft[4];
+assign query_first_out = query_first_shft[5];
+assign query_last_out = query_last_shft[5];
+assign dist_valid = valid_shft[5];
 
 always_ff @(posedge clk, negedge rst_n) begin
   if (~rst_n) begin
@@ -154,6 +172,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     leaf_idx_r1 <= 6'h0;
     leaf_idx_r2 <= 6'h0;
     leaf_idx_r3 <= 6'h0;
+    leaf_idx_r4 <= 6'h0;
     leaf_idx_out <= 6'h0;
   end
   else begin
@@ -170,8 +189,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       leaf_idx_r3 <= leaf_idx_r2;
     end
     if (valid_shft[3]) begin
-      leaf_idx_out <= leaf_idx_r3;
+      leaf_idx_r4 <= leaf_idx_r3;
     end
+    if (valid_shft[4]) begin
+      leaf_idx_out <= leaf_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    query_patch_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    query_patch_in_r <= query_patch;
   end
 end
 
@@ -181,6 +212,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p0_idx_r1 <= 9'h0;
     p0_idx_r2 <= 9'h0;
     p0_idx_r3 <= 9'h0;
+    p0_idx_r4 <= 9'h0;
     p0_idx_out <= 9'h0;
   end
   else begin
@@ -197,8 +229,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p0_idx_r3 <= p0_idx_r2;
     end
     if (valid_shft[3]) begin
-      p0_idx_out <= p0_idx_r3;
+      p0_idx_r4 <= p0_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p0_idx_out <= p0_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p0_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p0_data_in_r <= p0_data;
   end
 end
 
@@ -208,9 +252,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p0_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p0_patch_diff[3'(p)] <= query_patch[3'(p)] - p0_data[3'(p)];
+        p0_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p0_data_in_r[3'(p)];
       end
   end
 end
@@ -226,7 +270,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p0_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p0_diff2_unsigned[3'(p)] <= unsigned'(p0_diff2[3'(p)]);
       end
@@ -243,16 +287,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p0_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p0_add_tree0[0] <= 23'(p0_diff2_unsigned[0]) + 23'(p0_diff2_unsigned[1]);
       p0_add_tree0[1] <= 23'(p0_diff2_unsigned[2]) + 23'(p0_diff2_unsigned[3]);
       p0_add_tree0[2] <= 23'(p0_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p0_add_tree1[0] <= 24'(p0_add_tree0[0]) + 24'(p0_add_tree0[1]);
       p0_add_tree1[1] <= 24'(p0_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p0_add_tree2 <= 25'(p0_add_tree1[0]) + 25'(p0_add_tree1[1]);
     end
   end
@@ -265,6 +309,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p1_idx_r1 <= 9'h0;
     p1_idx_r2 <= 9'h0;
     p1_idx_r3 <= 9'h0;
+    p1_idx_r4 <= 9'h0;
     p1_idx_out <= 9'h0;
   end
   else begin
@@ -281,8 +326,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p1_idx_r3 <= p1_idx_r2;
     end
     if (valid_shft[3]) begin
-      p1_idx_out <= p1_idx_r3;
+      p1_idx_r4 <= p1_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p1_idx_out <= p1_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p1_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p1_data_in_r <= p1_data;
   end
 end
 
@@ -292,9 +349,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p1_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p1_patch_diff[3'(p)] <= query_patch[3'(p)] - p1_data[3'(p)];
+        p1_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p1_data_in_r[3'(p)];
       end
   end
 end
@@ -310,7 +367,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p1_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p1_diff2_unsigned[3'(p)] <= unsigned'(p1_diff2[3'(p)]);
       end
@@ -327,16 +384,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p1_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p1_add_tree0[0] <= 23'(p1_diff2_unsigned[0]) + 23'(p1_diff2_unsigned[1]);
       p1_add_tree0[1] <= 23'(p1_diff2_unsigned[2]) + 23'(p1_diff2_unsigned[3]);
       p1_add_tree0[2] <= 23'(p1_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p1_add_tree1[0] <= 24'(p1_add_tree0[0]) + 24'(p1_add_tree0[1]);
       p1_add_tree1[1] <= 24'(p1_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p1_add_tree2 <= 25'(p1_add_tree1[0]) + 25'(p1_add_tree1[1]);
     end
   end
@@ -349,6 +406,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p2_idx_r1 <= 9'h0;
     p2_idx_r2 <= 9'h0;
     p2_idx_r3 <= 9'h0;
+    p2_idx_r4 <= 9'h0;
     p2_idx_out <= 9'h0;
   end
   else begin
@@ -365,8 +423,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p2_idx_r3 <= p2_idx_r2;
     end
     if (valid_shft[3]) begin
-      p2_idx_out <= p2_idx_r3;
+      p2_idx_r4 <= p2_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p2_idx_out <= p2_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p2_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p2_data_in_r <= p2_data;
   end
 end
 
@@ -376,9 +446,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p2_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p2_patch_diff[3'(p)] <= query_patch[3'(p)] - p2_data[3'(p)];
+        p2_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p2_data_in_r[3'(p)];
       end
   end
 end
@@ -394,7 +464,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p2_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p2_diff2_unsigned[3'(p)] <= unsigned'(p2_diff2[3'(p)]);
       end
@@ -411,16 +481,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p2_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p2_add_tree0[0] <= 23'(p2_diff2_unsigned[0]) + 23'(p2_diff2_unsigned[1]);
       p2_add_tree0[1] <= 23'(p2_diff2_unsigned[2]) + 23'(p2_diff2_unsigned[3]);
       p2_add_tree0[2] <= 23'(p2_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p2_add_tree1[0] <= 24'(p2_add_tree0[0]) + 24'(p2_add_tree0[1]);
       p2_add_tree1[1] <= 24'(p2_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p2_add_tree2 <= 25'(p2_add_tree1[0]) + 25'(p2_add_tree1[1]);
     end
   end
@@ -433,6 +503,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p3_idx_r1 <= 9'h0;
     p3_idx_r2 <= 9'h0;
     p3_idx_r3 <= 9'h0;
+    p3_idx_r4 <= 9'h0;
     p3_idx_out <= 9'h0;
   end
   else begin
@@ -449,8 +520,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p3_idx_r3 <= p3_idx_r2;
     end
     if (valid_shft[3]) begin
-      p3_idx_out <= p3_idx_r3;
+      p3_idx_r4 <= p3_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p3_idx_out <= p3_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p3_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p3_data_in_r <= p3_data;
   end
 end
 
@@ -460,9 +543,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p3_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p3_patch_diff[3'(p)] <= query_patch[3'(p)] - p3_data[3'(p)];
+        p3_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p3_data_in_r[3'(p)];
       end
   end
 end
@@ -478,7 +561,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p3_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p3_diff2_unsigned[3'(p)] <= unsigned'(p3_diff2[3'(p)]);
       end
@@ -495,16 +578,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p3_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p3_add_tree0[0] <= 23'(p3_diff2_unsigned[0]) + 23'(p3_diff2_unsigned[1]);
       p3_add_tree0[1] <= 23'(p3_diff2_unsigned[2]) + 23'(p3_diff2_unsigned[3]);
       p3_add_tree0[2] <= 23'(p3_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p3_add_tree1[0] <= 24'(p3_add_tree0[0]) + 24'(p3_add_tree0[1]);
       p3_add_tree1[1] <= 24'(p3_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p3_add_tree2 <= 25'(p3_add_tree1[0]) + 25'(p3_add_tree1[1]);
     end
   end
@@ -517,6 +600,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p4_idx_r1 <= 9'h0;
     p4_idx_r2 <= 9'h0;
     p4_idx_r3 <= 9'h0;
+    p4_idx_r4 <= 9'h0;
     p4_idx_out <= 9'h0;
   end
   else begin
@@ -533,8 +617,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p4_idx_r3 <= p4_idx_r2;
     end
     if (valid_shft[3]) begin
-      p4_idx_out <= p4_idx_r3;
+      p4_idx_r4 <= p4_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p4_idx_out <= p4_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p4_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p4_data_in_r <= p4_data;
   end
 end
 
@@ -544,9 +640,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p4_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p4_patch_diff[3'(p)] <= query_patch[3'(p)] - p4_data[3'(p)];
+        p4_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p4_data_in_r[3'(p)];
       end
   end
 end
@@ -562,7 +658,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p4_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p4_diff2_unsigned[3'(p)] <= unsigned'(p4_diff2[3'(p)]);
       end
@@ -579,16 +675,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p4_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p4_add_tree0[0] <= 23'(p4_diff2_unsigned[0]) + 23'(p4_diff2_unsigned[1]);
       p4_add_tree0[1] <= 23'(p4_diff2_unsigned[2]) + 23'(p4_diff2_unsigned[3]);
       p4_add_tree0[2] <= 23'(p4_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p4_add_tree1[0] <= 24'(p4_add_tree0[0]) + 24'(p4_add_tree0[1]);
       p4_add_tree1[1] <= 24'(p4_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p4_add_tree2 <= 25'(p4_add_tree1[0]) + 25'(p4_add_tree1[1]);
     end
   end
@@ -601,6 +697,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p5_idx_r1 <= 9'h0;
     p5_idx_r2 <= 9'h0;
     p5_idx_r3 <= 9'h0;
+    p5_idx_r4 <= 9'h0;
     p5_idx_out <= 9'h0;
   end
   else begin
@@ -617,8 +714,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p5_idx_r3 <= p5_idx_r2;
     end
     if (valid_shft[3]) begin
-      p5_idx_out <= p5_idx_r3;
+      p5_idx_r4 <= p5_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p5_idx_out <= p5_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p5_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p5_data_in_r <= p5_data;
   end
 end
 
@@ -628,9 +737,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p5_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p5_patch_diff[3'(p)] <= query_patch[3'(p)] - p5_data[3'(p)];
+        p5_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p5_data_in_r[3'(p)];
       end
   end
 end
@@ -646,7 +755,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p5_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p5_diff2_unsigned[3'(p)] <= unsigned'(p5_diff2[3'(p)]);
       end
@@ -663,16 +772,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p5_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p5_add_tree0[0] <= 23'(p5_diff2_unsigned[0]) + 23'(p5_diff2_unsigned[1]);
       p5_add_tree0[1] <= 23'(p5_diff2_unsigned[2]) + 23'(p5_diff2_unsigned[3]);
       p5_add_tree0[2] <= 23'(p5_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p5_add_tree1[0] <= 24'(p5_add_tree0[0]) + 24'(p5_add_tree0[1]);
       p5_add_tree1[1] <= 24'(p5_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p5_add_tree2 <= 25'(p5_add_tree1[0]) + 25'(p5_add_tree1[1]);
     end
   end
@@ -685,6 +794,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p6_idx_r1 <= 9'h0;
     p6_idx_r2 <= 9'h0;
     p6_idx_r3 <= 9'h0;
+    p6_idx_r4 <= 9'h0;
     p6_idx_out <= 9'h0;
   end
   else begin
@@ -701,8 +811,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p6_idx_r3 <= p6_idx_r2;
     end
     if (valid_shft[3]) begin
-      p6_idx_out <= p6_idx_r3;
+      p6_idx_r4 <= p6_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p6_idx_out <= p6_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p6_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p6_data_in_r <= p6_data;
   end
 end
 
@@ -712,9 +834,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p6_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p6_patch_diff[3'(p)] <= query_patch[3'(p)] - p6_data[3'(p)];
+        p6_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p6_data_in_r[3'(p)];
       end
   end
 end
@@ -730,7 +852,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p6_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p6_diff2_unsigned[3'(p)] <= unsigned'(p6_diff2[3'(p)]);
       end
@@ -747,16 +869,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p6_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p6_add_tree0[0] <= 23'(p6_diff2_unsigned[0]) + 23'(p6_diff2_unsigned[1]);
       p6_add_tree0[1] <= 23'(p6_diff2_unsigned[2]) + 23'(p6_diff2_unsigned[3]);
       p6_add_tree0[2] <= 23'(p6_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p6_add_tree1[0] <= 24'(p6_add_tree0[0]) + 24'(p6_add_tree0[1]);
       p6_add_tree1[1] <= 24'(p6_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p6_add_tree2 <= 25'(p6_add_tree1[0]) + 25'(p6_add_tree1[1]);
     end
   end
@@ -769,6 +891,7 @@ always_ff @(posedge clk, negedge rst_n) begin
     p7_idx_r1 <= 9'h0;
     p7_idx_r2 <= 9'h0;
     p7_idx_r3 <= 9'h0;
+    p7_idx_r4 <= 9'h0;
     p7_idx_out <= 9'h0;
   end
   else begin
@@ -785,8 +908,20 @@ always_ff @(posedge clk, negedge rst_n) begin
       p7_idx_r3 <= p7_idx_r2;
     end
     if (valid_shft[3]) begin
-      p7_idx_out <= p7_idx_r3;
+      p7_idx_r4 <= p7_idx_r3;
     end
+    if (valid_shft[4]) begin
+      p7_idx_out <= p7_idx_r4;
+    end
+  end
+end
+
+always_ff @(posedge clk, negedge rst_n) begin
+  if (~rst_n) begin
+    p7_data_in_r <= 55'h0;
+  end
+  else if (query_valid) begin
+    p7_data_in_r <= p7_data;
   end
 end
 
@@ -796,9 +931,9 @@ always_ff @(posedge clk, negedge rst_n) begin
         p7_patch_diff[3'(p)] <= 11'h0;
       end
   end
-  else if (query_valid) begin
+  else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p7_patch_diff[3'(p)] <= query_patch[3'(p)] - p7_data[3'(p)];
+        p7_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p7_data_in_r[3'(p)];
       end
   end
 end
@@ -814,7 +949,7 @@ always_ff @(posedge clk, negedge rst_n) begin
         p7_diff2_unsigned[3'(p)] <= 22'h0;
       end
   end
-  else if (valid_shft[0]) begin
+  else if (valid_shft[1]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
         p7_diff2_unsigned[3'(p)] <= unsigned'(p7_diff2[3'(p)]);
       end
@@ -831,16 +966,16 @@ always_ff @(posedge clk, negedge rst_n) begin
     p7_add_tree2 <= 25'h0;
   end
   else begin
-    if (valid_shft[1]) begin
+    if (valid_shft[2]) begin
       p7_add_tree0[0] <= 23'(p7_diff2_unsigned[0]) + 23'(p7_diff2_unsigned[1]);
       p7_add_tree0[1] <= 23'(p7_diff2_unsigned[2]) + 23'(p7_diff2_unsigned[3]);
       p7_add_tree0[2] <= 23'(p7_diff2_unsigned[4]);
     end
-    if (valid_shft[2]) begin
+    if (valid_shft[3]) begin
       p7_add_tree1[0] <= 24'(p7_add_tree0[0]) + 24'(p7_add_tree0[1]);
       p7_add_tree1[1] <= 24'(p7_add_tree0[2]);
     end
-    if (valid_shft[3]) begin
+    if (valid_shft[4]) begin
       p7_add_tree2 <= 25'(p7_add_tree1[0]) + 25'(p7_add_tree1[1]);
     end
   end

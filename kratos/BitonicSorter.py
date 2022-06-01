@@ -36,17 +36,19 @@ class BitonicSorter(Generator):
         self._idx_in = []
         for i in range(self.channel_num):
             self._data_in.append(self.input(f"data_in_{i}", self.data_width))
-            self._idx_in.append(self.input(f"idx_in_{i}", self.leaf_addrw + self.idx_width))
+            self._idx_in.append(self.input(f"idx_in_{i}", self.idx_width))
         self._query_first_in = self.input("query_first_in", 1)
         self._query_last_in = self.input("query_last_in", 1)
+        self._leaf_idx_in = self.input("leaf_idx_in", clog2(self.num_leaves))
 
         # outputs
         self._valid_out = self.output("valid_out", 1)
+        self._leaf_idx_out = self.output("leaf_idx_out", clog2(self.num_leaves))
         self._data_out = []
         self._idx_out = []
         for i in range(self.out_num):
             self._data_out.append(self.output(f"data_out_{i}", self.data_width))
-            self._idx_out.append(self.output(f"idx_out_{i}", self.leaf_addrw + self.idx_width))
+            self._idx_out.append(self.output(f"idx_out_{i}", self.idx_width))
         self._query_first_out = self.output("query_first_out", 1)
         self._query_last_out = self.output("query_last_out", 1)
 
@@ -75,7 +77,7 @@ class BitonicSorter(Generator):
                                      size=self.channel_num,
                                      explicit_array=True)
         self._stage0_idx = self.var("stage0_idx",
-                                        width=self.leaf_addrw + self.idx_width,
+                                        width=self.idx_width,
                                         size=self.channel_num,
                                         explicit_array=True)
         @always_ff((posedge, "clk"), (negedge, "rst_n"))
@@ -113,7 +115,7 @@ class BitonicSorter(Generator):
                                      size=self.channel_num,
                                      explicit_array=True)
         self._stage1_idx = self.var("stage1_idx",
-                                        width=self.leaf_addrw + self.idx_width,
+                                        width=self.idx_width,
                                         size=self.channel_num,
                                         explicit_array=True)
         @always_ff((posedge, "clk"), (negedge, "rst_n"))
@@ -151,7 +153,7 @@ class BitonicSorter(Generator):
                                      size=self.channel_num,
                                      explicit_array=True)
         self._stage2_idx = self.var("stage2_idx",
-                                        width=self.leaf_addrw + self.idx_width,
+                                        width=self.idx_width,
                                         size=self.channel_num,
                                         explicit_array=True)
         @always_ff((posedge, "clk"), (negedge, "rst_n"))
@@ -189,7 +191,7 @@ class BitonicSorter(Generator):
                                      size=self.out_num,
                                      explicit_array=True)
         self._stage3_idx = self.var("stage3_idx",
-                                        width=self.leaf_addrw + self.idx_width,
+                                        width=self.idx_width,
                                         size=self.out_num,
                                         explicit_array=True)
         @always_ff((posedge, "clk"), (negedge, "rst_n"))
@@ -227,7 +229,7 @@ class BitonicSorter(Generator):
                                      size=self.out_num,
                                      explicit_array=True)
         self._stage4_idx = self.var("stage4_idx",
-                                        width=self.leaf_addrw + self.idx_width,
+                                        width=self.idx_width,
                                         size=self.out_num,
                                         explicit_array=True)
         @always_ff((posedge, "clk"), (negedge, "rst_n"))
@@ -257,9 +259,9 @@ class BitonicSorter(Generator):
                                      size=self.out_num,
                                      explicit_array=True)
         self._stage5_idx = self.var("stage5_idx",
-                                        width=self.leaf_addrw + self.idx_width,
-                                        size=self.out_num,
-                                        explicit_array=True)
+                                    width=self.idx_width,
+                                    size=self.out_num,
+                                    explicit_array=True)
         @always_ff((posedge, "clk"), (negedge, "rst_n"))
         def sort_stage5(self):
             if ~self._rst_n:
@@ -282,11 +284,43 @@ class BitonicSorter(Generator):
         self.add_code(sort_stage5)
 
         self.wire(self._valid_out, self._stage5_valid)
-        # self.wire(self._data_out, self._stage5_data)
+        # self.wire(self._data_out, self._stage5_dacta)
         # self.wire(self._idx_out, self._stage5_idx)
         for i in range(self.out_num):
             self.wire(self._data_out[i], self._stage5_data[i])
             self.wire(self._idx_out[i], self._stage5_idx[i])
+
+
+        # leaf pipeline registers
+        self._leaf_idx_r0 = self.var("leaf_idx_r0", clog2(self.num_leaves))
+        self._leaf_idx_r1 = self.var("leaf_idx_r1", clog2(self.num_leaves))
+        self._leaf_idx_r2 = self.var("leaf_idx_r2", clog2(self.num_leaves))
+        self._leaf_idx_r3 = self.var("leaf_idx_r3", clog2(self.num_leaves))
+        self._leaf_idx_r4 = self.var("leaf_idx_r4", clog2(self.num_leaves))
+        @always_ff((posedge, "clk"), (negedge, "rst_n"))
+        def update_leaf_idx(self):
+            if ~self._rst_n:
+                self._leaf_idx_r0 = 0
+                self._leaf_idx_r1 = 0
+                self._leaf_idx_r2 = 0
+                self._leaf_idx_r3 = 0
+                self._leaf_idx_r4 = 0
+                self._leaf_idx_out = 0
+            else:
+                if self._valid_in:
+                    self._leaf_idx_r0 = self._leaf_idx_in
+                if self._stage0_valid:
+                    self._leaf_idx_r1 = self._leaf_idx_r0
+                if self._stage1_valid:
+                    self._leaf_idx_r2 = self._leaf_idx_r1
+                if self._stage2_valid:
+                    self._leaf_idx_r3 = self._leaf_idx_r2
+                if self._stage3_valid:
+                    self._leaf_idx_r4 = self._leaf_idx_r3
+                if self._stage4_valid:
+                    self._leaf_idx_out = self._leaf_idx_r4
+        self.add_code(update_leaf_idx)
+
 
 
 if __name__ == "__main__":

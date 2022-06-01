@@ -48,7 +48,7 @@ module top
     input logic [LEAF_SIZE-1:0]                             wbs_leaf_mem_web0,
     input logic [LEAF_ADDRW-1:0]                            wbs_leaf_mem_addr0,
     input logic [63:0]                                      wbs_leaf_mem_wleaf0,
-	output logic [(64*8)-1:0]                                     wbs_leaf_mem_rleaf0,
+	output logic [(64*8)-1:0]                               wbs_leaf_mem_rleaf0,
     input logic                                             wbs_best_arr_csb1,
     input logic [7:0]                                       wbs_best_arr_addr1,
     output logic [63:0]                                     wbs_best_arr_rdata1,

@@ -45,7 +45,7 @@ wire comparison_two;
 // 2nd 11 bits are the Median, for which we must store the entire 11 bits
 
 //IDX Storage
-always @ (clk) begin
+always @ (posedge clk) begin
 
     if (rst_n == 0) begin
         idx <= 3'b111; //-1 is an invalid index, this by default we know this to be untrue
@@ -61,7 +61,7 @@ end
 
 
 //Median Storage
-always @ (clk) begin
+always @ (posedge clk) begin
 
     if (rst_n == 0) begin
         median <= 0; //0 is an urealistic median, this by default we (likely) know this to be untrue. The -1 idx is the true debug test

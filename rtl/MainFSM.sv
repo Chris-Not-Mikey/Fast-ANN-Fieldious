@@ -347,6 +347,7 @@ module MainFSM #(
                 k0_query_last_in = 1'b1;
                 k0_query_patch = cur_query_patch0;
 
+                k1_exactfstrow = 1'b1;
                 k1_query_valid = 1'b1;
                 k1_query_last_in = 1'b1;
                 k1_query_patch = cur_query_patch1;

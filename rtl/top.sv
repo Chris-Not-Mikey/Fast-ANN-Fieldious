@@ -889,7 +889,7 @@ module top
         .query_valid        (k1_query_valid),
         .query_patch        (k1_query_patch),
         .dist_valid         (k1_dist_valid),
-        .leaf_idx_in        (k1_leaf_idx_in),
+        .leaf_idx_in        (k1_exactfstrow ?k0_leaf_idx_in :k1_leaf_idx_in), // a special case to reduce the number of SRAM reads
         .leaf_idx_out       (k1_leaf_idx_out),
         .p0_data            (k1_p0_data),
         .p1_data            (k1_p1_data),
@@ -944,11 +944,7 @@ module top
 
     always_ff @(posedge clk, negedge rst_n) begin
         if (~rst_n) k1_leaf_idx_in <= '0;
-        // a special case to reduce the number of SRAM reads
-        else if (k1_exactfstrow & (~leaf_mem_csb0) & leaf_mem_web0) begin
-            k1_leaf_idx_in <= leaf_mem_addr0;
-        end
-        else if (~k1_exactfstrow & (~leaf_mem_csb1)) begin
+        else if (~leaf_mem_csb1) begin
             k1_leaf_idx_in <= leaf_mem_addr1;
         end
     end

@@ -2015,7 +2015,7 @@ module LeavesMem
     input logic [LEAF_SIZE-1:0]                         web0,
     input logic [LEAF_ADDRW-1:0]                        addr0,
     input logic [PATCH_SIZE*DATA_WIDTH+IDX_WIDTH-1:0]   wleaf0,
-    output logic [63:0] [LEAF_SIZE-1:0]                 rleaf0,  // for wishbone
+    output logic [LEAF_SIZE-1:0] [63:0]                 rleaf0,  // for wishbone
     output logic [PATCH_SIZE-1:0] [DATA_WIDTH-1:0]      rpatch_data0 [LEAF_SIZE-1:0],
     output logic [IDX_WIDTH-1:0]                        rpatch_idx0 [LEAF_SIZE-1:0],
     input logic                                         csb1,

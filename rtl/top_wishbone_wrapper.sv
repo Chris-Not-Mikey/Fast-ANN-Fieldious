@@ -133,10 +133,16 @@ module top_wishbone_wrapper
         .clk(clkmux_clk),
         .rst_n(rstmux_rstn),
 
-        .load_kdtree(load_kdtree),
-        .fsm_start(fsm_start),
-        .fsm_done(fsm_done),
-        .send_best_arr(send_best_arr),
+        .io_load_kdtree(load_kdtree),
+        // .io_load_done(load_done),
+        .io_fsm_start(fsm_start),
+        .io_fsm_done(fsm_done),
+        .io_send_best_arr(send_best_arr),
+        // .io_send_done(send_done),
+
+        .wb_clk_i(1'b0),
+        .wb_rst_n_i(1'b1),
+        .wbs_fsm_start(1'b0),
 
         .io_clk(io_clk),
         .io_rst_n(io_rst_n),

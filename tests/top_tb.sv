@@ -16,7 +16,9 @@ module top_tb();
     logic                                   fsm_start;
     logic                                   fsm_done;
     logic                                   send_best_arr;
+    logic                                   send_done;
     logic                                   load_kdtree;
+    logic                                   load_done;
     logic                                   io_clk;
     logic                                   io_rst_n;
     logic                                   in_fifo_wenq;
@@ -46,10 +48,16 @@ module top_tb();
         .clk(clk),
         .rst_n(rst_n),
 
-        .load_kdtree(load_kdtree),
-        .fsm_start(fsm_start),
-        .fsm_done(fsm_done),
-        .send_best_arr(send_best_arr),
+        .io_load_kdtree(load_kdtree),
+        .io_load_done(load_done),
+        .io_fsm_start(fsm_start),
+        .io_fsm_done(fsm_done),
+        .io_send_best_arr(send_best_arr),
+        .io_send_done(send_done),
+
+        .wb_clk_i(1'b0),
+        .wb_rst_n_i(1'b1),
+        .wbs_fsm_start(1'b0),
 
         .io_clk(io_clk),
         .io_rst_n(io_rst_n),
@@ -151,9 +159,17 @@ module top_tb();
         // index
         // median
         for(int i=0; i<NUM_NODES*2; i=i+1) begin
-            @(negedge io_clk)
-            in_fifo_wenq = 1'b1;
-            scan_file = $fscanf(int_nodes_data_file, "%d\n", in_fifo_wdata[10:0]);
+            while(1) begin
+                @(negedge io_clk)
+                if (in_fifo_wfull_n) begin
+                    in_fifo_wenq = 1'b1;
+                    scan_file = $fscanf(int_nodes_data_file, "%d\n", in_fifo_wdata[10:0]);
+                    @(negedge io_clk)
+                    in_fifo_wenq = 1'b0;
+                    @(negedge io_clk);
+                    break;
+                end else in_fifo_wenq = 1'b0;
+            end
         end
         @(negedge io_clk)
         in_fifo_wenq = 0;
@@ -164,9 +180,17 @@ module top_tb();
         // each patch has 5 lines of data
         // and 1 line of patch index in the original image (for reconstruction)
         for(int i=0; i<NUM_LEAVES*6*8; i=i+1) begin
-            @(negedge io_clk)
-            in_fifo_wenq = 1'b1;
-            scan_file = $fscanf(leaves_data_file, "%d\n", in_fifo_wdata[10:0]);
+            while(1) begin
+                @(negedge io_clk)
+                if (in_fifo_wfull_n) begin
+                    in_fifo_wenq = 1'b1;
+                    scan_file = $fscanf(leaves_data_file, "%d\n", in_fifo_wdata[10:0]);
+                    @(negedge io_clk)
+                    in_fifo_wenq = 1'b0;
+                    @(negedge io_clk);
+                    break;
+                end else in_fifo_wenq = 1'b0;
+            end
         end
         @(negedge io_clk)
         in_fifo_wenq = 0;
@@ -179,9 +203,17 @@ module top_tb();
         // send query patches, 5 lines per query patch
         // each patch has 5 lines of data
         for(int i=0; i<NUM_QUERYS*5; i=i+1) begin
-            @(negedge io_clk)
-            in_fifo_wenq = 1'b1;
-            scan_file = $fscanf(query_data_file, "%d\n", in_fifo_wdata[10:0]);
+            while(1) begin
+                @(negedge io_clk)
+                if (in_fifo_wfull_n) begin
+                    in_fifo_wenq = 1'b1;
+                    scan_file = $fscanf(query_data_file, "%d\n", in_fifo_wdata[10:0]);
+                    @(negedge io_clk)
+                    in_fifo_wenq = 1'b0;
+                    @(negedge io_clk);
+                    break;
+                end else in_fifo_wenq = 1'b0;
+            end
         end
         @(negedge io_clk)
         in_fifo_wenq = 0;
@@ -189,7 +221,7 @@ module top_tb();
         $display("[T=%0t] Finished sending queries", $realtime);
         querytime = $realtime - simtime;
         
-
+        wait(load_done);
         #100;
         @(negedge io_clk) fsm_start = 1'b1;
         $display("[T=%0t] Start algorithm (ExactFstRow, SearchLeaf and ProcessRows)", $realtime);
@@ -206,23 +238,35 @@ module top_tb();
         simtime = $realtime;
         @(negedge io_clk) send_best_arr = 1'b0;
 
+        // #1000; // test for continuous and uncontinuous rempty_n
+
         for(int px=0; px<2; px=px+1) begin
             for(x=0; x<4; x=x+1) begin
                 // for(x=0; x<(ROW_SIZE/2/BLOCKING); x=x+1) begin  // for row_size = 24
                 for(y=0; y<COL_SIZE; y=y+1) begin
                     for(xi=0; xi<BLOCKING; xi=xi+1) begin
                         if ((x != 3) || (xi < 1)) begin  // for row_size = 26
-                            wait(out_fifo_rempty_n);
-                            @(negedge io_clk)
-                            out_fifo_deq = 1'b1;
-                            addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
-                            received_idx[addr] = out_fifo_rdata;
-                            @(posedge io_clk); #1;
+                            while(1) begin 
+                                @(negedge io_clk)
+                                if (out_fifo_rempty_n) begin
+                                    out_fifo_deq = 1'b1;
+                                    addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
+                                    received_idx[addr] = out_fifo_rdata;
+                                    // $display("addr %d, rdata %d", addr, out_fifo_rdata);
+                                    @(negedge io_clk)
+                                    out_fifo_deq = 1'b0;
+                                    @(negedge io_clk);
+                                    break;
+                                end else out_fifo_deq = 1'b0;
+                            end
                         end
                     end
                 end
             end
         end
+
+        @(negedge io_clk) out_fifo_deq = 1'b0;
+        // #1000;
 
         for(int px=0; px<2; px=px+1) begin
             for(x=0; x<4; x=x+1) begin
@@ -231,12 +275,18 @@ module top_tb();
                     for(xi=0; xi<BLOCKING; xi=xi+1) begin
                         for(int agg=0; agg<=1; agg=agg+1) begin  // most significant first
                             if ((x != 3) || (xi < 1)) begin  // for row_size = 26
-                                wait(out_fifo_rempty_n);
-                                @(negedge io_clk)
-                                out_fifo_deq = 1'b1;
-                                addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
-                                received_dist[addr][agg*DATA_WIDTH+:DATA_WIDTH] = out_fifo_rdata;
-                                @(posedge io_clk); #1;
+                                while(1) begin 
+                                    @(negedge io_clk)
+                                    if (out_fifo_rempty_n) begin
+                                        out_fifo_deq = 1'b1;
+                                        addr = px*ROW_SIZE/2 + y*ROW_SIZE + x*BLOCKING + xi;
+                                        received_dist[addr][agg*DATA_WIDTH+:DATA_WIDTH] = out_fifo_rdata;
+                                        @(negedge io_clk)
+                                        out_fifo_deq = 1'b0;
+                                        @(negedge io_clk);
+                                        break;
+                                    end else out_fifo_deq = 1'b0;
+                                end
                             end
                         end
                     end

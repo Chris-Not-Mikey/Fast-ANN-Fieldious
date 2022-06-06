@@ -450,7 +450,7 @@ wire comparison_two;
 // 2nd 11 bits are the Median, for which we must store the entire 11 bits
 
 //IDX Storage
-always @ (clk) begin
+always @ (posedge clk) begin
 
     if (rst_n == 0) begin
         idx <= 3'b111; //-1 is an invalid index, this by default we know this to be untrue
@@ -466,7 +466,7 @@ end
 
 
 //Median Storage
-always @ (clk) begin
+always @ (posedge clk) begin
 
     if (rst_n == 0) begin
         median <= 0; //0 is an urealistic median, this by default we (likely) know this to be untrue. The -1 idx is the true debug test
@@ -3371,6 +3371,125 @@ endmodule   // RunningMin
 
 
 
+// OpenRAM SRAM model
+// Words: 256
+// Word size: 32
+// Write size: 8
+
+module sky130_sram_1kbyte_1rw1r_32x256_8(
+`ifdef USE_POWER_PINS
+    vccd1,
+    vssd1,
+`endif
+// Port 0: RW
+    clk0,csb0,web0,wmask0,addr0,din0,dout0,
+// Port 1: R
+    clk1,csb1,addr1,dout1
+  );
+
+  parameter NUM_WMASKS = 4 ;
+  parameter DATA_WIDTH = 32 ;
+  parameter ADDR_WIDTH = 8 ;
+  parameter RAM_DEPTH = 1 << ADDR_WIDTH;
+  // FIXME: This delay is arbitrary.
+  parameter DELAY = 3 ;
+  parameter VERBOSE = 0 ; //Set to 0 to only display warnings
+  parameter T_HOLD = 1 ; //Delay to hold dout value after posedge. Value is arbitrary
+
+`ifdef USE_POWER_PINS
+    inout vccd1;
+    inout vssd1;
+`endif
+  input  clk0; // clock
+  input   csb0; // active low chip select
+  input  web0; // active low write control
+  input [NUM_WMASKS-1:0]   wmask0; // write mask
+  input [ADDR_WIDTH-1:0]  addr0;
+  input [DATA_WIDTH-1:0]  din0;
+  output [DATA_WIDTH-1:0] dout0;
+  input  clk1; // clock
+  input   csb1; // active low chip select
+  input [ADDR_WIDTH-1:0]  addr1;
+  output [DATA_WIDTH-1:0] dout1;
+
+  reg  csb0_reg;
+  reg  web0_reg;
+  reg [NUM_WMASKS-1:0]   wmask0_reg;
+  reg [ADDR_WIDTH-1:0]  addr0_reg;
+  reg [DATA_WIDTH-1:0]  din0_reg;
+  reg [DATA_WIDTH-1:0]  dout0;
+
+
+  reg [DATA_WIDTH-1:0]    mem [0:RAM_DEPTH-1];
+
+  // All inputs are registers
+  always @(posedge clk0)
+  begin
+    csb0_reg = csb0;
+    web0_reg = web0;
+    wmask0_reg = wmask0;
+    addr0_reg = addr0;
+    din0_reg = din0;
+    #(T_HOLD) dout0 = 32'bx;
+    if ( !csb0_reg && web0_reg && VERBOSE ) 
+      $display($time," Reading %m addr0=%b dout0=%b",addr0_reg,mem[addr0_reg]);
+    if ( !csb0_reg && !web0_reg && VERBOSE )
+      $display($time," Writing %m addr0=%b din0=%b wmask0=%b",addr0_reg,din0_reg,wmask0_reg);
+  end
+
+  reg  csb1_reg;
+  reg [ADDR_WIDTH-1:0]  addr1_reg;
+  reg [DATA_WIDTH-1:0]  dout1;
+
+  // All inputs are registers
+  always @(posedge clk1)
+  begin
+    csb1_reg = csb1;
+    addr1_reg = addr1;
+    if (!csb0 && !web0 && !csb1 && (addr0 == addr1))
+         $display($time," WARNING: Writing and reading addr0=%b and addr1=%b simultaneously!",addr0,addr1);
+    #(T_HOLD) dout1 = 32'bx;
+    if ( !csb1_reg && VERBOSE ) 
+      $display($time," Reading %m addr1=%b dout1=%b",addr1_reg,mem[addr1_reg]);
+  end
+
+
+
+  // Memory Write Block Port 0
+  // Write Operation : When web0 = 0, csb0 = 0
+  always @ (negedge clk0)
+  begin : MEM_WRITE0
+    if ( !csb0_reg && !web0_reg ) begin
+        if (wmask0_reg[0])
+                mem[addr0_reg][7:0] = din0_reg[7:0];
+        if (wmask0_reg[1])
+                mem[addr0_reg][15:8] = din0_reg[15:8];
+        if (wmask0_reg[2])
+                mem[addr0_reg][23:16] = din0_reg[23:16];
+        if (wmask0_reg[3])
+                mem[addr0_reg][31:24] = din0_reg[31:24];
+    end
+  end
+
+  // Memory Read Block Port 0
+  // Read Operation : When web0 = 1, csb0 = 0
+  always @ (negedge clk0)
+  begin : MEM_READ0
+    if (!csb0_reg && web0_reg)
+       dout0 <= #(DELAY) mem[addr0_reg];
+  end
+
+  // Memory Read Block Port 1
+  // Read Operation : When web1 = 1, csb1 = 0
+  always @ (negedge clk1)
+  begin : MEM_READ1
+    if (!csb1_reg)
+       dout1 <= #(DELAY) mem[addr1_reg];
+  end
+
+endmodule
+
+
 module SortedList (
   input logic clk,
   input logic insert,
@@ -4271,12 +4390,19 @@ module top
 
     // testbench use
     // might need to add clock domain crossing modules for these controls
-    input logic                                             load_kdtree,
-    output logic                                            load_done,
-    input logic                                             fsm_start,
-    output logic                                            fsm_done,
-    input logic                                             send_best_arr,
-    output logic                                            send_done,
+    input logic                                             io_load_kdtree,
+    input logic                                             io_fsm_start,
+    input logic                                             io_send_best_arr,
+    output logic                                            io_load_done,
+    output logic                                            io_fsm_done,
+    output logic                                            io_send_done,
+
+    input logic                                             wb_clk_i,
+    input logic                                             wb_rst_n_i,
+    input logic                                             wbs_fsm_start,
+    output logic                                            wbs_load_done,
+    output logic                                            wbs_fsm_done,
+    output logic                                            wbs_send_done,
 
     // FIFO
     input logic                                             io_clk,
@@ -4312,12 +4438,30 @@ module top
 
 );
 
-    logic                                                   load_kdtree_r;
+    logic                                                   in_fifo_wenq_r;
+    logic [DATA_WIDTH-1:0]                                  in_fifo_wdata_r;
+    logic                                                   in_fifo_wfull_n_w;
+    logic                                                   out_fifo_deq_r;
+    logic [DATA_WIDTH-1:0]                                  out_fifo_rdata_w;
+    logic                                                   out_fifo_rempty_n_w;
+    
     logic                                                   load_done_w;
-    logic                                                   fsm_start_r;
     logic                                                   fsm_done_w;
-    logic                                                   send_best_arr_r;
     logic                                                   send_done_w;
+    logic                                                   io_load_kdtree_r;
+    logic                                                   io_fsm_start_r;
+    logic                                                   io_send_best_arr_r;
+    logic                                                   io_load_kdtree_synced;
+    logic                                                   io_load_done_synced;
+    logic                                                   io_fsm_start_synced;
+    logic                                                   io_fsm_done_synced;
+    logic                                                   io_send_best_arr_synced;
+    logic                                                   io_send_done_synced;
+    logic                                                   wbs_fsm_start_r;
+    logic                                                   wbs_fsm_start_synced;
+    logic                                                   wbs_load_done_synced;
+    logic                                                   wbs_fsm_done_synced;
+    logic                                                   wbs_send_done_synced;
 
     logic                                                   in_fifo_deq;
     logic [DATA_WIDTH-1:0]                                  in_fifo_rdata;
@@ -4559,24 +4703,136 @@ module top
     logic [LEAF_ADDRW-1:0]                                  computes1_leaf_idx [K-1:0];
 
 
-    always_ff @(posedge clk, negedge rst_n) begin
-        if (~rst_n) begin
-            load_kdtree_r <= '0;
-            fsm_start_r <= '0;
-            send_best_arr_r <= '0;
-            load_done <= '0;
-            fsm_done <= '0;
-            send_done <= '0;
+    // input and output port registers
+    always_ff @(posedge io_clk, negedge io_rst_n) begin
+        if (~io_rst_n) begin
+            io_load_kdtree_r <= '0;
+            io_fsm_start_r <= '0;
+            io_send_best_arr_r <= '0;
+            io_load_done <= '0;
+            io_fsm_done <= '0;
+            io_send_done <= '0;
+            in_fifo_wenq_r <= '0;
+            in_fifo_wdata_r <= '0;
+            in_fifo_wfull_n <= '0;
+            out_fifo_deq_r <= '0;
+            out_fifo_rdata <= '0;
+            out_fifo_rempty_n <= '0;
         end else begin
-            load_kdtree_r <= load_kdtree;
-            fsm_start_r <= fsm_start;
-            send_best_arr_r <= send_best_arr;
-            load_done <= load_done_w;
-            fsm_done <= fsm_done_w;
-            send_done <= send_done_w;
+            io_load_kdtree_r <= io_load_kdtree;
+            io_fsm_start_r <= io_fsm_start;
+            io_send_best_arr_r <= io_send_best_arr;
+            io_load_done <= io_load_done_synced;
+            io_fsm_done <= io_fsm_done_synced;
+            io_send_done <= io_send_done_synced;
+            in_fifo_wenq_r <= in_fifo_wenq;
+            in_fifo_wdata_r <= in_fifo_wdata;
+            in_fifo_wfull_n <= in_fifo_wfull_n_w;
+            out_fifo_deq_r <= out_fifo_deq;
+            out_fifo_rdata <= out_fifo_rdata_w;
+            out_fifo_rempty_n <= out_fifo_rempty_n_w;
+        end
+    end
+    
+    always_ff @(posedge wb_clk_i, negedge wb_rst_n_i) begin
+        if (~wb_rst_n_i) begin
+            wbs_fsm_start_r <= '0;
+            wbs_load_done <= '0;
+            wbs_fsm_done <= '0;
+            wbs_send_done <= '0;
+        end else begin
+            wbs_fsm_start_r <= wbs_fsm_start;
+            wbs_load_done <= wbs_load_done_synced;
+            wbs_fsm_done <= wbs_fsm_done_synced;
+            wbs_send_done <= wbs_send_done_synced;
         end
     end
 
+    // FSM pulses CDC for io_clk <=> clk
+    SyncPulse io_fsm_start_sync (
+        .sCLK(io_clk),
+        .sRST(io_rst_n),  // not needed
+        .sEN(io_fsm_start_r),
+        .dCLK(clk),
+        .dPulse(io_fsm_start_synced)
+    );
+
+    SyncPulse io_load_kdtree_sync (
+        .sCLK(io_clk),
+        .sRST(io_rst_n),  // not needed
+        .sEN(io_load_kdtree_r),
+        .dCLK(clk),
+        .dPulse(io_load_kdtree_synced)
+    );
+
+    SyncPulse io_send_best_arr_sync (
+        .sCLK(io_clk),
+        .sRST(io_rst_n),  // not needed
+        .sEN(io_send_best_arr_r),
+        .dCLK(clk),
+        .dPulse(io_send_best_arr_synced)
+    );
+
+    SyncPulse io_fsm_done_sync (
+        .sCLK(clk),
+        .sRST(rst_n),  // not needed
+        .sEN(fsm_done_w),
+        .dCLK(io_clk),
+        .dPulse(io_fsm_done_synced)
+    );
+
+    SyncPulse io_load_done_sync (
+        .sCLK(clk),
+        .sRST(rst_n),  // not needed
+        .sEN(load_done_w),
+        .dCLK(io_clk),
+        .dPulse(io_load_done_synced)
+    );
+
+    SyncPulse io_send_done_sync (
+        .sCLK(clk),
+        .sRST(rst_n),  // not needed
+        .sEN(send_done_w),
+        .dCLK(io_clk),
+        .dPulse(io_send_done_synced)
+    );
+
+
+    // FSM pulses CDC for wb_clk <=> clk
+    SyncPulse wbs_fsm_start_sync (
+        .sCLK(wb_clk_i),
+        .sRST(wb_rst_n_i),  // not needed
+        .sEN(wbs_fsm_start_r),
+        .dCLK(clk),
+        .dPulse(wbs_fsm_start_synced)
+    );
+
+    SyncPulse wbs_fsm_done_sync (
+        .sCLK(clk),
+        .sRST(rst_n),  // not needed
+        .sEN(fsm_done_w),
+        .dCLK(wb_clk_i),
+        .dPulse(wbs_fsm_done_synced)
+    );
+
+    SyncPulse wbs_load_done_sync (
+        .sCLK(clk),
+        .sRST(rst_n),  // not needed
+        .sEN(load_done_w),
+        .dCLK(wb_clk_i),
+        .dPulse(wbs_load_done_synced)
+    );
+
+    SyncPulse wbs_send_done_sync (
+        .sCLK(clk),
+        .sRST(rst_n),  // not needed
+        .sEN(send_done_w),
+        .dCLK(wb_clk_i),
+        .dPulse(wbs_send_done_synced)
+    );
+
+
+    // main controller
     MainFSM #(
         .DATA_WIDTH                             (DATA_WIDTH),
         .LEAF_SIZE                              (LEAF_SIZE),
@@ -4589,12 +4845,12 @@ module top
     ) main_fsm_inst (
         .clk                                    (clk),
         .rst_n                                  (rst_n),
-        .load_kdtree                            (load_kdtree_r),
+        .load_kdtree                            (io_load_kdtree_synced),
         .load_done                              (load_done_w),
-        .fsm_start                              (fsm_start_r),
+        .fsm_start                              (io_fsm_start_synced | wbs_fsm_start_synced),
         .fsm_done                               (fsm_done_w),
         .send_done                              (send_done_w),
-        .send_best_arr                          (send_best_arr_r),
+        .send_best_arr                          (io_send_best_arr_synced),
         .agg_receiver_enq                       (agg_receiver_enq),
         .agg_receiver_full_n                    (agg_receiver_full_n),
         .agg_change_fetch_width                 (agg_change_fetch_width),
@@ -4659,9 +4915,9 @@ module top
     ) input_fifo_inst (
         .sCLK               (io_clk),
         .sRST               (io_rst_n),
-        .sENQ               (in_fifo_wenq),
-        .sD_IN              (in_fifo_wdata),
-        .sFULL_N            (in_fifo_wfull_n),
+        .sENQ               (in_fifo_wenq_r),
+        .sD_IN              (in_fifo_wdata_r),
+        .sFULL_N            (in_fifo_wfull_n_w),
         .dCLK               (clk),
         .dDEQ               (in_fifo_deq),
         .dD_OUT             (in_fifo_rdata),
@@ -4717,9 +4973,9 @@ module top
         .sD_IN              (out_fifo_wdata),
         .sFULL_N            (out_fifo_wfull_n),
         .dCLK               (io_clk),
-        .dDEQ               (out_fifo_deq),
-        .dD_OUT             (out_fifo_rdata),
-        .dEMPTY_N           (out_fifo_rempty_n)
+        .dDEQ               (out_fifo_deq_r),
+        .dD_OUT             (out_fifo_rdata_w),
+        .dEMPTY_N           (out_fifo_rempty_n_w)
     );
 
     always_comb begin

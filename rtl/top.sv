@@ -5,8 +5,8 @@ module top
     parameter IDX_WIDTH = 9, // index of patch in the original image
     parameter LEAF_SIZE = 8,
     parameter PATCH_SIZE = 5, //excluding the index
-    parameter ROW_SIZE = 26,
-    parameter COL_SIZE = 19,
+    parameter ROW_SIZE = 32,
+    parameter COL_SIZE = 16,
     parameter NUM_QUERYS = ROW_SIZE * COL_SIZE,
     parameter K = 4,
     parameter BEST_ARRAY_K = 1,

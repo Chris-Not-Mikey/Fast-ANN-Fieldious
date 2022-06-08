@@ -254,13 +254,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p0_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p0_data_in_r[3'(p)];
+        p0_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p0_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p0_diff2[3'(p)] = 22'(p0_patch_diff[3'(p)]) * 22'(p0_patch_diff[3'(p)]);
+      p0_diff2[3'(p)] = 22'(signed'(p0_patch_diff[3'(p)])) * 22'(signed'(p0_patch_diff[3'(p)]));
     end
 end
 
@@ -351,13 +351,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p1_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p1_data_in_r[3'(p)];
+        p1_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p1_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p1_diff2[3'(p)] = 22'(p1_patch_diff[3'(p)]) * 22'(p1_patch_diff[3'(p)]);
+      p1_diff2[3'(p)] = 22'(signed'(p1_patch_diff[3'(p)])) * 22'(signed'(p1_patch_diff[3'(p)]));
     end
 end
 
@@ -448,13 +448,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p2_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p2_data_in_r[3'(p)];
+        p2_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p2_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p2_diff2[3'(p)] = 22'(p2_patch_diff[3'(p)]) * 22'(p2_patch_diff[3'(p)]);
+      p2_diff2[3'(p)] = 22'(signed'(p2_patch_diff[3'(p)])) * 22'(signed'(p2_patch_diff[3'(p)]));
     end
 end
 
@@ -545,13 +545,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p3_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p3_data_in_r[3'(p)];
+        p3_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p3_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p3_diff2[3'(p)] = 22'(p3_patch_diff[3'(p)]) * 22'(p3_patch_diff[3'(p)]);
+      p3_diff2[3'(p)] = 22'(signed'(p3_patch_diff[3'(p)])) * 22'(signed'(p3_patch_diff[3'(p)]));
     end
 end
 
@@ -642,13 +642,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p4_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p4_data_in_r[3'(p)];
+        p4_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p4_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p4_diff2[3'(p)] = 22'(p4_patch_diff[3'(p)]) * 22'(p4_patch_diff[3'(p)]);
+      p4_diff2[3'(p)] = 22'(signed'(p4_patch_diff[3'(p)])) * 22'(signed'(p4_patch_diff[3'(p)]));
     end
 end
 
@@ -739,13 +739,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p5_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p5_data_in_r[3'(p)];
+        p5_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p5_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p5_diff2[3'(p)] = 22'(p5_patch_diff[3'(p)]) * 22'(p5_patch_diff[3'(p)]);
+      p5_diff2[3'(p)] = 22'(signed'(p5_patch_diff[3'(p)])) * 22'(signed'(p5_patch_diff[3'(p)]));
     end
 end
 
@@ -836,13 +836,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p6_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p6_data_in_r[3'(p)];
+        p6_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p6_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p6_diff2[3'(p)] = 22'(p6_patch_diff[3'(p)]) * 22'(p6_patch_diff[3'(p)]);
+      p6_diff2[3'(p)] = 22'(signed'(p6_patch_diff[3'(p)])) * 22'(signed'(p6_patch_diff[3'(p)]));
     end
 end
 
@@ -933,13 +933,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p7_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p7_data_in_r[3'(p)];
+        p7_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p7_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p7_diff2[3'(p)] = 22'(p7_patch_diff[3'(p)]) * 22'(p7_patch_diff[3'(p)]);
+      p7_diff2[3'(p)] = 22'(signed'(p7_patch_diff[3'(p)])) * 22'(signed'(p7_patch_diff[3'(p)]));
     end
 end
 

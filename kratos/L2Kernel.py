@@ -45,9 +45,6 @@ class L2Kernel(Generator):
 
 
         # pipeline registers
-        # self._query_first_shft = self.var(f"query_first_shft", 5)
-        # self._query_last_shft = self.var(f"query_last_shft", 5)
-        # self._valid_shft = self.var(f"valid_shft", 5)
         self._query_first_shft = self.var(f"query_first_shft", 6)
         self._query_last_shft = self.var(f"query_last_shft", 6)
         self._valid_shft = self.var(f"valid_shft", 6)
@@ -93,8 +90,6 @@ class L2Kernel(Generator):
                     self._leaf_idx_r3 = self._leaf_idx_r2
                 if self._valid_shft[3]:
                     self._leaf_idx_r4 = self._leaf_idx_r3
-                # if self._valid_shft[3]:
-                #     self._leaf_idx_out = self._leaf_idx_r3
                 if self._valid_shft[4]:
                     self._leaf_idx_out = self._leaf_idx_r4
         self.add_code(update_leaf_idx)
@@ -152,8 +147,6 @@ class L2Kernel(Generator):
                         self._idx_r3 = self._idx_r2
                     if self._valid_shft[3]:
                         self._idx_r4 = self._idx_r3
-                    # if self._valid_shft[3]:
-                    #     self._idx_out = self._idx_r3
                     if self._valid_shft[4]:
                         self._idx_out = self._idx_r4
             self.add_code(update_idx)
@@ -185,7 +178,6 @@ class L2Kernel(Generator):
                         self._patch_diff[p] = 0
                 elif self._valid_shft[0]:
                     for p in range(self.pca_size):
-                        # self._patch_diff[p] = self._query_patch[p] - self._data[p]
                         self._patch_diff[p] = self._query_patch_in_r[p] - self._data_in_r[p]
             self.add_code(update_patch_diff)
 

@@ -3,8 +3,8 @@ module top_tb();
     parameter DATA_WIDTH = 11;
     parameter LEAF_SIZE = 8;
     parameter PATCH_SIZE = 5;
-    parameter ROW_SIZE = 26;
-    parameter COL_SIZE = 19;
+    parameter ROW_SIZE = 32;
+    parameter COL_SIZE = 16;
     parameter NUM_QUERYS = ROW_SIZE * COL_SIZE;
     parameter NUM_LEAVES = 64;
     parameter NUM_NODES = NUM_LEAVES - 1;
@@ -241,11 +241,11 @@ module top_tb();
         // #1000; // test for continuous and uncontinuous rempty_n
 
         for(int px=0; px<2; px=px+1) begin
-            for(x=0; x<4; x=x+1) begin
-                // for(x=0; x<(ROW_SIZE/2/BLOCKING); x=x+1) begin  // for row_size = 24
+            //for(x=0; x<4; x=x+1) begin  // for row_size = 26
+            for(x=0; x<(ROW_SIZE/2/BLOCKING); x=x+1) begin
                 for(y=0; y<COL_SIZE; y=y+1) begin
                     for(xi=0; xi<BLOCKING; xi=xi+1) begin
-                        if ((x != 3) || (xi < 1)) begin  // for row_size = 26
+                        //if ((x != 3) || (xi < 1)) begin  // for row_size = 26
                             while(1) begin 
                                 @(negedge io_clk)
                                 if (out_fifo_rempty_n) begin
@@ -259,7 +259,7 @@ module top_tb();
                                     break;
                                 end else out_fifo_deq = 1'b0;
                             end
-                        end
+                        // end
                     end
                 end
             end
@@ -269,12 +269,12 @@ module top_tb();
         // #1000;
 
         for(int px=0; px<2; px=px+1) begin
-            for(x=0; x<4; x=x+1) begin
-                // for(x=0; x<(ROW_SIZE/2/BLOCKING); x=x+1) begin  // for row_size = 24
+            //for(x=0; x<4; x=x+1) begin  // for row_size = 26
+            for(x=0; x<(ROW_SIZE/2/BLOCKING); x=x+1) begin
                 for(y=0; y<COL_SIZE; y=y+1) begin
                     for(xi=0; xi<BLOCKING; xi=xi+1) begin
                         for(int agg=0; agg<=1; agg=agg+1) begin  // most significant first
-                            if ((x != 3) || (xi < 1)) begin  // for row_size = 26
+                            // if ((x != 3) || (xi < 1)) begin  // for row_size = 26
                                 while(1) begin 
                                     @(negedge io_clk)
                                     if (out_fifo_rempty_n) begin
@@ -287,7 +287,7 @@ module top_tb();
                                         break;
                                     end else out_fifo_deq = 1'b0;
                                 end
-                            end
+                            // end
                         end
                     end
                 end

@@ -559,13 +559,13 @@ module MainFSM #(
                 k1_query_patch = cur_query_patch1;
             end
 
-            // wait 12 more cycles for the pipeline to flush
-            // 5 cycles for l2_k0
+            // wait 13 more cycles for the pipeline to flush
+            // 6 cycles for l2_k0
             // 1 cycles for running min
             // 6 cycles for sorter
             SLPR8: begin
                 counter_en = 1'b1;
-                counter_in = 11;
+                counter_in = 12;
                 if (counter_done) begin
                     nextState = Idle;
                     fsm_done = 1'b1;

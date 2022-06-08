@@ -1268,13 +1268,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p0_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p0_data_in_r[3'(p)];
+        p0_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p0_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p0_diff2[3'(p)] = 22'(p0_patch_diff[3'(p)]) * 22'(p0_patch_diff[3'(p)]);
+      p0_diff2[3'(p)] = 22'(signed'(p0_patch_diff[3'(p)])) * 22'(signed'(p0_patch_diff[3'(p)]));
     end
 end
 
@@ -1365,13 +1365,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p1_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p1_data_in_r[3'(p)];
+        p1_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p1_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p1_diff2[3'(p)] = 22'(p1_patch_diff[3'(p)]) * 22'(p1_patch_diff[3'(p)]);
+      p1_diff2[3'(p)] = 22'(signed'(p1_patch_diff[3'(p)])) * 22'(signed'(p1_patch_diff[3'(p)]));
     end
 end
 
@@ -1462,13 +1462,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p2_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p2_data_in_r[3'(p)];
+        p2_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p2_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p2_diff2[3'(p)] = 22'(p2_patch_diff[3'(p)]) * 22'(p2_patch_diff[3'(p)]);
+      p2_diff2[3'(p)] = 22'(signed'(p2_patch_diff[3'(p)])) * 22'(signed'(p2_patch_diff[3'(p)]));
     end
 end
 
@@ -1559,13 +1559,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p3_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p3_data_in_r[3'(p)];
+        p3_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p3_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p3_diff2[3'(p)] = 22'(p3_patch_diff[3'(p)]) * 22'(p3_patch_diff[3'(p)]);
+      p3_diff2[3'(p)] = 22'(signed'(p3_patch_diff[3'(p)])) * 22'(signed'(p3_patch_diff[3'(p)]));
     end
 end
 
@@ -1656,13 +1656,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p4_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p4_data_in_r[3'(p)];
+        p4_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p4_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p4_diff2[3'(p)] = 22'(p4_patch_diff[3'(p)]) * 22'(p4_patch_diff[3'(p)]);
+      p4_diff2[3'(p)] = 22'(signed'(p4_patch_diff[3'(p)])) * 22'(signed'(p4_patch_diff[3'(p)]));
     end
 end
 
@@ -1753,13 +1753,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p5_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p5_data_in_r[3'(p)];
+        p5_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p5_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p5_diff2[3'(p)] = 22'(p5_patch_diff[3'(p)]) * 22'(p5_patch_diff[3'(p)]);
+      p5_diff2[3'(p)] = 22'(signed'(p5_patch_diff[3'(p)])) * 22'(signed'(p5_patch_diff[3'(p)]));
     end
 end
 
@@ -1850,13 +1850,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p6_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p6_data_in_r[3'(p)];
+        p6_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p6_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p6_diff2[3'(p)] = 22'(p6_patch_diff[3'(p)]) * 22'(p6_patch_diff[3'(p)]);
+      p6_diff2[3'(p)] = 22'(signed'(p6_patch_diff[3'(p)])) * 22'(signed'(p6_patch_diff[3'(p)]));
     end
 end
 
@@ -1947,13 +1947,13 @@ always_ff @(posedge clk, negedge rst_n) begin
   end
   else if (valid_shft[0]) begin
     for (int unsigned p = 0; p < 5; p += 1) begin
-        p7_patch_diff[3'(p)] <= query_patch_in_r[3'(p)] - p7_data_in_r[3'(p)];
+        p7_patch_diff[3'(p)] <= signed'(query_patch_in_r[3'(p)]) - signed'(p7_data_in_r[3'(p)]);
       end
   end
 end
 always_comb begin
   for (int unsigned p = 0; p < 5; p += 1) begin
-      p7_diff2[3'(p)] = 22'(p7_patch_diff[3'(p)]) * 22'(p7_patch_diff[3'(p)]);
+      p7_diff2[3'(p)] = 22'(signed'(p7_patch_diff[3'(p)])) * 22'(signed'(p7_patch_diff[3'(p)]));
     end
 end
 
@@ -2067,8 +2067,8 @@ module MainFSM #(
     parameter DATA_WIDTH = 11,
     parameter LEAF_SIZE = 8,
     parameter PATCH_SIZE = 5,
-    parameter ROW_SIZE = 26,
-    parameter COL_SIZE = 19,
+    parameter ROW_SIZE = 32,
+    parameter COL_SIZE = 16,
     parameter NUM_QUERYS = ROW_SIZE * COL_SIZE,
     parameter K = 4,
     parameter NUM_LEAVES = 64,
@@ -2412,6 +2412,7 @@ module MainFSM #(
                 k0_query_last_in = 1'b1;
                 k0_query_patch = cur_query_patch0;
 
+                k1_exactfstrow = 1'b1;
                 k1_query_valid = 1'b1;
                 k1_query_last_in = 1'b1;
                 k1_query_patch = cur_query_patch1;
@@ -2623,13 +2624,13 @@ module MainFSM #(
                 k1_query_patch = cur_query_patch1;
             end
 
-            // wait 12 more cycles for the pipeline to flush
-            // 5 cycles for l2_k0
+            // wait 13 more cycles for the pipeline to flush
+            // 6 cycles for l2_k0
             // 1 cycles for running min
             // 6 cycles for sorter
             SLPR8: begin
                 counter_en = 1'b1;
-                counter_in = 11;
+                counter_in = 12;
                 if (counter_done) begin
                     nextState = Idle;
                     fsm_done = 1'b1;
@@ -4375,8 +4376,8 @@ module top
     parameter IDX_WIDTH = 9, // index of patch in the original image
     parameter LEAF_SIZE = 8,
     parameter PATCH_SIZE = 5, //excluding the index
-    parameter ROW_SIZE = 26,
-    parameter COL_SIZE = 19,
+    parameter ROW_SIZE = 32,
+    parameter COL_SIZE = 16,
     parameter NUM_QUERYS = ROW_SIZE * COL_SIZE,
     parameter K = 4,
     parameter BEST_ARRAY_K = 1,
@@ -5259,7 +5260,7 @@ module top
         .query_valid        (k1_query_valid),
         .query_patch        (k1_query_patch),
         .dist_valid         (k1_dist_valid),
-        .leaf_idx_in        (k1_leaf_idx_in),
+        .leaf_idx_in        (k1_exactfstrow ?k0_leaf_idx_in :k1_leaf_idx_in), // a special case to reduce the number of SRAM reads
         .leaf_idx_out       (k1_leaf_idx_out),
         .p0_data            (k1_p0_data),
         .p1_data            (k1_p1_data),
@@ -5314,11 +5315,7 @@ module top
 
     always_ff @(posedge clk, negedge rst_n) begin
         if (~rst_n) k1_leaf_idx_in <= '0;
-        // a special case to reduce the number of SRAM reads
-        else if (k1_exactfstrow & (~leaf_mem_csb0) & leaf_mem_web0) begin
-            k1_leaf_idx_in <= leaf_mem_addr0;
-        end
-        else if (~k1_exactfstrow & (~leaf_mem_csb1)) begin
+        else if (~leaf_mem_csb1) begin
             k1_leaf_idx_in <= leaf_mem_addr1;
         end
     end
@@ -5416,8 +5413,8 @@ module wbsCtrl
     parameter IDX_WIDTH = 9, // index of patch in the original image
     parameter LEAF_SIZE = 8,
     parameter PATCH_SIZE = 5, //excluding the index
-    parameter ROW_SIZE = 26,
-    parameter COL_SIZE = 19,
+    parameter ROW_SIZE = 32,
+    parameter COL_SIZE = 16,
     parameter NUM_QUERYS = ROW_SIZE * COL_SIZE,
     parameter K = 4,
     parameter NUM_LEAVES = 64,
